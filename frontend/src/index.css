@@ -1,0 +1,46 @@
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: all;
+}
+
+
+@keyframes orbit-r72-cw {
+  0%   { transform: rotate(0deg)   translateX(136px) rotate(-0deg); }
+  25%  { transform: rotate(90deg)  translateX(136px) rotate(-90deg); }
+  50%  { transform: rotate(180deg) translateX(136px) rotate(-180deg); }
+  75%  { transform: rotate(270deg) translateX(136px) rotate(-270deg); }
+  100% { transform: rotate(360deg) translateX(136px) rotate(-360deg); }
+}
+
+@keyframes orbit-r96-ccw {
+  0%   { transform: rotate(0deg)    translateX(154px) rotate(0deg); }
+  25%  { transform: rotate(-90deg)  translateX(154px) rotate(90deg); }
+  50%  { transform: rotate(-180deg) translateX(154px) rotate(180deg); }
+  75%  { transform: rotate(-270deg) translateX(154px) rotate(270deg); }
+  100% { transform: rotate(-360deg) translateX(154px) rotate(360deg); }
+}
+
+@keyframes orbit-r84-cw {
+  0%   { transform: rotate(0deg)   translateX(120px) rotate(-0deg); }
+  25%  { transform: rotate(90deg)  translateX(120px) rotate(-90deg); }
+  50%  { transform: rotate(180deg) translateX(120px) rotate(-180deg); }
+  75%  { transform: rotate(270deg) translateX(120px) rotate(-270deg); }
+  100% { transform: rotate(360deg) translateX(120px) rotate(-360deg); }
+}
+
+.orbit-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.orbit-item {
+  transform-origin: center;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.orbit-top { animation-name: orbit-r72-cw; animation-duration: 12s; }
+.orbit-left { animation-name: orbit-r96-ccw; animation-duration: 14s; }
+.orbit-bottom { animation-name: orbit-r84-cw; animation-duration: 16s; }
