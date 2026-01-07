@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { 
-  LayoutDashboard, ClipboardList, QrCode, TruckIcon, 
-  MessageSquare, Clock, CheckCircle, AlertCircle, CreditCard,
-  LogOut, Menu, X, Upload, Sun, Moon
+  LayoutDashboard, PlusCircle, Package, MapPin, Clock, 
+  History, CreditCard, FileText, MessageSquare, User,
+  LogOut, Menu, X, Bell, Sun, Moon
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 
-const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
+const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -17,16 +17,16 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
   }
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/staff' },
-    { icon: ClipboardList, label: 'My Tasks', path: '/dashboard/staff/tasks' },
-    { icon: Clock, label: 'Pending Orders', path: '/dashboard/staff/orders/pending' },
-    { icon: AlertCircle, label: 'In Progress', path: '/dashboard/staff/orders/in-progress' },
-    { icon: CheckCircle, label: 'Completed Orders', path: '/dashboard/staff/orders/completed' },
-    { icon: TruckIcon, label: 'Deliveries', path: '/dashboard/staff/deliveries' },
-    { icon: QrCode, label: 'Scan QR', path: '/dashboard/staff/scan' },
-    { icon: Upload, label: 'Upload Proof', path: '/dashboard/staff/upload-proof' },
-    { icon: CreditCard, label: 'Walk-in Payments', path: '/dashboard/staff/payments' },
-    { icon: MessageSquare, label: 'Messages', path: '/dashboard/staff/messages' }
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/client' },
+    { icon: PlusCircle, label: 'New Order', path: '/dashboard/client/new-order' },
+    { icon: Package, label: 'Active Orders', path: '/dashboard/client/orders/active' },
+    { icon: Clock, label: 'Track Order', path: '/dashboard/client/track' },
+    { icon: History, label: 'Order History', path: '/dashboard/client/orders/history' },
+    { icon: MapPin, label: 'Pickup & Delivery', path: '/dashboard/client/pickup-delivery' },
+    { icon: CreditCard, label: 'Payments', path: '/dashboard/client/payments' },
+    { icon: FileText, label: 'Receipts', path: '/dashboard/client/receipts' },
+    { icon: MessageSquare, label: 'Chat with Staff', path: '/dashboard/client/chat' },
+    { icon: User, label: 'My Profile', path: '/dashboard/client/profile' }
   ]
 
   return (
@@ -46,7 +46,7 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
           <div className="flex items-center justify-between p-4 border-b border-base-300">
             <div className="flex items-center gap-2">
               <img src={Logo} alt="LP" className="w-8 h-8 rounded" />
-              <span className="font-bold text-lg">Staff Portal</span>
+              <span className="font-bold text-lg">Laundry Planet</span>
             </div>
             <button onClick={toggleSidebar} className="lg:hidden btn btn-ghost btn-sm btn-square">
               <X size={20} />
@@ -57,7 +57,7 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
           <div className="p-4 border-b border-base-300">
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
-                <div className="bg-secondary text-secondary-content rounded-full w-10">
+                <div className="bg-primary text-primary-content rounded-full w-10">
                   <span className="text-sm">{user?.firstName?.[0]}{user?.lastName?.[0]}</span>
                 </div>
               </div>
@@ -68,8 +68,16 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
             </div>
           </div>
 
+          {/* Quick Action */}
+          <div className="p-4">
+            <Link to="/dashboard/client/new-order" className="btn btn-primary btn-sm w-full">
+              <PlusCircle size={16} />
+              New Order
+            </Link>
+          </div>
+
           {/* Navigation Menu */}
-          <nav className="flex-1 overflow-y-auto p-4">
+          <nav className="flex-1 overflow-y-auto px-4 pb-4">
             <ul className="menu menu-sm gap-1">
               {menuItems.map((item, index) => (
                 <li key={index}>
@@ -95,7 +103,7 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
   )
 }
 
-const StaffNavbar = ({ toggleSidebar }) => {
+const ClientNavbar = ({ toggleSidebar }) => {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem('theme') || 'corporate'
   })
@@ -115,7 +123,7 @@ const StaffNavbar = ({ toggleSidebar }) => {
           <button onClick={toggleSidebar} className="btn btn-ghost btn-square lg:hidden">
             <Menu size={24} />
           </button>
-          <h1 className="text-lg md:text-xl font-bold ml-2 truncate">Staff Dashboard</h1>
+          <h1 className="text-lg md:text-xl font-bold ml-2 truncate">My Dashboard</h1>
         </div>
         <div className="flex items-center gap-2">
           <button 
@@ -125,12 +133,16 @@ const StaffNavbar = ({ toggleSidebar }) => {
           >
             {theme === 'aqua' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <div className="badge badge-secondary">STAFF</div>
+          <button className="btn btn-ghost btn-circle">
+            <div className="indicator">
+              <Bell size={20} />
+              <span className="badge badge-xs badge-primary indicator-item"></span>
+            </div>
+          </button>
         </div>
       </div>
     </div>
   )
 }
 
-export { StaffSidebar, StaffNavbar }
-export default StaffNavbar
+export { ClientSidebar, ClientNavbar }

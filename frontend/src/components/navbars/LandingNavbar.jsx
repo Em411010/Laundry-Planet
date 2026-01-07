@@ -41,14 +41,14 @@ const LandingNavbar = () => {
       <div className="navbar-start px-2 sm:px-4">
         <div className="flex items-center gap-2">
           <img src={Logo} alt="Laundry Planet" className="h-10 w-10 rounded" />
-          <Link to="/" className="font-bold text-lg">Laundry Planet</Link>
+          <Link to="/landing" className="font-bold text-lg">Laundry Planet</Link>
         </div>
       </div>
 
     
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal gap-1">
-          <li><Link to="/" className="flex items-center gap-2"><Home className="h-4 w-4" /><span>Home</span></Link></li>
+          <li><Link to="/landing" className="flex items-center gap-2"><Home className="h-4 w-4" /><span>Home</span></Link></li>
           <li><Link to="/services" className="flex items-center gap-2"><BadgeDollarSign className="h-4 w-4" /><span>Services & Pricing</span></Link></li>
           <li><Link to="/how-it-works" className="flex items-center gap-2"><Info className="h-4 w-4" /><span>How It Works</span></Link></li>
           <li><Link to="/track" className="flex items-center gap-2"><QrCode className="h-4 w-4" /><span>Track Order</span></Link></li>
@@ -72,7 +72,7 @@ const LandingNavbar = () => {
           </button>
           {open && (
             <ul className="dropdown-content menu bg-base-100 rounded-box w-60 p-2 shadow">
-              <li><Link to="/" onClick={() => setOpen(false)}><Home className="h-4 w-4" /> Home</Link></li>
+              <li><Link to="/landing" onClick={() => setOpen(false)}><Home className="h-4 w-4" /> Home</Link></li>
               <li><Link to="/services" onClick={() => setOpen(false)}><BadgeDollarSign className="h-4 w-4" /> Services & Pricing</Link></li>
               <li><Link to="/how-it-works" onClick={() => setOpen(false)}><Info className="h-4 w-4" /> How It Works</Link></li>
               <li><Link to="/track" onClick={() => setOpen(false)}><QrCode className="h-4 w-4" /> Track Order</Link></li>
