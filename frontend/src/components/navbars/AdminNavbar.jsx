@@ -23,29 +23,8 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/admin' },
-    { 
-      icon: Users, 
-      label: 'User Management', 
-      submenu: [
-        { label: 'All Users', path: '/dashboard/admin/users' },
-        { label: 'Add User', path: '/dashboard/admin/users/add' },
-        { label: 'Roles & Permissions', path: '/dashboard/admin/roles' }
-      ]
-    },
-    { 
-      icon: Package, 
-      label: 'Services', 
-      submenu: [
-        { label: 'All Services', path: '/dashboard/admin/services' },
-        { label: 'Add Service', path: '/dashboard/admin/services/add' },
-        { label: 'Service Categories', path: '/dashboard/admin/services/categories' }
-      ]
-    },
-    { 
-      icon: DollarSign, 
-      label: 'Pricing', 
-      path: '/dashboard/admin/pricing' 
-    },
+    { icon: Users, label: 'User Management', path: '/dashboard/admin/users' },
+    { icon: Package, label: 'Services & Pricing', path: '/dashboard/admin/services' },
     { 
       icon: Tag, 
       label: 'Promo Codes', 

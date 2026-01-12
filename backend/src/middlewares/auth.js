@@ -36,7 +36,7 @@ export const authenticate = async (req, res, next) => {
 };
 
 // Check if user has required role
-export const authorize = (...roles) => {
+export const authorize = (roles) => {
   return (req, res, next) => {
     if (!roles.includes(req.userRole)) {
       return res.status(403).json({ 
@@ -47,3 +47,15 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+// Require admin role
+export const requireAdmin = (req, res, next) => {
+  if (req.userRole !== 'admin') {
+    return res.status(403).json({ 
+      success: false,
+      message: 'Admin access required' 
+    });
+  }
+  next();
+};
+

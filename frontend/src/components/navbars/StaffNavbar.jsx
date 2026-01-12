@@ -18,10 +18,8 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/staff' },
-    { icon: ClipboardList, label: 'My Tasks', path: '/dashboard/staff/tasks' },
-    { icon: Clock, label: 'Pending Orders', path: '/dashboard/staff/orders/pending' },
-    { icon: AlertCircle, label: 'In Progress', path: '/dashboard/staff/orders/in-progress' },
-    { icon: CheckCircle, label: 'Completed Orders', path: '/dashboard/staff/orders/completed' },
+    { icon: ClipboardList, label: 'Orders', path: '/dashboard/staff/orders' },
+    { icon: Clock, label: 'My Tasks', path: '/dashboard/staff/my-tasks' },
     { icon: TruckIcon, label: 'Deliveries', path: '/dashboard/staff/deliveries' },
     { icon: QrCode, label: 'Scan QR', path: '/dashboard/staff/scan' },
     { icon: Upload, label: 'Upload Proof', path: '/dashboard/staff/upload-proof' },

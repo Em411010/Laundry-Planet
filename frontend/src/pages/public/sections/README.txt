@@ -1,1 +1,0 @@
-Landing page sections live here. Each component is self-contained and uses DaisyUI/Tailwind for styling. Icons are from lucide-react.

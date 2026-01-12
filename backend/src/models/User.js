@@ -33,6 +33,35 @@ const userSchema = new mongoose.Schema({
   isActive: {
     type: Boolean,
     default: true
+  },
+  // Profile Information
+  phone: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  address: {
+    street: { type: String, default: '' },
+    barangay: { type: String, default: '' },
+    city: { type: String, default: '' },
+    province: { type: String, default: '' },
+    zipCode: { type: String, default: '' },
+    fullAddress: { type: String, default: '' }
+  },
+  location: {
+    type: {
+      type: String,
+      enum: ['Point'],
+      default: 'Point'
+    },
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      default: [0, 0]
+    }
+  },
+  profileComplete: {
+    type: Boolean,
+    default: false
   }
 }, {
   timestamps: true
