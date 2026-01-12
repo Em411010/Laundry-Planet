@@ -19,8 +19,7 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/client' },
     { icon: PlusCircle, label: 'New Order', path: '/dashboard/client/new-order' },
-    { icon: Package, label: 'Active Orders', path: '/dashboard/client/orders/active' },
-    { icon: Clock, label: 'Track Order', path: '/dashboard/client/track' },
+    { icon: Package, label: 'Track Orders', path: '/dashboard/client/track-orders' },
     { icon: History, label: 'Order History', path: '/dashboard/client/orders/history' },
     { icon: MapPin, label: 'Pickup & Delivery', path: '/dashboard/client/pickup-delivery' },
     { icon: CreditCard, label: 'Payments', path: '/dashboard/client/payments' },

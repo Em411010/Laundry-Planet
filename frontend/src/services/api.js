@@ -190,6 +190,12 @@ export const orderAPI = {
     return response.data
   },
 
+  // Get my orders (Client)
+  getMyOrders: async () => {
+    const response = await api.get('/orders')
+    return response.data
+  },
+
   // Get order by ID
   getOrderById: async (id) => {
     const response = await api.get(`/orders/${id}`)
@@ -232,21 +238,42 @@ export const orderAPI = {
     return response.data
   },
 
+  // Mark payment as received (Delivery Staff)
+  markPaymentReceived: async (id) => {
+    const response = await api.patch(`/orders/${id}/payment/received`)
+    return response.data
+  },
+
   // Add image to order (Staff)
   addOrderImage: async (id, url, description) => {
     const response = await api.post(`/orders/${id}/images`, { url, description })
     return response.data
   },
 
-  // Add message to order (Staff/Client)
-  addOrderMessage: async (id, message) => {
-    const response = await api.post(`/orders/${id}/messages`, { message })
-    return response.data
-  },
-
   // Get staff tasks
   getStaffTasks: async () => {
     const response = await api.get('/orders/staff/tasks')
+    return response.data
+  }
+}
+
+// Message API
+export const messageAPI = {
+  // Send a message
+  sendMessage: async (orderId, content) => {
+    const response = await api.post('/messages', { orderId, content })
+    return response.data
+  },
+
+  // Get messages for an order
+  getOrderMessages: async (orderId) => {
+    const response = await api.get(`/messages/order/${orderId}`)
+    return response.data
+  },
+
+  // Get unread message count
+  getUnreadCount: async () => {
+    const response = await api.get('/messages/unread-count')
     return response.data
   }
 }

@@ -159,7 +159,16 @@ const orderSchema = new mongoose.Schema({
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User'
     },
+    updatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    },
+    updatedByName: String,
     timestamp: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
       type: Date,
       default: Date.now
     }
@@ -183,15 +192,7 @@ orderSchema.pre('save', async function() {
   }
 });
 
-// Add status to history when status changes
-orderSchema.pre('save', function() {
-  if (this.isModified('status') && !this.isNew) {
-    this.statusHistory.push({
-      status: this.status,
-      timestamp: new Date()
-    });
-  }
-});
+// Note: Status history is now manually managed in controllers to include staff names
 
 const Order = mongoose.model('Order', orderSchema);
 

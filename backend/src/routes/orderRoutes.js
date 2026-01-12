@@ -11,7 +11,8 @@ import {
   updateOrderWeight,
   addOrderImage,
   addOrderMessage,
-  getStaffTasks
+  getStaffTasks,
+  markPaymentReceived
 } from '../controllers/orderController.js';
 import { authenticate, authorize } from '../middlewares/auth.js';
 
@@ -32,6 +33,7 @@ router.get('/:id', getOrderById); // Role-based access in controller
 router.patch('/:id/cancel', cancelOrder); // Clients can cancel own orders
 router.patch('/:id/accept', authorize(['staff', 'admin']), acceptOrder);
 router.patch('/:id/weight', authorize(['staff', 'admin']), updateOrderWeight);
+router.patch('/:id/payment/received', authorize(['staff', 'admin']), markPaymentReceived);
 router.patch('/:id/status', authorize(['admin', 'staff']), updateOrderStatus);
 router.patch('/:id/assign', authorize(['admin']), assignStaff);
 router.post('/:id/images', authorize(['staff', 'admin']), addOrderImage);

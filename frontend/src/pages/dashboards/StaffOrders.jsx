@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar'
 import { orderAPI } from '../../services/api'
+import OrderChat from '../../components/OrderChat'
 import { 
   Package, 
   Clock, 
@@ -28,8 +29,9 @@ const StaffOrders = () => {
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   
-  const [activeTab, setActiveTab] = useState('all') // all, pending, completed
+  const [activeTab, setActiveTab] = useState('myTasks') // myTasks, waitingToAccept, all, pending, completed
   const [allOrders, setAllOrders] = useState([])
+  const [myTasks, setMyTasks] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
   
@@ -40,6 +42,7 @@ const StaffOrders = () => {
   const [imageDescription, setImageDescription] = useState('')
   const [newMessage, setNewMessage] = useState('')
   const [newStatus, setNewStatus] = useState('')
+  const [chatOpen, setChatOpen] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -64,9 +67,13 @@ const StaffOrders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true)
-      const allOrdersRes = await orderAPI.getAllOrders()
+      const [allOrdersRes, myTasksRes] = await Promise.all([
+        orderAPI.getAllOrders(),
+        orderAPI.getStaffTasks()
+      ])
       
       setAllOrders(allOrdersRes.data)
+      setMyTasks(myTasksRes.data)
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load orders')
     } finally {
@@ -94,15 +101,29 @@ const StaffOrders = () => {
 
   const handleUpdateWeight = async (orderId) => {
     try {
-      if (!weightForm.weight || weightForm.weight <= 0) {
-        setError('Please enter a valid weight')
+      // Validate all services have weights
+      if (!weightForm.services || weightForm.services.length === 0) {
+        setError('Please enter weights for all services')
         setTimeout(() => setError(null), 3000)
         return
       }
 
+      const allWeightsValid = weightForm.services.every(s => s.quantity > 0)
+      if (!allWeightsValid) {
+        setError('Please enter a valid weight for all services')
+        setTimeout(() => setError(null), 3000)
+        return
+      }
+
+      // Calculate total weight
+      const totalWeight = weightForm.services.reduce((sum, s) => sum + s.quantity, 0)
+
       setUpdatingOrder(true)
-      await orderAPI.updateOrderWeight(orderId, parseFloat(weightForm.weight), weightForm.services)
-      setSuccess('Weight updated successfully!')
+      await orderAPI.updateOrderWeight(orderId, {
+        weight: totalWeight,
+        services: weightForm.services
+      })
+      setSuccess('Weights updated successfully!')
       setTimeout(() => setSuccess(null), 3000)
       setWeightForm({ weight: '', services: [] })
       fetchOrders()
@@ -145,30 +166,6 @@ const StaffOrders = () => {
     }
   }
 
-  const handleSendMessage = async (orderId) => {
-    try {
-      if (!newMessage.trim()) {
-        return
-      }
-
-      setUpdatingOrder(true)
-      await orderAPI.addOrderMessage(orderId, newMessage)
-      setSuccess('Message sent!')
-      setTimeout(() => setSuccess(null), 2000)
-      setNewMessage('')
-      fetchOrders()
-      if (selectedOrder) {
-        const updated = await orderAPI.getOrderById(orderId)
-        setSelectedOrder(updated.data)
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to send message')
-      setTimeout(() => setError(null), 3000)
-    } finally {
-      setUpdatingOrder(false)
-    }
-  }
-
   const handleUpdateStatus = async (orderId, status) => {
     try {
       setUpdatingOrder(true)
@@ -182,6 +179,60 @@ const StaffOrders = () => {
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to update status')
+      setTimeout(() => setError(null), 3000)
+    } finally {
+      setUpdatingOrder(false)
+    }
+  }
+
+  const handleAdvanceStatus = async () => {
+    const nextStatus = getNextStatus(selectedOrder.status)
+    
+    if (!nextStatus) {
+      setError('This order is already at the final stage')
+      setTimeout(() => setError(null), 3000)
+      return
+    }
+
+    // Check weight requirement for accepted -> picked-up
+    if (selectedOrder.status === 'accepted') {
+      const allWeightsEntered = selectedOrder.services.every(s => s.quantity > 0)
+      if (!allWeightsEntered) {
+        setError('Please weigh all services before marking as picked up')
+        setTimeout(() => setError(null), 3000)
+        return
+      }
+    }
+
+    try {
+      setUpdatingOrder(true)
+      await orderAPI.updateOrderStatus(selectedOrder._id, nextStatus)
+      setSuccess(`Order advanced to ${getStatusDisplay(nextStatus)}!`)
+      setTimeout(() => setSuccess(null), 3000)
+      fetchOrders()
+      setShowDetailModal(false)
+      setSelectedOrder(null)
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to advance order status')
+      setTimeout(() => setError(null), 3000)
+    } finally {
+      setUpdatingOrder(false)
+    }
+  }
+
+  const handleMarkPaymentReceived = async () => {
+    try {
+      setUpdatingOrder(true)
+      await orderAPI.markPaymentReceived(selectedOrder._id)
+      setSuccess('Payment confirmed successfully!')
+      setTimeout(() => setSuccess(null), 3000)
+      
+      // Refresh order details
+      const updated = await orderAPI.getOrderById(selectedOrder._id)
+      setSelectedOrder(updated.data)
+      fetchOrders()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to confirm payment')
       setTimeout(() => setError(null), 3000)
     } finally {
       setUpdatingOrder(false)
@@ -215,10 +266,31 @@ const StaffOrders = () => {
       'in-progress': 'On Going Services',
       'processed': 'Services Done',
       'for-delivery': 'To Be Deliver',
+      'payment-received': 'Cash Payment Received',
       'delivered': 'Completed',
       'cancelled': 'Cancelled'
     };
     return statusMap[status] || status;
+  };
+
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'pending':
+      case 'accepted':
+        return <Clock className="w-5 h-5" />;
+      case 'picked-up':
+      case 'in-progress':
+      case 'processed':
+        return <Package className="w-5 h-5" />;
+      case 'for-delivery':
+        return <Truck className="w-5 h-5" />;
+      case 'payment-received':
+        return <CheckCircle className="w-5 h-5 text-success" />;
+      case 'delivered':
+        return <CheckCircle className="w-5 h-5" />;
+      default:
+        return <AlertCircle className="w-5 h-5" />;
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -229,6 +301,7 @@ const StaffOrders = () => {
       'in-progress': 'badge-secondary',
       'processed': 'badge-accent',
       'for-delivery': 'badge-accent',
+      'payment-received': 'badge-success',
       'delivered': 'badge-success',
       'cancelled': 'badge-error'
     }
@@ -248,7 +321,9 @@ const StaffOrders = () => {
   }
 
   const filterOrders = () => {
-    if (activeTab === 'waitingToAccept') {
+    if (activeTab === 'myTasks') {
+      return myTasks
+    } else if (activeTab === 'waitingToAccept') {
       // Orders that can be accepted: pending, picked-up, or processed
       return allOrders.filter(o => 
         o.status === 'pending' || 
@@ -297,6 +372,12 @@ const StaffOrders = () => {
             </div>
           )}<div className="tabs tabs-boxed mb-6 bg-base-100 p-2">
             <a 
+              className={`tab ${activeTab === 'myTasks' ? 'tab-active' : ''}`}
+              onClick={() => setActiveTab('myTasks')}
+            >
+              My Task ({myTasks.length})
+            </a>
+            <a 
               className={`tab ${activeTab === 'waitingToAccept' ? 'tab-active' : ''}`}
               onClick={() => setActiveTab('waitingToAccept')}
             >
@@ -330,6 +411,7 @@ const StaffOrders = () => {
                 <Package className="h-16 w-16 text-base-content/20 mb-4" />
                 <h3 className="text-xl font-semibold">No orders found</h3>
                 <p className="text-base-content/60">
+                  {activeTab === 'myTasks' && 'No tasks assigned to you'}
                   {activeTab === 'waitingToAccept' && 'No orders waiting to be accepted'}
                   {activeTab === 'pending' && 'No orders in progress'}
                   {activeTab === 'completed' && 'No completed orders yet'}
@@ -398,8 +480,17 @@ const StaffOrders = () => {
                           <Eye className="h-4 w-4" />
                           View Details
                         </button>
-                        
-                        {order.status === 'pending' && (
+                                                <button
+                          onClick={() => {
+                            setSelectedOrder(order);
+                            setChatOpen(true);
+                          }}
+                          className="btn btn-sm btn-outline gap-2"
+                        >
+                          <MessageSquare className="h-4 w-4" />
+                          Chat
+                        </button>
+                                                {order.status === 'pending' && (
                           <button
                             onClick={() => handleAcceptOrder(order._id)}
                             className="btn btn-sm btn-primary gap-2"
@@ -491,15 +582,23 @@ const StaffOrders = () => {
                   <h4 className="font-bold flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
                     Pickup Address
-                  </h4>
-                  <p className="text-sm">{selectedOrder.pickupAddress.fullAddress}</p>
+                  </h4>                  <p className="text-sm font-semibold mb-1">{selectedOrder.customer.firstName} {selectedOrder.customer.lastName}</p>                  <p className="text-sm mb-3">{selectedOrder.pickupAddress.fullAddress}</p>
                   {selectedOrder.pickupAddress.location?.coordinates[0] !== 0 && (
-                    <div className="mt-2">
+                    <div className="mt-2 space-y-2">
+                      <iframe
+                        width="100%"
+                        height="200"
+                        style={{border: 0, borderRadius: '0.5rem'}}
+                        loading="lazy"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${selectedOrder.pickupAddress.location.coordinates[1]},${selectedOrder.pickupAddress.location.coordinates[0]}&zoom=15`}
+                      ></iframe>
                       <a
                         href={`https://www.google.com/maps?q=${selectedOrder.pickupAddress.location.coordinates[1]},${selectedOrder.pickupAddress.location.coordinates[0]}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="btn btn-sm btn-outline gap-2"
+                        className="btn btn-sm btn-outline gap-2 w-full"
                       >
                         <MapPin className="h-4 w-4" />
                         Open in Google Maps
@@ -516,180 +615,297 @@ const StaffOrders = () => {
                   <div className="space-y-2">
                     {selectedOrder.services.map((s, idx) => (
                       <div key={idx} className="flex justify-between items-center text-sm bg-base-100 p-2 rounded">
-                        <span>{s.service.name}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{s.service.name}</span>
+                          <span className="text-xs text-base-content/60">₱{s.service.price.toFixed(2)} per {s.service.unit}</span>
+                        </div>
                         <div className="flex items-center gap-4">
                           <span>{s.quantity} {s.service.unit}</span>
                           <span className="font-semibold">₱{s.subtotal.toFixed(2)}</span>
                         </div>
                       </div>
                     ))}
-                    <div className="divider my-2"></div>
-                    <div className="flex justify-between font-bold text-lg">
-                      <span>Total:</span>
-                      <span className="text-primary">₱{selectedOrder.totalAmount.toFixed(2)}</span>
-                    </div>
+                    {selectedOrder.status !== 'pending' && selectedOrder.status !== 'accepted' && (
+                      <>
+                        <div className="divider my-2"></div>
+                        <div className="flex justify-between font-bold text-lg">
+                          <span>Total:</span>
+                          <span className="text-primary">₱{selectedOrder.totalAmount.toFixed(2)}</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
-              </div>{selectedOrder.assignedStaff?._id === user.id && selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled' && (
+              </div>{(selectedOrder.assignedStaff?.pickup || selectedOrder.assignedStaff?.processing || selectedOrder.assignedStaff?.delivery) && (
                 <div className="card bg-base-200 lg:col-span-2">
                   <div className="card-body">
                     <h4 className="font-bold flex items-center gap-2">
-                      <Weight className="h-5 w-5" />
-                      Update Weight
+                      <User className="h-5 w-5" />
+                      Assigned Staff
                     </h4>
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Actual Weight (kg)</span>
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="number"
-                          step="0.1"
-                          className="input input-bordered flex-1"
-                          placeholder="Enter weight..."
-                          value={weightForm.weight}
-                          onChange={(e) => setWeightForm({...weightForm, weight: e.target.value})}
-                        />
-                        <button
-                          onClick={() => handleUpdateWeight(selectedOrder._id)}
-                          className="btn btn-primary"
-                          disabled={updatingOrder}
-                        >
-                          Update
-                        </button>
-                      </div>
-                      {selectedOrder.actualWeight > 0 && (
-                        <p className="text-sm text-base-content/60 mt-2">
-                          Current weight: {selectedOrder.actualWeight} kg
+                    <div className="space-y-2 text-sm">
+                      {selectedOrder.assignedStaff?.pickup && (
+                        <p>
+                          <span className="font-semibold">Pickup:</span>{' '}
+                          {selectedOrder.assignedStaff.pickup.firstName} {selectedOrder.assignedStaff.pickup.lastName}
+                        </p>
+                      )}
+                      {selectedOrder.assignedStaff?.processing && (
+                        <p>
+                          <span className="font-semibold">Processing:</span>{' '}
+                          {selectedOrder.assignedStaff.processing.firstName} {selectedOrder.assignedStaff.processing.lastName}
+                        </p>
+                      )}
+                      {selectedOrder.assignedStaff?.delivery && (
+                        <p>
+                          <span className="font-semibold">Delivery:</span>{' '}
+                          {selectedOrder.assignedStaff.delivery.firstName} {selectedOrder.assignedStaff.delivery.lastName}
                         </p>
                       )}
                     </div>
                   </div>
                 </div>
-              )}{selectedOrder.assignedStaff?._id === user.id && selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled' && (
+              )}{selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
                 <div className="card bg-base-200 lg:col-span-2">
                   <div className="card-body">
-                    <h4 className="font-bold flex items-center gap-2">
-                      <Camera className="h-5 w-5" />
-                      Add Image
+                    <h4 className="font-bold flex items-center gap-2 mb-3">
+                      <Clock className="h-5 w-5" />
+                      Status History
                     </h4>
-                    <div className="space-y-2">
-                      <input
-                        type="text"
-                        className="input input-bordered w-full"
-                        placeholder="Image URL..."
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        className="input input-bordered w-full"
+                    <div className="space-y-3">
+                      {selectedOrder.statusHistory.map((history, idx) => (
+                        <div key={idx} className="flex gap-3 items-start">
+                          <div className="flex-shrink-0 mt-1">
+                            {getStatusIcon(history.status)}
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`badge ${getStatusBadge(history.status)} badge-sm`}>
+                                {getStatusDisplay(history.status)}
+                              </span>
+                              {(history.updatedByName || history.changedBy) && (
+                                <span className="text-xs text-base-content/60">
+                                  by {history.updatedByName || (history.changedBy && `${history.changedBy.firstName} ${history.changedBy.lastName}`)}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-base-content/70">
+                              {new Date(history.updatedAt || history.timestamp).toLocaleDateString()} at{' '}
+                              {new Date(history.updatedAt || history.timestamp).toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}{(() => {
+                const userId = user?._id || user?.id;
+                const isPickupStaff = selectedOrder?.assignedStaff?.pickup?._id === userId;
+                
+                // Only show weight section for pickup staff and status 'accepted'
+                if (selectedOrder.status === 'accepted' && isPickupStaff) {
+                  return (
+                    <div className="card bg-base-200 lg:col-span-2">
+                      <div className="card-body">
+                        <h4 className="font-bold flex items-center gap-2">
+                          <Weight className="h-5 w-5" />
+                          Weigh Services
+                        </h4>
+                        <p className="text-sm text-base-content/60 mb-4">
+                          Enter the weight for each service before pickup
+                        </p>
+                        <div className="space-y-3">
+                          {selectedOrder.services.map((s, idx) => {
+                            const currentValue = weightForm.services.find(ws => ws.serviceId === s.service._id)?.quantity || s.quantity || '';
+                            return (
+                              <div key={idx} className="form-control">
+                                <label className="label">
+                                  <span className="label-text font-medium">{s.service.name}</span>
+                                  <span className="label-text-alt text-xs mr-2">₱{s.service.price}/{s.service.unit}</span>
+                                </label>
+                                <input
+                                  type="number"
+                                  step="0.1"
+                                  min="0"
+                                  className="input input-bordered"
+                                  placeholder={`Weight in ${s.service.unit}...`}
+                                  value={currentValue}
+                                  onChange={(e) => {
+                                    const updatedServices = weightForm.services.filter(ws => ws.serviceId !== s.service._id);
+                                    updatedServices.push({
+                                      serviceId: s.service._id,
+                                      quantity: parseFloat(e.target.value) || 0
+                                    });
+                                    setWeightForm({...weightForm, services: updatedServices});
+                                  }}
+                                />
+                              </div>
+                            );
+                          })}
+                          <button
+                            onClick={() => {
+                              const totalWeight = weightForm.services.reduce((sum, s) => sum + s.quantity, 0);
+                              handleUpdateWeight(selectedOrder._id);
+                            }}
+                            className="btn btn-primary w-full"
+                            disabled={updatingOrder || !weightForm.services.every(s => s.quantity > 0)}
+                          >
+                            <Weight className="h-5 w-5 mr-2" />
+                            Save Weights
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}{(() => {
+                const userId = user?._id || user?.id;
+                const isAssigned = selectedOrder?.assignedStaff?.pickup?._id === userId ||
+                                   selectedOrder?.assignedStaff?.processing?._id === userId ||
+                                   selectedOrder?.assignedStaff?.delivery?._id === userId;
+                
+                // Show image section for assigned staff only
+                if (isAssigned && selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled') {
+                  return (
+                    <div className="card bg-base-200 lg:col-span-2">
+                      <div className="card-body">
+                        <h4 className="font-bold flex items-center gap-2">
+                          <Camera className="h-5 w-5" />
+                          Add Image
+                        </h4>
+                        <div className="space-y-2">
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
+                            placeholder="Image URL..."
+                            value={imageUrl}
+                            onChange={(e) => setImageUrl(e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            className="input input-bordered w-full"
                         placeholder="Description (optional)..."
                         value={imageDescription}
                         onChange={(e) => setImageDescription(e.target.value)}
-                      />
-                      <button
-                        onClick={() => handleAddImage(selectedOrder._id)}
-                        className="btn btn-primary w-full"
-                        disabled={updatingOrder}
-                      >
-                        Add Image
-                      </button>
-                    </div>{selectedOrder.images && selectedOrder.images.length > 0 && (
-                      <div className="mt-4">
-                        <h5 className="font-semibold mb-2">Uploaded Images</h5>
-                        <div className="grid grid-cols-2 gap-2">
-                          {selectedOrder.images.map((img, idx) => (
-                            <div key={idx} className="relative">
-                              <img src={img.url} alt={img.description} className="w-full h-32 object-cover rounded" />
-                              {img.description && (
-                                <p className="text-xs mt-1">{img.description}</p>
-                              )}
+                          />
+                          <button
+                            onClick={() => handleAddImage(selectedOrder._id)}
+                            className="btn btn-primary w-full"
+                            disabled={updatingOrder}
+                          >
+                            Add Image
+                          </button>
+                        </div>{selectedOrder.images && selectedOrder.images.length > 0 && (
+                          <div className="mt-4">
+                            <h5 className="font-semibold mb-2">Uploaded Images</h5>
+                            <div className="grid grid-cols-2 gap-2">
+                              {selectedOrder.images.map((img, idx) => (
+                                <div key={idx} className="relative">
+                                  <img src={img.url} alt={img.description} className="w-full h-32 object-cover rounded" />
+                                  {img.description && (
+                                    <p className="text-xs mt-1">{img.description}</p>
+                                  )}
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}<div className="card bg-base-200 lg:col-span-2">
-                <div className="card-body">
-                  <h4 className="font-bold flex items-center gap-2">
-                    <MessageSquare className="h-5 w-5" />
-                    Messages
-                  </h4><div className="space-y-2 max-h-60 overflow-y-auto mb-3">
-                    {selectedOrder.messages && selectedOrder.messages.length > 0 ? (
-                      selectedOrder.messages.map((msg, idx) => (
-                        <div 
-                          key={idx} 
-                          className={`chat ${msg.sender._id === user.id ? 'chat-end' : 'chat-start'}`}
-                        >
-                          <div className="chat-header text-xs">
-                            {msg.sender.firstName} {msg.sender.lastName}
-                            <time className="text-xs opacity-50 ml-1">
-                              {new Date(msg.timestamp).toLocaleString()}
-                            </time>
                           </div>
-                          <div className="chat-bubble">{msg.message}</div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-sm text-base-content/60">No messages yet</p>
-                    )}
-                  </div><div className="flex gap-2">
-                    <input
-                      type="text"
-                      className="input input-bordered flex-1"
-                      placeholder="Type a message..."
-                      value={newMessage}
-                      onChange={(e) => setNewMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(selectedOrder._id)}
-                    />
-                    <button
-                      onClick={() => handleSendMessage(selectedOrder._id)}
-                      className="btn btn-primary"
-                      disabled={updatingOrder || !newMessage.trim()}
-                    >
-                      Send
-                    </button>
-                  </div>
-                </div>
-              </div>{selectedOrder.assignedStaff?._id === user.id && selectedOrder.status !== 'delivered' && selectedOrder.status !== 'cancelled' && (
-                <div className="card bg-base-200 lg:col-span-2">
-                  <div className="card-body">
-                    <h4 className="font-bold">Update Status</h4>
-                    <select
-                      className="select select-bordered w-full"
-                      value={newStatus}
-                      onChange={(e) => setNewStatus(e.target.value)}
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="picked-up">Picked Up</option>
-                      <option value="washing">Washing</option>
-                      <option value="drying">Drying</option>
-                      <option value="folding">Folding</option>
-                      <option value="ready">Ready</option>
-                      <option value="out-for-delivery">Out for Delivery</option>
-                      <option value="delivered">Delivered</option>
-                    </select>
-                    <button
-                      onClick={() => handleUpdateStatus(selectedOrder._id, newStatus)}
-                      className="btn btn-primary w-full mt-2"
-                      disabled={updatingOrder || newStatus === selectedOrder.status}
-                    >
-                      Update Status
-                    </button>
-                  </div>
-                </div>
-              )}
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             <div className="modal-action">
-              <button onClick={() => setShowDetailModal(false)} className="btn">Close</button>
+              <button 
+                onClick={() => {
+                  setSelectedOrder(selectedOrder);
+                  setChatOpen(true);
+                }}
+                className="btn btn-outline gap-2"
+              >
+                <MessageSquare className="h-5 w-5" />
+                Open Chat
+              </button>
+              
+              {(() => {
+                const userId = user?._id || user?.id;
+                const isPickupStaff = selectedOrder?.assignedStaff?.pickup?._id === userId;
+                const isProcessingStaff = selectedOrder?.assignedStaff?.processing?._id === userId;
+                const isDeliveryStaff = selectedOrder?.assignedStaff?.delivery?._id === userId;
+                
+                // Show button only if assigned to current stage
+                const canAdvance = 
+                  (selectedOrder?.status === 'accepted' && isPickupStaff) ||
+                  (selectedOrder?.status === 'picked-up' && isProcessingStaff) ||
+                  (selectedOrder?.status === 'in-progress' && isProcessingStaff) ||
+                  (selectedOrder?.status === 'processed' && isDeliveryStaff) ||
+                  (selectedOrder?.status === 'for-delivery' && isDeliveryStaff);
+                
+                if (!canAdvance) return null;
+
+                // Check if payment is required and not received
+                const needsPayment = selectedOrder?.status === 'for-delivery' && 
+                                     selectedOrder?.paymentMethod === 'cash' && 
+                                     selectedOrder?.paymentStatus !== 'paid';
+                
+                return (
+                  <>
+                    {needsPayment && (
+                      <button
+                        className="btn btn-success"
+                        onClick={handleMarkPaymentReceived}
+                        disabled={updatingOrder}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Confirm Cash Payment Received
+                      </button>
+                    )}
+                    <button
+                      className={`btn btn-primary ${
+                        (selectedOrder.status === 'accepted' && 
+                        !selectedOrder.services.every(s => s.quantity > 0)) ||
+                        needsPayment
+                          ? 'btn-disabled' 
+                          : ''
+                      }`}
+                      onClick={handleAdvanceStatus}
+                      disabled={
+                        updatingOrder ||
+                        (selectedOrder.status === 'accepted' && 
+                        !selectedOrder.services.every(s => s.quantity > 0)) ||
+                        needsPayment
+                      }
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {selectedOrder.status === 'accepted' && 'Mark as Picked Up'}
+                      {selectedOrder.status === 'picked-up' && 'Start Services'}
+                      {selectedOrder.status === 'in-progress' && 'Mark as Done'}
+                      {selectedOrder.status === 'processed' && 'Ready for Delivery'}
+                      {selectedOrder.status === 'for-delivery' && 'Mark as Delivered'}
+                    </button>
+                  </>
+                );
+              })()}
+
+              <button onClick={() => setShowDetailModal(false)} className="btn btn-ghost">Close</button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Chat Component */}
+      {selectedOrder && (
+        <OrderChat 
+          orderId={selectedOrder._id}
+          currentUser={user}
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
       )}
     </div>
   )

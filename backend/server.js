@@ -10,6 +10,7 @@ import serviceRoutes from './src/routes/serviceRoutes.js';
 import auditRoutes from './src/routes/auditRoutes.js';
 import profileRoutes from './src/routes/profileRoutes.js';
 import orderRoutes from './src/routes/orderRoutes.js';
+import messageRoutes from './src/routes/messageRoutes.js';
 import { seedServices } from './src/models/Service.js';
 
 dotenv.config();
@@ -37,6 +38,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/audit-logs', auditRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

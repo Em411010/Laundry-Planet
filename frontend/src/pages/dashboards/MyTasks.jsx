@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Package, Clock, CheckCircle, AlertCircle, Weight, Camera, MessageSquare, ChevronRight } from 'lucide-react';
 import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar';
 import { orderAPI } from '../../services/api';
+import OrderChat from '../../components/OrderChat';
 
 const MyTasks = () => {
   const navigate = useNavigate();
@@ -16,8 +17,7 @@ const MyTasks = () => {
   const [serviceWeights, setServiceWeights] = useState({});
   const [imageUrl, setImageUrl] = useState('');
   const [imageDescription, setImageDescription] = useState('');
-  const [message, setMessage] = useState('');
-
+  const [message, setMessage] = useState('');  const [chatOpen, setChatOpen] = useState(false);
   useEffect(() => {
     const userData = localStorage.getItem('user');
     if (userData) {
@@ -239,24 +239,18 @@ const MyTasks = () => {
     }
   };
 
-  const handleAddMessage = async () => {
-    if (!message.trim()) {
-      alert('Please enter a message');
-      return;
-    }
-
+  const handleMarkPaymentReceived = async () => {
     try {
-      await orderAPI.addOrderMessage(selectedOrder._id, { message });
-      
-      alert('Message added successfully');
-      setMessage('');
+      await orderAPI.markPaymentReceived(selectedOrder._id);
+      alert('Payment confirmed successfully');
       
       // Refresh order details
       const response = await orderAPI.getOrderById(selectedOrder._id);
       setSelectedOrder(response.data);
+      await fetchMyTasks();
     } catch (error) {
-      console.error('Error adding message:', error);
-      alert('Failed to add message');
+      console.error('Error confirming payment:', error);
+      alert(error.response?.data?.message || 'Failed to confirm payment');
     }
   };
 
@@ -333,15 +327,28 @@ const MyTasks = () => {
                           </div>
                         )}
                         
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-base-content/60">Amount:</span>
-                          <span className="font-semibold text-primary">
-                            ₱{order.totalAmount.toFixed(2)}
-                          </span>
-                        </div>
+                        {order.status !== 'pending' && order.status !== 'accepted' && (
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-base-content/60">Amount:</span>
+                            <span className="font-semibold text-primary">
+                              ₱{order.totalAmount.toFixed(2)}
+                            </span>
+                          </div>
+                        )}
                       </div>
                       
-                      <div className="card-actions justify-end mt-4">
+                      <div className="card-actions justify-end mt-4 gap-2">
+                        <button 
+                          className="btn btn-outline btn-sm gap-2"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedOrder(order);
+                            setChatOpen(true);
+                          }}
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          Chat
+                        </button>
                         <button className="btn btn-primary btn-sm">
                           View Details
                           <ChevronRight className="w-4 h-4" />
@@ -350,6 +357,7 @@ const MyTasks = () => {
                     </div>
                   </div>
                 ))}
+
                 
                 {filterOrders().length === 0 && (
                   <div className="col-span-full text-center py-12">
@@ -396,6 +404,35 @@ const MyTasks = () => {
               </div>
             )}<div className="mb-6">
               <label className="label">
+                <span className="label-text font-semibold">Pickup Address</span>
+              </label>
+              <p className="text-base-content mb-2">
+                {selectedOrder.pickupAddress.fullAddress}
+              </p>
+              {selectedOrder.pickupAddress.location?.coordinates[0] !== 0 && (
+                <div className="space-y-2">
+                  <iframe
+                    width="100%"
+                    height="200"
+                    style={{border: 0, borderRadius: '0.5rem'}}
+                    loading="lazy"
+                    allowFullScreen
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=${selectedOrder.pickupAddress.location.coordinates[1]},${selectedOrder.pickupAddress.location.coordinates[0]}&zoom=15`}
+                  ></iframe>
+                  <a
+                    href={`https://www.google.com/maps?q=${selectedOrder.pickupAddress.location.coordinates[1]},${selectedOrder.pickupAddress.location.coordinates[0]}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-sm btn-outline gap-2 w-full"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Open in Google Maps
+                  </a>
+                </div>
+              )}
+            </div><div className="mb-6">
+              <label className="label">
                 <span className="label-text font-semibold">Services & Weights</span>
               </label>
               <div className="overflow-x-auto">
@@ -412,7 +449,12 @@ const MyTasks = () => {
                   <tbody>
                     {selectedOrder.services.map((service, idx) => (
                       <tr key={idx}>
-                        <td>{service.service.name}</td>
+                        <td>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{service.service.name}</span>
+                            <span className="text-xs text-base-content/60">₱{service.service.price.toFixed(2)} per {service.service.unit}</span>
+                          </div>
+                        </td>
                         <td>
                           <span className="badge badge-outline">
                             {service.service.category}
@@ -529,41 +571,6 @@ const MyTasks = () => {
                   </div>
                 ))}
               </div>
-            </div><div className="mb-6">
-              <label className="label">
-                <span className="label-text font-semibold">Messages</span>
-              </label>
-              
-              <div className="flex gap-2 mb-4">
-                <input
-                  type="text"
-                  className="input input-bordered flex-1"
-                  placeholder="Enter message"
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddMessage()}
-                />
-                <button
-                  className="btn btn-primary"
-                  onClick={handleAddMessage}
-                >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Send
-                </button>
-              </div>
-
-              <div className="space-y-2 max-h-60 overflow-y-auto">
-                {selectedOrder.messages?.map((msg, idx) => (
-                  <div key={idx} className="chat chat-start">
-                    <div className="chat-bubble">
-                      <p>{msg.message}</p>
-                      <p className="text-xs opacity-70 mt-1">
-                        {new Date(msg.createdAt).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div><div className="modal-action">
               <button
                 className="btn btn-ghost"
@@ -592,33 +599,61 @@ const MyTasks = () => {
                   (selectedOrder?.status === 'for-delivery' && isDeliveryStaff);
                 
                 if (!canAdvance) return null;
+
+                // Check if payment is required and not received
+                const needsPayment = selectedOrder?.status === 'for-delivery' && 
+                                     selectedOrder?.paymentMethod === 'cash' && 
+                                     selectedOrder?.paymentStatus !== 'paid';
                 
                 return (
-                  <button
-                    className={`btn btn-primary ${
-                      selectedOrder.status === 'accepted' && 
-                      !selectedOrder.services.every(s => s.quantity > 0) 
-                        ? 'btn-disabled' 
-                        : ''
-                    }`}
-                    onClick={handleAdvanceStatus}
-                    disabled={
-                      selectedOrder.status === 'accepted' && 
-                      !selectedOrder.services.every(s => s.quantity > 0)
-                    }
-                  >
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    {selectedOrder.status === 'accepted' && 'Mark as Picked Up'}
-                    {selectedOrder.status === 'picked-up' && 'Start Services'}
-                    {selectedOrder.status === 'in-progress' && 'Mark as Done'}
-                    {selectedOrder.status === 'processed' && 'Ready for Delivery'}
-                    {selectedOrder.status === 'for-delivery' && 'Mark as Delivered'}
-                  </button>
+                  <>
+                    {needsPayment && (
+                      <button
+                        className="btn btn-success"
+                        onClick={handleMarkPaymentReceived}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Confirm Cash Payment Received
+                      </button>
+                    )}
+                    <button
+                      className={`btn btn-primary ${
+                        (selectedOrder.status === 'accepted' && 
+                        !selectedOrder.services.every(s => s.quantity > 0)) ||
+                        needsPayment
+                          ? 'btn-disabled' 
+                          : ''
+                      }`}
+                      onClick={handleAdvanceStatus}
+                      disabled={
+                        (selectedOrder.status === 'accepted' && 
+                        !selectedOrder.services.every(s => s.quantity > 0)) ||
+                        needsPayment
+                      }
+                    >
+                      <CheckCircle className="w-4 h-4 mr-2" />
+                      {selectedOrder.status === 'accepted' && 'Mark as Picked Up'}
+                      {selectedOrder.status === 'picked-up' && 'Start Services'}
+                      {selectedOrder.status === 'in-progress' && 'Mark as Done'}
+                      {selectedOrder.status === 'processed' && 'Ready for Delivery'}
+                      {selectedOrder.status === 'for-delivery' && 'Mark as Delivered'}
+                    </button>
+                  </>
                 );
               })()}
             </div>
           </div>
         </div>
+      )}
+
+      {/* Chat Component */}
+      {selectedOrder && (
+        <OrderChat 
+          orderId={selectedOrder._id}
+          currentUser={user}
+          isOpen={chatOpen}
+          onClose={() => setChatOpen(false)}
+        />
       )}
     </>
   );

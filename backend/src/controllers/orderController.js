@@ -237,7 +237,7 @@ export const getOrderById = async (req, res) => {
     }
 
     // Clients can only view their own orders
-    if (user.role === 'client' && order.customer._id.toString() !== req.userId) {
+    if (user.role === 'client' && order.customer._id.toString() !== req.userId.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
@@ -264,13 +264,20 @@ export const updateOrderStatus = async (req, res) => {
     const { status, note } = req.body;
     console.log('updateOrderStatus called - ID:', id, 'Status:', status);
 
-    const order = await Order.findById(id);
+    const order = await Order.findById(id)
+      .populate('assignedStaff.pickup', 'firstName lastName')
+      .populate('assignedStaff.processing', 'firstName lastName')
+      .populate('assignedStaff.delivery', 'firstName lastName');
+    
     if (!order) {
       return res.status(404).json({
         success: false,
         message: 'Order not found'
       });
     }
+
+    // Get current user info
+    const currentUser = await User.findById(req.userId).select('firstName lastName');
 
     // Validate weight is required when moving from accepted to picked-up
     if (order.status === 'accepted' && status === 'picked-up') {
@@ -282,8 +289,24 @@ export const updateOrderStatus = async (req, res) => {
       }
     }
 
+    // Validate payment is required for cash orders before marking as delivered
+    if (status === 'delivered' && order.paymentMethod === 'cash' && order.paymentStatus !== 'paid') {
+      return res.status(400).json({
+        success: false,
+        message: 'Please confirm cash payment received before marking as delivered'
+      });
+    }
+
     const oldStatus = order.status;
     order.status = status;
+
+    // Add to status history with consistent format
+    order.statusHistory.push({
+      status,
+      updatedBy: req.userId,
+      updatedByName: `${currentUser.firstName} ${currentUser.lastName}`,
+      updatedAt: new Date()
+    });
 
     if (note) {
       order.notes.push({
@@ -490,6 +513,9 @@ export const acceptOrder = async (req, res) => {
       });
     }
 
+    // Get current user info
+    const currentUser = await User.findById(req.userId).select('firstName lastName');
+
     // Determine which stage to accept based on current status
     let stage = '';
     let newStatus = '';
@@ -506,6 +532,12 @@ export const acceptOrder = async (req, res) => {
       order.status = 'accepted';
       stage = 'pickup';
       newStatus = 'accepted';
+      order.statusHistory.push({
+        status: 'accepted',
+        updatedBy: req.userId,
+        updatedByName: `${currentUser.firstName} ${currentUser.lastName}`,
+        updatedAt: new Date()
+      });
     } else if (order.status === 'picked-up') {
       // Second acceptance - Processing
       if (order.assignedStaff?.processing) {
@@ -518,6 +550,12 @@ export const acceptOrder = async (req, res) => {
       order.status = 'in-progress';
       stage = 'processing';
       newStatus = 'in-progress';
+      order.statusHistory.push({
+        status: 'in-progress',
+        updatedBy: req.userId,
+        updatedByName: `${currentUser.firstName} ${currentUser.lastName}`,
+        updatedAt: new Date()
+      });
     } else if (order.status === 'processed') {
       // Third acceptance - Delivery (after processing staff marks as done)
       if (order.assignedStaff?.delivery) {
@@ -530,6 +568,12 @@ export const acceptOrder = async (req, res) => {
       order.status = 'for-delivery';
       stage = 'delivery';
       newStatus = 'for-delivery';
+      order.statusHistory.push({
+        status: 'for-delivery',
+        updatedBy: req.userId,
+        updatedByName: `${currentUser.firstName} ${currentUser.lastName}`,
+        updatedAt: new Date()
+      });
     } else {
       return res.status(400).json({
         success: false,
@@ -730,6 +774,73 @@ export const getStaffTasks = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching staff tasks',
+      error: error.message
+    });
+  }
+};
+
+// Mark payment as received (Delivery Staff)
+export const markPaymentReceived = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const order = await Order.findById(id)
+      .populate('assignedStaff.delivery', 'firstName lastName');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Only delivery staff can mark payment as received
+    if (!order.assignedStaff?.delivery || order.assignedStaff.delivery._id.toString() !== req.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the assigned delivery staff can confirm payment'
+      });
+    }
+
+    // Only allow for cash payments
+    if (order.paymentMethod !== 'cash') {
+      return res.status(400).json({
+        success: false,
+        message: 'This order does not use cash payment method'
+      });
+    }
+
+    // Update payment status
+    order.paymentStatus = 'paid';
+
+    // Add to status history
+    order.statusHistory.push({
+      status: 'payment-received',
+      updatedAt: new Date(),
+      updatedBy: order.assignedStaff.delivery._id,
+      updatedByName: `${order.assignedStaff.delivery.firstName} ${order.assignedStaff.delivery.lastName}`
+    });
+
+    await order.save();
+
+    // Populate the order after saving to get complete data
+    await order.populate([
+      { path: 'customer', select: 'firstName lastName email' },
+      { path: 'services.service' },
+      { path: 'assignedStaff.pickup', select: 'firstName lastName' },
+      { path: 'assignedStaff.processing', select: 'firstName lastName' },
+      { path: 'assignedStaff.delivery', select: 'firstName lastName' }
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Payment confirmed successfully',
+      data: order
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error confirming payment',
       error: error.message
     });
   }

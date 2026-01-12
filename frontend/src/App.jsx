@@ -14,6 +14,7 @@ import PromoCode from './pages/dashboards/PromoCode'
 import AuditLogs from './pages/dashboards/AuditLogs'
 import ClientProfile from './pages/dashboards/ClientProfile'
 import NewOrder from './pages/dashboards/NewOrder'
+import TrackOrders from './pages/dashboards/TrackOrders'
 import StaffOrders from './pages/dashboards/StaffOrders'
 import MyTasks from './pages/dashboards/MyTasks'
 
@@ -32,6 +33,7 @@ function App() {
           <Route path='/dashboard/client' element={<ClientDashboard />} />
           <Route path='/dashboard/client/profile' element={<ClientProfile />} />
           <Route path='/dashboard/client/new-order' element={<NewOrder />} />
+          <Route path='/dashboard/client/track-orders' element={<TrackOrders />} />
           <Route path='/dashboard/staff' element={<StaffDashboard />} />
           <Route path='/dashboard/staff/orders' element={<StaffOrders />} />
           <Route path='/dashboard/staff/my-tasks' element={<MyTasks />} />
