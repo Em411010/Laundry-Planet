@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import LandingNavbar from '../../components/Navbars/LandingNavbar.jsx'
+import LandingNavbar from '../../components/navbars/LandingNavbar.jsx'
 import { serviceAPI } from '../../services/api'
 import { 
   Rocket, Shirt, Droplets, WashingMachine, 
