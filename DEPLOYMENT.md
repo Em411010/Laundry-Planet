@@ -21,9 +21,9 @@
    - **Name**: laundry-planet
    - **Region**: Choose closest to your users
    - **Branch**: main (or your default branch)
-   - **Root Directory**: `backend`
+   - **Root Directory**: Leave empty (use root of repository)
    - **Environment**: Node
-   - **Build Command**: `npm install && npm run build`
+   - **Build Command**: `npm run build`
    - **Start Command**: `npm start`
    - **Instance Type**: Free
 
