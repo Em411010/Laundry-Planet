@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import connectDB from './src/config/database.js';
 import authRoutes from './src/routes/authRoutes.js';
 import userRoutes from './src/routes/userRoutes.js';
@@ -11,6 +13,9 @@ import orderRoutes from './src/routes/orderRoutes.js';
 import { seedServices } from './src/models/Service.js';
 
 dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -42,12 +47,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ 
-    success: false,
-    message: 'Route not found' 
-  });
+// Serve static files from frontend build
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
+// Handle client-side routing - serve index.html for all non-API routes
+app.use((req, res, next) => {
+  // Skip API routes
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  // Serve index.html for all other routes
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
 // Error handler
