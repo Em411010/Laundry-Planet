@@ -11,6 +11,7 @@ const MyTasks = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
   const [orders, setOrders] = useState([]);
+  const [allOrders, setAllOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -41,8 +42,12 @@ const MyTasks = () => {
   const fetchMyTasks = async () => {
     try {
       setLoading(true);
-      const response = await orderAPI.getStaffTasks();
-      setOrders(response.data);
+      const [tasksResponse, allOrdersResponse] = await Promise.all([
+        orderAPI.getStaffTasks(),
+        orderAPI.getAllOrders({ limit: 1000 })
+      ]);
+      setOrders(tasksResponse.data);
+      setAllOrders(allOrdersResponse.data);
     } catch (error) {
       console.error('Error fetching my tasks:', error);
     } finally {
@@ -91,38 +96,16 @@ const MyTasks = () => {
     if (!user) return [];
     
     if (activeTab === 'pending') {
-      // Show all tasks where the staff is assigned and order is not yet delivered
-      return orders.filter(order => {
-        const userId = user._id || user.id;
-        
-        // Don't show delivered orders in pending
-        if (order.status === 'delivered') {
-          return false;
-        }
-        
-        // Show order if user is assigned to any stage
-        return (
-          order.assignedStaff?.pickup?._id === userId ||
-          order.assignedStaff?.processing?._id === userId ||
-          order.assignedStaff?.delivery?._id === userId
-        );
-      });
+      // Show all current tasks from getStaffTasks (active tasks only)
+      return orders;
     } else if (activeTab === 'completed') {
-      // Show tasks where the staff was assigned and order is delivered
-      return orders.filter(order => {
-        const userId = user._id || user.id;
+      // Show delivered or cancelled orders from allOrders where this staff was assigned
+      return allOrders.filter(order => {
+        const isCompleted = order.status === 'delivered' || order.status === 'cancelled';
+        if (!isCompleted) return false;
         
-        // Only show as completed when order is actually delivered
-        if (order.status !== 'delivered') {
-          return false;
-        }
-        
-        // Check if user was assigned to any stage of this order
-        return (
-          order.assignedStaff?.pickup?._id === userId ||
-          order.assignedStaff?.processing?._id === userId ||
-          order.assignedStaff?.delivery?._id === userId
-        );
+        // Show all completed orders for staff
+        return true;
       });
     }
     return orders;

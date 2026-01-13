@@ -85,9 +85,9 @@ export const userAPI = {
 
 // Service Management API (Admin only)
 export const serviceAPI = {
-  // Get all services
+  // Get all services (Public)
   getAllServices: async () => {
-    const response = await api.get('/services')
+    const response = await api.get('/services/public')
     return response.data
   },
 
@@ -238,6 +238,12 @@ export const orderAPI = {
     return response.data
   },
 
+  // Modify order services (Pickup Staff)
+  modifyOrderServices: async (id, services) => {
+    const response = await api.patch(`/orders/${id}/services`, { services })
+    return response.data
+  },
+
   // Mark payment as received (Delivery Staff)
   markPaymentReceived: async (id) => {
     const response = await api.patch(`/orders/${id}/payment/received`)
@@ -253,6 +259,12 @@ export const orderAPI = {
   // Get staff tasks
   getStaffTasks: async () => {
     const response = await api.get('/orders/staff/tasks')
+    return response.data
+  },
+
+  // Get staff analytics
+  getStaffAnalytics: async () => {
+    const response = await api.get('/orders/staff/analytics')
     return response.data
   }
 }

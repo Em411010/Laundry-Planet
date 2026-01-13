@@ -751,12 +751,26 @@ export const addOrderMessage = async (req, res) => {
 // Get staff tasks (their assigned orders)
 export const getStaffTasks = async (req, res) => {
   try {
-    // Find orders where the staff is assigned to any stage (pickup, processing, or delivery)
+    const staffId = req.userId;
+    
+    // Find orders where the staff is assigned AND their part is not yet done
     const orders = await Order.find({
       $or: [
-        { 'assignedStaff.pickup': req.userId },
-        { 'assignedStaff.processing': req.userId },
-        { 'assignedStaff.delivery': req.userId }
+        // Pickup staff: show only if status is 'accepted' (not yet picked up)
+        { 
+          'assignedStaff.pickup': staffId,
+          status: 'accepted'
+        },
+        // Processing staff: show only if status is 'in-progress' (not yet processed)
+        { 
+          'assignedStaff.processing': staffId,
+          status: 'in-progress'
+        },
+        // Delivery staff: show only if status is 'for-delivery' or 'out-for-delivery' (not yet delivered)
+        { 
+          'assignedStaff.delivery': staffId,
+          status: { $in: ['for-delivery', 'out-for-delivery'] }
+        }
       ]
     })
       .populate('customer', 'firstName lastName email phone')
@@ -841,6 +855,277 @@ export const markPaymentReceived = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error confirming payment',
+      error: error.message
+    });
+  }
+};
+
+// Modify order services (Pickup Staff during accepted status)
+export const modifyOrderServices = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { services } = req.body; // Array of { serviceId, quantity }
+
+    const order = await Order.findById(id)
+      .populate('assignedStaff.pickup', 'firstName lastName');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Only pickup staff can modify services during accepted status
+    if (order.status !== 'accepted') {
+      return res.status(400).json({
+        success: false,
+        message: 'Services can only be modified during pickup (accepted status)'
+      });
+    }
+
+    if (!order.assignedStaff?.pickup || order.assignedStaff.pickup._id.toString() !== req.userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: 'Only the assigned pickup staff can modify services'
+      });
+    }
+
+    // Validate and fetch service details
+    const serviceDetails = await Service.find({
+      '_id': { $in: services.map(s => s.serviceId) }
+    });
+
+    if (serviceDetails.length !== services.length) {
+      return res.status(400).json({
+        success: false,
+        message: 'One or more services not found'
+      });
+    }
+
+    // Create new services array with prices and subtotals
+    const updatedServices = services.map(s => {
+      const serviceDetail = serviceDetails.find(sd => sd._id.toString() === s.serviceId);
+      return {
+        service: s.serviceId,
+        quantity: s.quantity || 0,
+        price: serviceDetail.price,
+        subtotal: serviceDetail.price * (s.quantity || 0)
+      };
+    });
+
+    // Update order services
+    order.services = updatedServices;
+
+    // Calculate total weight from all services
+    order.actualWeight = updatedServices.reduce((sum, s) => sum + s.quantity, 0);
+
+    // Recalculate total amount
+    order.totalAmount = updatedServices.reduce((sum, s) => sum + s.subtotal, 0);
+
+    await order.save();
+
+    // Populate the order after saving
+    await order.populate([
+      { path: 'customer', select: 'firstName lastName email' },
+      { path: 'services.service' },
+      { path: 'assignedStaff.pickup', select: 'firstName lastName' },
+      { path: 'assignedStaff.processing', select: 'firstName lastName' },
+      { path: 'assignedStaff.delivery', select: 'firstName lastName' }
+    ]);
+
+    res.json({
+      success: true,
+      message: 'Services updated successfully',
+      data: order
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error modifying services',
+      error: error.message
+    });
+  }
+};
+
+// Get staff analytics (Staff)
+export const getStaffAnalytics = async (req, res) => {
+  try {
+    const staffId = req.userId;
+    const currentDate = new Date();
+    const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+    
+    // Get start of today
+    const startOfToday = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate());
+    
+    // Get start of current week (Sunday)
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    // Get all orders where staff is assigned
+    const allOrders = await Order.find({
+      $or: [
+        { 'assignedStaff.pickup': staffId },
+        { 'assignedStaff.processing': staffId },
+        { 'assignedStaff.delivery': staffId }
+      ]
+    }).populate('customer', 'firstName lastName')
+      .populate('assignedStaff.pickup', 'firstName lastName')
+      .populate('assignedStaff.processing', 'firstName lastName')
+      .populate('assignedStaff.delivery', 'firstName lastName')
+      .sort({ createdAt: -1 });
+
+    // Get orders for current month
+    const monthOrders = await Order.find({
+      $or: [
+        { 'assignedStaff.pickup': staffId },
+        { 'assignedStaff.processing': staffId },
+        { 'assignedStaff.delivery': staffId }
+      ],
+      createdAt: { $gte: firstDayOfMonth }
+    });
+
+    // Get today's orders
+    const todayOrders = await Order.find({
+      $or: [
+        { 'assignedStaff.pickup': staffId },
+        { 'assignedStaff.processing': staffId },
+        { 'assignedStaff.delivery': staffId }
+      ],
+      createdAt: { $gte: startOfToday }
+    });
+
+    // Get pending tasks (only tasks that need their action)
+    const pendingTasks = await Order.find({
+      $or: [
+        // Pickup staff: only if status is 'accepted' (not yet picked up)
+        { 
+          'assignedStaff.pickup': staffId,
+          status: 'accepted'
+        },
+        // Processing staff: only if status is 'in-progress' (not yet processed)
+        { 
+          'assignedStaff.processing': staffId,
+          status: 'in-progress'
+        },
+        // Delivery staff: only if status requires delivery
+        { 
+          'assignedStaff.delivery': staffId,
+          status: { $in: ['for-delivery', 'out-for-delivery'] }
+        }
+      ]
+    });
+
+    // Get orders for current week
+    const weekOrders = await Order.find({
+      $or: [
+        { 'assignedStaff.pickup': staffId },
+        { 'assignedStaff.processing': staffId },
+        { 'assignedStaff.delivery': staffId }
+      ],
+      createdAt: { $gte: startOfWeek }
+    });
+
+    // Calculate overall stats
+    const overallStats = {
+      pickup: 0,
+      processing: 0,
+      delivery: 0
+    };
+
+    allOrders.forEach(order => {
+      if (order.assignedStaff?.pickup?._id?.toString() === staffId.toString() && order.actualWeight) {
+        overallStats.pickup += order.actualWeight;
+      }
+      if (order.assignedStaff?.processing?._id?.toString() === staffId.toString() && order.actualWeight) {
+        overallStats.processing += order.actualWeight;
+      }
+      if (order.assignedStaff?.delivery?._id?.toString() === staffId.toString() && order.actualWeight) {
+        overallStats.delivery += order.actualWeight;
+      }
+    });
+
+    // Calculate monthly stats
+    const monthlyStats = {
+      pickup: 0,
+      processing: 0,
+      delivery: 0
+    };
+
+    monthOrders.forEach(order => {
+      if (order.assignedStaff?.pickup?._id?.toString() === staffId.toString() && order.actualWeight) {
+        monthlyStats.pickup += order.actualWeight;
+      }
+      if (order.assignedStaff?.processing?._id?.toString() === staffId.toString() && order.actualWeight) {
+        monthlyStats.processing += order.actualWeight;
+      }
+      if (order.assignedStaff?.delivery?._id?.toString() === staffId.toString() && order.actualWeight) {
+        monthlyStats.delivery += order.actualWeight;
+      }
+    });
+
+    // Calculate weekly stats (kg per day)
+    const weeklyData = [];
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    
+    for (let i = 0; i < 7; i++) {
+      const dayDate = new Date(startOfWeek);
+      dayDate.setDate(startOfWeek.getDate() + i);
+      const nextDay = new Date(dayDate);
+      nextDay.setDate(dayDate.getDate() + 1);
+
+      let dayKg = 0;
+      weekOrders.forEach(order => {
+        if (order.createdAt >= dayDate && order.createdAt < nextDay && order.actualWeight) {
+          if (order.assignedStaff?.pickup?.toString() === staffId.toString() ||
+              order.assignedStaff?.processing?.toString() === staffId.toString() ||
+              order.assignedStaff?.delivery?.toString() === staffId.toString()) {
+            dayKg += order.actualWeight;
+          }
+        }
+      });
+
+      weeklyData.push({
+        day: daysOfWeek[i],
+        kg: dayKg,
+        date: dayDate.toLocaleDateString()
+      });
+    }
+
+    // Get recent activity (last 10 orders)
+    const recentActivity = allOrders.slice(0, 10).map(order => ({
+      orderId: order.orderNumber,
+      customer: order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : 'Unknown',
+      status: order.status,
+      actualWeight: order.actualWeight || 0,
+      role: order.assignedStaff?.pickup?._id?.toString() === staffId.toString() ? 'Pickup' :
+            order.assignedStaff?.processing?._id?.toString() === staffId.toString() ? 'Processing' :
+            order.assignedStaff?.delivery?._id?.toString() === staffId.toString() ? 'Delivery' : 'Staff',
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        overall: overallStats,
+        monthly: monthlyStats,
+        month: currentDate.toLocaleString('default', { month: 'long', year: 'numeric' }),
+        orderCounts: {
+          allTime: allOrders.length,
+          thisMonth: monthOrders.length,
+          today: todayOrders.length,
+          pending: pendingTasks.length
+        },
+        weeklyData,
+        recentActivity
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching staff analytics',
       error: error.message
     });
   }

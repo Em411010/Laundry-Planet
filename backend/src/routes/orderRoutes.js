@@ -12,7 +12,9 @@ import {
   addOrderImage,
   addOrderMessage,
   getStaffTasks,
-  markPaymentReceived
+  markPaymentReceived,
+  modifyOrderServices,
+  getStaffAnalytics
 } from '../controllers/orderController.js';
 import { authenticate, authorize } from '../middlewares/auth.js';
 
@@ -27,12 +29,14 @@ router.get('/', getAllOrders); // Role-based filtering in controller
 
 // Staff routes - specific routes before parameterized routes
 router.get('/staff/tasks', authorize(['staff', 'admin']), getStaffTasks);
+router.get('/staff/analytics', authorize(['staff', 'admin']), getStaffAnalytics);
 router.get('/stats/overview', authorize(['admin']), getOrderStats);
 
 router.get('/:id', getOrderById); // Role-based access in controller
 router.patch('/:id/cancel', cancelOrder); // Clients can cancel own orders
 router.patch('/:id/accept', authorize(['staff', 'admin']), acceptOrder);
 router.patch('/:id/weight', authorize(['staff', 'admin']), updateOrderWeight);
+router.patch('/:id/services', authorize(['staff', 'admin']), modifyOrderServices);
 router.patch('/:id/payment/received', authorize(['staff', 'admin']), markPaymentReceived);
 router.patch('/:id/status', authorize(['admin', 'staff']), updateOrderStatus);
 router.patch('/:id/assign', authorize(['admin']), assignStaff);

@@ -53,7 +53,7 @@ const SplashScreen = () => {
       )}{showText && (
         <div className={`absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 ${fadeOut ? 'animate-fade-out' : 'animate-fade-in'}`}>
           <div className="text-center space-y-8 px-4"><div className="animate-slide-down">
-              <h1 className="text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 tracking-wider animate-pulse-slow">
+              <h1 className="mt-4 text-7xl md:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-600 tracking-wider animate-pulse-slow">
                 AROS
               </h1>
               <p className="text-xl md:text-2xl text-blue-300 italic mt-4 tracking-wide">

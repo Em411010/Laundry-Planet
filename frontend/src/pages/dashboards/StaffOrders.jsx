@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar'
-import { orderAPI } from '../../services/api'
+import { orderAPI, serviceAPI } from '../../services/api'
 import OrderChat from '../../components/OrderChat'
 import { 
   Package, 
@@ -23,6 +23,7 @@ import {
 
 const StaffOrders = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -43,6 +44,8 @@ const StaffOrders = () => {
   const [newMessage, setNewMessage] = useState('')
   const [newStatus, setNewStatus] = useState('')
   const [chatOpen, setChatOpen] = useState(false)
+  const [availableServices, setAvailableServices] = useState([])
+  const [modifyingServices, setModifyingServices] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -58,6 +61,15 @@ const StaffOrders = () => {
     }
   }, [navigate])
 
+  // Handle URL query parameters for tab navigation
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const tab = searchParams.get('tab')
+    if (tab && ['myTasks', 'waitingToAccept', 'all', 'pending', 'completed'].includes(tab)) {
+      setActiveTab(tab)
+    }
+  }, [location.search])
+
   useEffect(() => {
     if (user) {
       fetchOrders()
@@ -68,7 +80,7 @@ const StaffOrders = () => {
     try {
       setLoading(true)
       const [allOrdersRes, myTasksRes] = await Promise.all([
-        orderAPI.getAllOrders(),
+        orderAPI.getAllOrders({ limit: 1000 }), // Fetch up to 1000 orders to include completed ones
         orderAPI.getStaffTasks()
       ])
       
@@ -239,15 +251,96 @@ const StaffOrders = () => {
     }
   }
 
+  const handleModifyServices = async (services) => {
+    try {
+      setModifyingServices(true)
+      await orderAPI.modifyOrderServices(selectedOrder._id, services)
+      setSuccess('Services updated successfully!')
+      setTimeout(() => setSuccess(null), 3000)
+      
+      // Refresh order details
+      const updated = await orderAPI.getOrderById(selectedOrder._id)
+      setSelectedOrder(updated.data)
+      fetchOrders()
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to modify services')
+      setTimeout(() => setError(null), 3000)
+    } finally {
+      setModifyingServices(false)
+    }
+  }
+
+  const handleAddService = () => {
+    if (!selectedOrder) return
+    // Add a new empty service entry with proper structure
+    const newServices = [...selectedOrder.services, { 
+      service: { _id: '', name: 'Select Service', price: 0, unit: 'kg' }, 
+      quantity: 1,
+      price: 0,
+      subtotal: 0
+    }]
+    setSelectedOrder({ ...selectedOrder, services: newServices })
+  }
+
+  const handleRemoveService = (index) => {
+    if (!selectedOrder) return
+    const newServices = selectedOrder.services.filter((_, idx) => idx !== index)
+    setSelectedOrder({ ...selectedOrder, services: newServices })
+  }
+
+  const handleServiceChange = (index, field, value) => {
+    if (!selectedOrder) return
+    const newServices = [...selectedOrder.services]
+    
+    if (field === 'serviceId') {
+      const service = availableServices.find(s => s._id === value)
+      if (service) {
+        newServices[index] = {
+          service: service,
+          quantity: newServices[index].quantity || 0,
+          price: service.price,
+          subtotal: service.price * (newServices[index].quantity || 0)
+        }
+      }
+    } else if (field === 'quantity') {
+      newServices[index].quantity = parseFloat(value) || 0
+      newServices[index].subtotal = newServices[index].service.price * (parseFloat(value) || 0)
+    }
+    
+    setSelectedOrder({ ...selectedOrder, services: newServices })
+  }
+
+  const handleSaveServices = () => {
+    const services = selectedOrder.services
+      .filter(s => s.service._id && s.service._id !== '' && s.quantity > 0)
+      .map(s => ({
+        serviceId: s.service._id,
+        quantity: s.quantity
+      }))
+    
+    if (services.length === 0) {
+      setError('Please select at least one service with quantity')
+      setTimeout(() => setError(null), 3000)
+      return
+    }
+    
+    handleModifyServices(services)
+  }
+
   const openOrderDetail = async (order) => {
     try {
-      const response = await orderAPI.getOrderById(order._id)
-      setSelectedOrder(response.data)
+      const [orderResponse, servicesResponse] = await Promise.all([
+        orderAPI.getOrderById(order._id),
+        serviceAPI.getAllServices()
+      ])
+      
+      setSelectedOrder(orderResponse.data)
+      setAvailableServices(servicesResponse.data)
       setShowDetailModal(true)
-      setNewStatus(response.data.status)
+      setNewStatus(orderResponse.data.status)
       setWeightForm({
-        weight: response.data.actualWeight || '',
-        services: response.data.services.map(s => ({
+        weight: orderResponse.data.actualWeight || '',
+        services: orderResponse.data.services.map(s => ({
           serviceId: s.service._id,
           quantity: s.quantity
         }))
@@ -337,10 +430,19 @@ const StaffOrders = () => {
         o.status === 'picked-up' || 
         o.status === 'in-progress' || 
         o.status === 'processed' || 
-        o.status === 'for-delivery'
+        o.status === 'for-delivery' ||
+        o.status === 'out-for-delivery'
       )
     } else if (activeTab === 'completed') {
-      return allOrders.filter(o => o.status === 'delivered' || o.status === 'cancelled')
+      // Show delivered or cancelled orders where this staff was assigned
+      const completed = allOrders.filter(o => {
+        const isCompleted = o.status === 'delivered' || o.status === 'cancelled'
+        if (!isCompleted) return false
+        
+        // For staff, show ALL completed orders (they can see orders they worked on)
+        return true
+      })
+      return completed
     }
     return allOrders
   }
@@ -636,7 +738,76 @@ const StaffOrders = () => {
                     )}
                   </div>
                 </div>
-              </div>{(selectedOrder.assignedStaff?.pickup || selectedOrder.assignedStaff?.processing || selectedOrder.assignedStaff?.delivery) && (
+              </div>{(() => {
+                const userId = user?._id || user?.id;
+                const isPickupStaff = selectedOrder?.assignedStaff?.pickup?._id === userId;
+                
+                // Only show service modification for pickup staff and status 'accepted'
+                if (selectedOrder.status === 'accepted' && isPickupStaff) {
+                  return (
+                    <div className="card bg-base-200 lg:col-span-2">
+                      <div className="card-body">
+                        <h4 className="font-bold flex items-center gap-2">
+                          <Package className="h-5 w-5" />
+                          Modify Services
+                        </h4>
+                        <p className="text-sm text-base-content/60 mb-4">
+                          Add or remove services based on customer request
+                        </p>
+                        <div className="space-y-3">
+                          {selectedOrder.services.map((s, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <select
+                                className="select select-bordered flex-1"
+                                value={s.service._id}
+                                onChange={(e) => handleServiceChange(idx, 'serviceId', e.target.value)}
+                              >
+                                <option value="">Select Service</option>
+                                {availableServices.map(service => (
+                                  <option key={service._id} value={service._id}>
+                                    {service.name} - ₱{service.price}/{service.unit}
+                                  </option>
+                                ))}
+                              </select>
+                              <input
+                                type="number"
+                                step="0.1"
+                                min="0"
+                                className="input input-bordered w-32"
+                                placeholder="Qty"
+                                value={s.quantity || ''}
+                                onChange={(e) => handleServiceChange(idx, 'quantity', e.target.value)}
+                              />
+                              <button
+                                className="btn btn-error btn-sm"
+                                onClick={() => handleRemoveService(idx)}
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                          <div className="flex gap-2">
+                            <button
+                              className="btn btn-outline btn-sm"
+                              onClick={handleAddService}
+                            >
+                              + Add Service
+                            </button>
+                            <button
+                              className="btn btn-primary btn-sm ml-auto"
+                              onClick={handleSaveServices}
+                              disabled={modifyingServices}
+                            >
+                              {modifyingServices ? 'Saving...' : 'Save Changes'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}{(selectedOrder.assignedStaff?.pickup || selectedOrder.assignedStaff?.processing || selectedOrder.assignedStaff?.delivery) && (
                 <div className="card bg-base-200 lg:col-span-2">
                   <div className="card-body">
                     <h4 className="font-bold flex items-center gap-2">
@@ -700,67 +871,6 @@ const StaffOrders = () => {
                   </div>
                 </div>
               )}{(() => {
-                const userId = user?._id || user?.id;
-                const isPickupStaff = selectedOrder?.assignedStaff?.pickup?._id === userId;
-                
-                // Only show weight section for pickup staff and status 'accepted'
-                if (selectedOrder.status === 'accepted' && isPickupStaff) {
-                  return (
-                    <div className="card bg-base-200 lg:col-span-2">
-                      <div className="card-body">
-                        <h4 className="font-bold flex items-center gap-2">
-                          <Weight className="h-5 w-5" />
-                          Weigh Services
-                        </h4>
-                        <p className="text-sm text-base-content/60 mb-4">
-                          Enter the weight for each service before pickup
-                        </p>
-                        <div className="space-y-3">
-                          {selectedOrder.services.map((s, idx) => {
-                            const currentValue = weightForm.services.find(ws => ws.serviceId === s.service._id)?.quantity || s.quantity || '';
-                            return (
-                              <div key={idx} className="form-control">
-                                <label className="label">
-                                  <span className="label-text font-medium">{s.service.name}</span>
-                                  <span className="label-text-alt text-xs mr-2">₱{s.service.price}/{s.service.unit}</span>
-                                </label>
-                                <input
-                                  type="number"
-                                  step="0.1"
-                                  min="0"
-                                  className="input input-bordered"
-                                  placeholder={`Weight in ${s.service.unit}...`}
-                                  value={currentValue}
-                                  onChange={(e) => {
-                                    const updatedServices = weightForm.services.filter(ws => ws.serviceId !== s.service._id);
-                                    updatedServices.push({
-                                      serviceId: s.service._id,
-                                      quantity: parseFloat(e.target.value) || 0
-                                    });
-                                    setWeightForm({...weightForm, services: updatedServices});
-                                  }}
-                                />
-                              </div>
-                            );
-                          })}
-                          <button
-                            onClick={() => {
-                              const totalWeight = weightForm.services.reduce((sum, s) => sum + s.quantity, 0);
-                              handleUpdateWeight(selectedOrder._id);
-                            }}
-                            className="btn btn-primary w-full"
-                            disabled={updatingOrder || !weightForm.services.every(s => s.quantity > 0)}
-                          >
-                            <Weight className="h-5 w-5 mr-2" />
-                            Save Weights
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              })()}{(() => {
                 const userId = user?._id || user?.id;
                 const isAssigned = selectedOrder?.assignedStaff?.pickup?._id === userId ||
                                    selectedOrder?.assignedStaff?.processing?._id === userId ||
