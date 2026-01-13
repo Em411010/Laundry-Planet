@@ -53,12 +53,13 @@ const RegisterPage = () => {
       })
       
       if (response.success) {
-        // Store token and user data
-        localStorage.setItem('token', response.token)
-        localStorage.setItem('user', JSON.stringify(response.user))
-        
-        // Redirect to client dashboard (default role)
-        navigate('/dashboard/client')
+        // Navigate to OTP verification page
+        navigate('/verify-otp', {
+          state: {
+            email: formData.email,
+            firstName: formData.firstName
+          }
+        })
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.')

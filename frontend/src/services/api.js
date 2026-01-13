@@ -37,6 +37,18 @@ export const authAPI = {
     return response.data
   },
 
+  // Verify OTP
+  verifyOTP: async ({ email, otp }) => {
+    const response = await api.post('/auth/verify-otp', { email, otp })
+    return response.data
+  },
+
+  // Resend OTP
+  resendOTP: async ({ email }) => {
+    const response = await api.post('/auth/resend-otp', { email })
+    return response.data
+  },
+
   // Verify token
   verifyToken: async () => {
     const response = await api.get('/auth/verify')
@@ -286,6 +298,15 @@ export const messageAPI = {
   // Get unread message count
   getUnreadCount: async () => {
     const response = await api.get('/messages/unread-count')
+    return response.data
+  }
+}
+
+// Dashboard API (Admin only)
+export const dashboardAPI = {
+  // Get admin dashboard statistics
+  getAdminStats: async () => {
+    const response = await api.get('/dashboard/admin/stats')
     return response.data
   }
 }

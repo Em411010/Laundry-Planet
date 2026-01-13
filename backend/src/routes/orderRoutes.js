@@ -17,15 +17,16 @@ import {
   getStaffAnalytics
 } from '../controllers/orderController.js';
 import { authenticate, authorize } from '../middlewares/auth.js';
+import { rateLimit } from '../middlewares/rateLimiter.js';
 
 const router = express.Router();
 
 // All routes require authentication
 router.use(authenticate);
 
-// Client routes
-router.post('/', authorize(['client']), createOrder);
-router.get('/', getAllOrders); // Role-based filtering in controller
+// Client routes with rate limiting
+router.post('/', authorize(['client']), rateLimit('createOrder'), createOrder);
+router.get('/', rateLimit('api'), getAllOrders); // Role-based filtering in controller
 
 // Staff routes - specific routes before parameterized routes
 router.get('/staff/tasks', authorize(['staff', 'admin']), getStaffTasks);

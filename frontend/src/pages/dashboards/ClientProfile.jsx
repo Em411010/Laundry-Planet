@@ -86,6 +86,7 @@ const ClientProfile = () => {
 
   const getMyLocation = () => {
     if (navigator.geolocation) {
+      setSuccess('Getting your location...')
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setFormData(prev => ({
@@ -97,7 +98,7 @@ const ClientProfile = () => {
           setTimeout(() => setSuccess(null), 3000)
         },
         (error) => {
-          setError('Unable to get your location. Please enter manually or use Google Maps.')
+          setError('Unable to get your location. Please allow location access.')
           setTimeout(() => setError(null), 3000)
         }
       )
@@ -336,59 +337,47 @@ const ClientProfile = () => {
                   </div><h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                     <Map className="h-5 w-5" />
                     Pin Location (Optional)
-                  </h2><div className="flex flex-wrap gap-3 mb-4">
+                  </h2>
+
+                  <div className="alert alert-info mb-4">
+                    <AlertCircle className="h-5 w-5" />
+                    <div className="text-sm">
+                      <p>Click the button below to automatically capture your current location. This helps us provide accurate pickup and delivery services.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-3 mb-4">
                     <button
                       type="button"
                       onClick={getMyLocation}
-                      className="btn btn-outline btn-primary gap-2"
+                      className="btn btn-primary gap-2"
                     >
                       <MapPin className="h-4 w-4" />
-                      Use Current Location
+                      Get My Current Location
                     </button>
-                    <button
-                      type="button"
-                      onClick={openGoogleMaps}
-                      className="btn btn-outline gap-2"
-                    >
-                      <Map className="h-4 w-4" />
-                      Open Google Maps
-                    </button>
+                    {formData.latitude && formData.longitude && 
+                     formData.latitude !== '' && formData.longitude !== '' && 
+                     formData.latitude !== '0' && formData.longitude !== '0' && (
+                      <button
+                        type="button"
+                        onClick={openGoogleMaps}
+                        className="btn btn-outline gap-2"
+                      >
+                        <Map className="h-4 w-4" />
+                        View on Google Maps
+                      </button>
+                    )}
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Latitude</span>
-                      </label>
-                      <input
-                        type="number"
-                        name="latitude"
-                        className="input input-bordered w-full"
-                        placeholder="14.5995"
-                        step="any"
-                        value={formData.latitude}
-                        onChange={handleChange}
-                      />
-                    </div>
-                    <div className="form-control">
-                      <label className="label">
-                        <span className="label-text">Longitude</span>
-                      </label>
-                      <input
-                        type="number"
-                        name="longitude"
-                        className="input input-bordered w-full"
-                        placeholder="120.9842"
-                        step="any"
-                        value={formData.longitude}
-                        onChange={handleChange}
-                      />
-                    </div>
-                  </div>{formData.latitude && formData.longitude && 
+                  {formData.latitude && formData.longitude && 
                    formData.latitude !== '' && formData.longitude !== '' && 
                    formData.latitude !== '0' && formData.longitude !== '0' && (
                     <div className="mb-4">
-                      <div className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-base-300">
+                      <div className="alert alert-success mb-3">
+                        <CheckCircle className="h-5 w-5" />
+                        <span>Location captured successfully!</span>
+                      </div>
+                      <div className="relative w-full h-64 rounded-lg overflow-hidden border-2 border-base-300 shadow-lg">
                         <iframe
                           width="100%"
                           height="100%"
@@ -397,20 +386,13 @@ const ClientProfile = () => {
                           title="Location Preview"
                         />
                       </div>
+                      <p className="text-sm text-base-content/70 mt-2">
+                        Coordinates: {parseFloat(formData.latitude).toFixed(6)}, {parseFloat(formData.longitude).toFixed(6)}
+                      </p>
                     </div>
                   )}
 
-                  <div className="alert alert-info mb-6">
-                    <AlertCircle className="h-5 w-5" />
-                    <div className="text-sm">
-                      <p className="font-semibold mb-1">How to get your coordinates:</p>
-                      <ul className="list-disc list-inside space-y-1">
-                        <li>Click "Use Current Location" to automatically detect your location</li>
-                        <li>Or click "Open Google Maps", find your location, right-click and select the coordinates</li>
-                        <li>Copy and paste the coordinates into the fields above</li>
-                      </ul>
-                    </div>
-                  </div><div className="card-actions justify-end">
+                  <div className="card-actions justify-end">
                     <button
                       type="submit"
                       className="btn btn-primary gap-2"

@@ -122,7 +122,10 @@ export const createUser = async (req, res) => {
       email,
       password,
       role: role || 'client',
-      isActive: true
+      isActive: true,
+      isEmailVerified: true, // Admin-created accounts are automatically verified
+      otp: null,
+      otpExpiry: null
     });
 
     // Log audit

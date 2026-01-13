@@ -40,7 +40,17 @@ const LoginPage = () => {
         }
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please try again.')
+      const errorMessage = err.response?.data?.message || 'Login failed. Please try again.'
+      setError(errorMessage)
+      
+      // If email not verified, redirect to OTP page
+      if (err.response?.data?.requiresVerification) {
+        setTimeout(() => {
+          navigate('/verify-otp', {
+            state: { email }
+          })
+        }, 2000)
+      }
     } finally {
       setLoading(false)
     }
