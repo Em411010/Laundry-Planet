@@ -21,16 +21,20 @@ const NewOrder = () => {
   const [orderDetails, setOrderDetails] = useState({
     pickupDate: '',
     pickupTime: '09:00',
+    deliverDate: '',
+    deliverTime: '',
     paymentMethod: 'cash',
     specialInstructions: ''
   })
 
   const [pickupAddress, setPickupAddress] = useState({
-    street: '',
+    houseUnitLot: '',
+    streetName: '',
     barangay: '',
     city: '',
     province: '',
     zipCode: '',
+    landmark: '',
     fullAddress: '',
     latitude: '',
     longitude: ''
@@ -70,11 +74,13 @@ const NewOrder = () => {
       // Initialize address from profile
       if (profileRes.data) {
         setPickupAddress({
-          street: profileRes.data.address?.street || '',
+          houseUnitLot: profileRes.data.address?.houseUnitLot || '',
+          streetName: profileRes.data.address?.streetName || '',
           barangay: profileRes.data.address?.barangay || '',
           city: profileRes.data.address?.city || '',
           province: profileRes.data.address?.province || '',
           zipCode: profileRes.data.address?.zipCode || '',
+          landmark: profileRes.data.address?.landmark || '',
           fullAddress: profileRes.data.address?.fullAddress || '',
           latitude: profileRes.data.location?.coordinates[1] || '',
           longitude: profileRes.data.location?.coordinates[0] || ''
@@ -104,12 +110,61 @@ const NewOrder = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
-    setOrderDetails(prev => ({ ...prev, [name]: value }))
+    setOrderDetails(prev => {
+      let updated = { ...prev, [name]: value }
+      // If pickupDate or pickupTime changes, auto-set deliverDate/time to 24h after
+      if (name === 'pickupDate' || name === 'pickupTime') {
+        if ((name === 'pickupDate' && value && prev.pickupTime) || (name === 'pickupTime' && value && prev.pickupDate)) {
+          const dateStr = name === 'pickupDate' ? value : prev.pickupDate
+          const timeStr = name === 'pickupTime' ? value : prev.pickupTime
+          if (dateStr && timeStr) {
+            const pickupDT = new Date(`${dateStr}T${timeStr}`)
+            const deliverDT = new Date(pickupDT.getTime() + 24 * 60 * 60 * 1000)
+            updated.deliverDate = deliverDT.toISOString().slice(0, 10)
+            updated.deliverTime = deliverDT.toTimeString().slice(0, 5)
+          }
+        }
+      }
+      return updated
+    })
   }
 
+  // Auto-generate full address when address fields change
   const handleAddressChange = (e) => {
     const { name, value } = e.target
-    setPickupAddress(prev => ({ ...prev, [name]: value }))
+    setPickupAddress(prev => {
+      const updated = { ...prev, [name]: value }
+      if ([
+        'houseUnitLot',
+        'streetName',
+        'barangay',
+        'city',
+        'province',
+        'zipCode',
+        'landmark'
+      ].includes(name)) {
+        const {
+          houseUnitLot,
+          streetName,
+          barangay,
+          city,
+          province,
+          zipCode,
+          landmark
+        } = { ...updated }
+        let address = ''
+        if (houseUnitLot) address += houseUnitLot + ', '
+        if (streetName) address += streetName + ', '
+        if (barangay) address += 'Brgy. ' + barangay + ', '
+        if (city) address += city + ', '
+        if (province) address += province + ', '
+        if (zipCode) address += zipCode + ', '
+        if (landmark) address += 'Landmark: ' + landmark
+        address = address.replace(/, $/, '')
+        updated.fullAddress = address
+      }
+      return updated
+    })
   }
 
   const openGoogleMaps = () => {
@@ -170,14 +225,18 @@ const NewOrder = () => {
         })),
         pickupDate: orderDetails.pickupDate,
         pickupTime: orderDetails.pickupTime,
+        deliverDate: orderDetails.deliverDate,
+        deliverTime: orderDetails.deliverTime,
         paymentMethod: orderDetails.paymentMethod,
         specialInstructions: orderDetails.specialInstructions,
         customAddress: {
-          street: pickupAddress.street,
+          houseUnitLot: pickupAddress.houseUnitLot,
+          streetName: pickupAddress.streetName,
           barangay: pickupAddress.barangay,
           city: pickupAddress.city,
           province: pickupAddress.province,
           zipCode: pickupAddress.zipCode,
+          landmark: pickupAddress.landmark,
           fullAddress: pickupAddress.fullAddress,
           location: {
             type: 'Point',
@@ -368,6 +427,55 @@ const NewOrder = () => {
                       <div className="form-control mb-4">
                         <label className="label">
                           <span className="label-text flex items-center gap-2">
+                            <Calendar className="h-4 w-4" />
+                            Delivery Date *
+                          </span>
+                        </label>
+                        <input
+                          type="date"
+                          name="deliverDate"
+                          className="input input-bordered w-full"
+                          min={orderDetails.pickupDate ? (() => {
+                            if (!orderDetails.pickupDate || !orderDetails.pickupTime) return '';
+                            const pickupDT = new Date(`${orderDetails.pickupDate}T${orderDetails.pickupTime}`);
+                            const deliverDT = new Date(pickupDT.getTime() + 24 * 60 * 60 * 1000);
+                            return deliverDT.toISOString().slice(0, 10);
+                          })() : getMinDate()}
+                          value={orderDetails.deliverDate}
+                          onChange={handleInputChange}
+                          required
+                        />
+                      </div>
+
+                      <div className="form-control mb-4">
+                        <label className="label">
+                          <span className="label-text flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            Delivery Time *
+                          </span>
+                        </label>
+                        <select
+                          name="deliverTime"
+                          className="select select-bordered w-full"
+                          value={orderDetails.deliverTime}
+                          onChange={handleInputChange}
+                          required
+                        >
+                          <option value="09:00">9:00 AM</option>
+                          <option value="10:00">10:00 AM</option>
+                          <option value="11:00">11:00 AM</option>
+                          <option value="12:00">12:00 PM</option>
+                          <option value="13:00">1:00 PM</option>
+                          <option value="14:00">2:00 PM</option>
+                          <option value="15:00">3:00 PM</option>
+                          <option value="16:00">4:00 PM</option>
+                          <option value="17:00">5:00 PM</option>
+                        </select>
+                      </div>
+
+                      <div className="form-control mb-4">
+                        <label className="label">
+                          <span className="label-text flex items-center gap-2">
                             <CreditCard className="h-4 w-4" />
                             Payment Method *
                           </span>
@@ -417,20 +525,26 @@ const NewOrder = () => {
                       {!editingAddress ? (
                         <>
                           <div className="space-y-2 text-sm">
-                            {pickupAddress.street && (
-                              <p><span className="font-semibold">Street:</span> {pickupAddress.street}</p>
+                            {pickupAddress.houseUnitLot && (
+                              <p><span className="font-semibold">House / Unit / Lot No.:</span> {pickupAddress.houseUnitLot}</p>
+                            )}
+                            {pickupAddress.streetName && (
+                              <p><span className="font-semibold">Street Name:</span> {pickupAddress.streetName}</p>
                             )}
                             {pickupAddress.barangay && (
                               <p><span className="font-semibold">Barangay:</span> {pickupAddress.barangay}</p>
                             )}
                             {pickupAddress.city && (
-                              <p><span className="font-semibold">City:</span> {pickupAddress.city}</p>
+                              <p><span className="font-semibold">City / Municipality:</span> {pickupAddress.city}</p>
                             )}
                             {pickupAddress.province && (
                               <p><span className="font-semibold">Province:</span> {pickupAddress.province}</p>
                             )}
                             {pickupAddress.zipCode && (
-                              <p><span className="font-semibold">Zip Code:</span> {pickupAddress.zipCode}</p>
+                              <p><span className="font-semibold">Postal / ZIP Code:</span> {pickupAddress.zipCode}</p>
+                            )}
+                            {pickupAddress.landmark && (
+                              <p><span className="font-semibold">Landmark:</span> {pickupAddress.landmark}</p>
                             )}
                             <div className="divider my-2"></div>
                             <p className="font-semibold">Complete Address:</p>
@@ -471,12 +585,22 @@ const NewOrder = () => {
                           <div className="space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                               <div className="form-control">
-                                <label className="label label-text-alt">Street</label>
+                                <label className="label label-text-alt">House / Unit / Lot No.</label>
                                 <input
                                   type="text"
-                                  name="street"
+                                  name="houseUnitLot"
                                   className="input input-bordered input-sm"
-                                  value={pickupAddress.street}
+                                  value={pickupAddress.houseUnitLot}
+                                  onChange={handleAddressChange}
+                                />
+                              </div>
+                              <div className="form-control">
+                                <label className="label label-text-alt">Street Name</label>
+                                <input
+                                  type="text"
+                                  name="streetName"
+                                  className="input input-bordered input-sm"
+                                  value={pickupAddress.streetName}
                                   onChange={handleAddressChange}
                                 />
                               </div>
@@ -491,7 +615,7 @@ const NewOrder = () => {
                                 />
                               </div>
                               <div className="form-control">
-                                <label className="label label-text-alt">City</label>
+                                <label className="label label-text-alt">City / Municipality</label>
                                 <input
                                   type="text"
                                   name="city"
@@ -511,7 +635,7 @@ const NewOrder = () => {
                                 />
                               </div>
                               <div className="form-control">
-                                <label className="label label-text-alt">Zip Code</label>
+                                <label className="label label-text-alt">Postal / ZIP Code</label>
                                 <input
                                   type="text"
                                   name="zipCode"
@@ -521,7 +645,16 @@ const NewOrder = () => {
                                 />
                               </div>
                             </div>
-
+                            <div className="form-control">
+                              <label className="label label-text-alt">Landmark</label>
+                              <input
+                                type="text"
+                                name="landmark"
+                                className="input input-bordered input-sm"
+                                value={pickupAddress.landmark}
+                                onChange={handleAddressChange}
+                              />
+                            </div>
                             <div className="form-control">
                               <label className="label label-text-alt">Complete Address *</label>
                               <textarea

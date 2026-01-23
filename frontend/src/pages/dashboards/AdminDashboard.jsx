@@ -61,7 +61,7 @@ const AdminDashboard = () => {
 
       <div className="lg:ml-64 pt-20 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          {/* Header */}
+        
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-base-content">Dashboard Overview</h1>
             <p className="text-base-content/70 mt-2">Welcome back, {user.firstName}!</p>
@@ -73,9 +73,9 @@ const AdminDashboard = () => {
             </div>
           ) : (
             <>
-              {/* Key Metrics Cards */}
+          
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {/* Total Revenue */}
+               
                 <div className="card bg-gradient-to-br from-primary to-primary-focus text-primary-content shadow-xl">
                   <div className="card-body">
                     <div className="flex justify-between items-start">
@@ -97,7 +97,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Total Orders */}
+              
                 <div className="card bg-gradient-to-br from-secondary to-secondary-focus text-secondary-content shadow-xl">
                   <div className="card-body">
                     <div className="flex justify-between items-start">
@@ -117,7 +117,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Total Users */}
+            
                 <div className="card bg-gradient-to-br from-accent to-accent-focus text-accent-content shadow-xl">
                   <div className="card-body">
                     <div className="flex justify-between items-start">
@@ -137,7 +137,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Pending Tasks */}
+  
                 <div className="card bg-gradient-to-br from-warning to-warning-focus text-warning-content shadow-xl">
                   <div className="card-body">
                     <div className="flex justify-between items-start">
@@ -156,9 +156,9 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Revenue Chart and Quick Stats */}
+
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                {/* Revenue Chart */}
+     
                 <div className="lg:col-span-2 card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <div className="flex justify-between items-center mb-4">
@@ -179,7 +179,6 @@ const AdminDashboard = () => {
                       </div>
                     </div>
 
-                    {/* Simple Bar Chart */}
                     <div className="h-64 flex items-end justify-around gap-2">
                       {(chartPeriod === '7days' 
                         ? stats?.revenueChart?.last7Days || []
@@ -205,7 +204,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Quick Stats */}
+              
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <h2 className="card-title mb-4">Quick Stats</h2>
@@ -246,9 +245,9 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Recent Activity and Staff Overview */}
+             
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                {/* Recent Activity */}
+                
                 <div className="lg:col-span-2 card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <div className="flex justify-between items-center mb-4">
@@ -305,7 +304,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Staff Overview */}
+               
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <h2 className="card-title mb-4">Staff Overview</h2>
@@ -331,9 +330,9 @@ const AdminDashboard = () => {
                 </div>
               </div>
 
-              {/* Feedback and Quick Actions */}
+            
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Recent Feedback */}
+                
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <div className="flex justify-between items-center mb-4">
@@ -379,7 +378,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
 
-                {/* Quick Actions */}
+               
                 <div className="card bg-base-100 shadow-xl">
                   <div className="card-body">
                     <h2 className="card-title mb-4">Quick Actions</h2>

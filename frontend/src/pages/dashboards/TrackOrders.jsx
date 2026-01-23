@@ -12,7 +12,8 @@ import {
   MessageSquare,
   Eye,
   AlertCircle,
-  User
+  User,
+  Calendar
 } from 'lucide-react';
 
 const TrackOrders = () => {
@@ -175,6 +176,14 @@ const TrackOrders = () => {
                         <Clock className="w-4 h-4" />
                         <span>{new Date(order.createdAt).toLocaleDateString()}</span>
                       </div>
+                      <div className="flex items-center gap-2 text-sm text-accent">
+                        <Calendar className="w-4 h-4" />
+                        <span>Delivery: {order.deliverDate ? new Date(order.deliverDate).toLocaleDateString() : 'N/A'}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-accent">
+                        <Clock className="w-4 h-4" />
+                        <span>{order.deliverTime || 'N/A'}</span>
+                      </div>
 
                       {order.actualWeight && (
                         <div className="flex items-center gap-2 text-sm text-base-content/70">
@@ -311,10 +320,12 @@ const TrackOrders = () => {
 
             <div className="card bg-base-200 mb-4">
               <div className="card-body">
-                <h4 className="font-bold mb-2">Pickup Details</h4>
+                <h4 className="font-bold mb-2">Pickup & Delivery Details</h4>
                 <div className="space-y-2 text-sm">
-                  <p><span className="font-semibold">Date:</span> {new Date(selectedOrder.pickupDate).toLocaleDateString()}</p>
-                  <p><span className="font-semibold">Time:</span> {selectedOrder.pickupTime}</p>
+                  <p><span className="font-semibold">Pickup Date:</span> {new Date(selectedOrder.pickupDate).toLocaleDateString()}</p>
+                  <p><span className="font-semibold">Pickup Time:</span> {selectedOrder.pickupTime}</p>
+                  <p><span className="font-semibold text-accent">Delivery Date:</span> {selectedOrder.deliverDate ? new Date(selectedOrder.deliverDate).toLocaleDateString() : 'N/A'}</p>
+                  <p><span className="font-semibold text-accent">Delivery Time:</span> {selectedOrder.deliverTime || 'N/A'}</p>
                   <p><span className="font-semibold">Payment:</span> {selectedOrder.paymentMethod}</p>
                   {selectedOrder.actualWeight && (
                     <p><span className="font-semibold">Weight:</span> {selectedOrder.actualWeight} kg</p>

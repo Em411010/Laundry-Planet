@@ -24,7 +24,7 @@ export const createOrder = async (req, res) => {
     console.log('Request body:', JSON.stringify(req.body, null, 2));
     console.log('User ID:', req.userId);
     
-    const { services, pickupDate, pickupTime, specialInstructions, paymentMethod, customAddress } = req.body;
+    const { services, pickupDate, pickupTime, deliverDate, deliverTime, specialInstructions, paymentMethod, customAddress } = req.body;
 
     // Get user profile
     const user = await User.findById(req.userId);
@@ -112,6 +112,8 @@ export const createOrder = async (req, res) => {
       contactPhone: user.phone,
       pickupDate,
       pickupTime,
+      deliverDate,
+      deliverTime,
       specialInstructions,
       paymentMethod,
       totalAmount, // Initial estimate, will be updated by staff
@@ -192,6 +194,7 @@ export const getAllOrders = async (req, res) => {
       .populate('assignedStaff.pickup', 'firstName lastName')
       .populate('assignedStaff.processing', 'firstName lastName')
       .populate('assignedStaff.delivery', 'firstName lastName')
+      .populate('paymentReceiver', 'firstName lastName')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -227,7 +230,8 @@ export const getOrderById = async (req, res) => {
       .populate('assignedStaff.processing', 'firstName lastName')
       .populate('assignedStaff.delivery', 'firstName lastName')
       .populate('notes.addedBy', 'firstName lastName')
-      .populate('statusHistory.changedBy', 'firstName lastName');
+      .populate('statusHistory.changedBy', 'firstName lastName')
+      .populate('paymentReceiver', 'firstName lastName');
 
     if (!order) {
       return res.status(404).json({
@@ -267,7 +271,8 @@ export const updateOrderStatus = async (req, res) => {
     const order = await Order.findById(id)
       .populate('assignedStaff.pickup', 'firstName lastName')
       .populate('assignedStaff.processing', 'firstName lastName')
-      .populate('assignedStaff.delivery', 'firstName lastName');
+      .populate('assignedStaff.delivery', 'firstName lastName')
+      .populate('paymentReceiver', 'firstName lastName');
     
     if (!order) {
       return res.status(404).json({
@@ -331,7 +336,8 @@ export const updateOrderStatus = async (req, res) => {
       .populate('services.service', 'name category price')
       .populate('assignedStaff.pickup', 'firstName lastName')
       .populate('assignedStaff.processing', 'firstName lastName')
-      .populate('assignedStaff.delivery', 'firstName lastName');
+      .populate('assignedStaff.delivery', 'firstName lastName')
+      .populate('paymentReceiver', 'firstName lastName');
 
     console.log('Updated order fetched successfully');
 
@@ -387,7 +393,8 @@ export const assignStaff = async (req, res) => {
       .populate('services.service', 'name category price')
       .populate('assignedStaff.pickup', 'firstName lastName')
       .populate('assignedStaff.processing', 'firstName lastName')
-      .populate('assignedStaff.delivery', 'firstName lastName');
+      .populate('assignedStaff.delivery', 'firstName lastName')
+      .populate('paymentReceiver', 'firstName lastName');
 
     res.json({
       success: true,
@@ -824,8 +831,16 @@ export const markPaymentReceived = async (req, res) => {
       });
     }
 
-    // Update payment status
+
+    // Debug: log before updating
+    console.log('markPaymentReceived: assignedStaff.delivery:', order.assignedStaff?.delivery);
+
+    // Update payment status and set paymentReceiver
     order.paymentStatus = 'paid';
+    order.paymentReceiver = order.assignedStaff.delivery?._id || req.userId;
+
+    // Debug: log paymentReceiver id before save
+    console.log('markPaymentReceived: setting paymentReceiver to:', order.paymentReceiver);
 
     // Add to status history
     order.statusHistory.push({
@@ -843,8 +858,12 @@ export const markPaymentReceived = async (req, res) => {
       { path: 'services.service' },
       { path: 'assignedStaff.pickup', select: 'firstName lastName' },
       { path: 'assignedStaff.processing', select: 'firstName lastName' },
-      { path: 'assignedStaff.delivery', select: 'firstName lastName' }
+      { path: 'assignedStaff.delivery', select: 'firstName lastName' },
+      { path: 'paymentReceiver', select: 'firstName lastName' }
     ]);
+
+    // Debug: log populated paymentReceiver
+    console.log('markPaymentReceived: populated paymentReceiver:', order.paymentReceiver);
 
     res.json({
       success: true,

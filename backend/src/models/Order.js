@@ -61,6 +61,14 @@ const orderSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  deliverDate: {
+    type: Date,
+    required: false
+  },
+  deliverTime: {
+    type: String,
+    required: false
+  },
   specialInstructions: {
     type: String,
     default: ''
@@ -153,6 +161,11 @@ const orderSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
+  paymentReceiver: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   statusHistory: [{
     status: String,
     changedBy: {

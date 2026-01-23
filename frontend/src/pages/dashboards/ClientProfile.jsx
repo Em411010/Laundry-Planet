@@ -17,11 +17,13 @@ const ClientProfile = () => {
     firstName: '',
     lastName: '',
     phone: '',
-    street: '',
+    houseUnitLot: '',
+    streetName: '',
     barangay: '',
     city: '',
     province: '',
     zipCode: '',
+    landmark: '',
     fullAddress: '',
     latitude: '',
     longitude: ''
@@ -57,11 +59,13 @@ const ClientProfile = () => {
         firstName: profile.firstName || '',
         lastName: profile.lastName || '',
         phone: profile.phone || '',
-        street: profile.address?.street || '',
+        houseUnitLot: profile.address?.houseUnitLot || '',
+        streetName: profile.address?.streetName || '',
         barangay: profile.address?.barangay || '',
         city: profile.address?.city || '',
         province: profile.address?.province || '',
         zipCode: profile.address?.zipCode || '',
+        landmark: profile.address?.landmark || '',
         fullAddress: profile.address?.fullAddress || '',
         latitude: profile.location?.coordinates[1] || '',
         longitude: profile.location?.coordinates[0] || ''
@@ -73,9 +77,42 @@ const ClientProfile = () => {
     }
   }
 
+  // Auto-generate full address when address fields change
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData(prev => {
+      const updated = { ...prev, [name]: value }
+      if ([
+        'houseUnitLot',
+        'streetName',
+        'barangay',
+        'city',
+        'province',
+        'zipCode',
+        'landmark'
+      ].includes(name)) {
+        const {
+          houseUnitLot,
+          streetName,
+          barangay,
+          city,
+          province,
+          zipCode,
+          landmark
+        } = { ...updated }
+        let address = ''
+        if (houseUnitLot) address += houseUnitLot + ', '
+        if (streetName) address += streetName + ', '
+        if (barangay) address += 'Brgy. ' + barangay + ', '
+        if (city) address += city + ', '
+        if (province) address += province + ', '
+        if (zipCode) address += zipCode + ', '
+        if (landmark) address += 'Landmark: ' + landmark
+        address = address.replace(/, $/, '')
+        updated.fullAddress = address
+      }
+      return updated
+    })
   }
 
   const openGoogleMaps = () => {
@@ -131,11 +168,13 @@ const ClientProfile = () => {
         lastName: formData.lastName,
         phone: formData.phone,
         address: {
-          street: formData.street,
+          houseUnitLot: formData.houseUnitLot,
+          streetName: formData.streetName,
           barangay: formData.barangay,
           city: formData.city,
           province: formData.province,
           zipCode: formData.zipCode,
+          landmark: formData.landmark,
           fullAddress: formData.fullAddress
         },
         location: {
@@ -251,20 +290,37 @@ const ClientProfile = () => {
                     <MapPin className="h-5 w-5" />
                     Address Information
                   </h2>
+
+                  {/* Address Fields - New Format */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text">Street</span>
+                        <span className="label-text">House / Unit / Lot No.</span>
                       </label>
                       <input
                         type="text"
-                        name="street"
+                        name="houseUnitLot"
                         className="input input-bordered w-full"
-                        placeholder="House No., Street Name"
-                        value={formData.street}
+                        placeholder="House / Unit / Lot No."
+                        value={formData.houseUnitLot}
                         onChange={handleChange}
                       />
                     </div>
+                    <div className="form-control">
+                      <label className="label">
+                        <span className="label-text">Street Name</span>
+                      </label>
+                      <input
+                        type="text"
+                        name="streetName"
+                        className="input input-bordered w-full"
+                        placeholder="Street Name"
+                        value={formData.streetName}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="form-control">
                       <label className="label">
                         <span className="label-text">Barangay</span>
@@ -279,17 +335,16 @@ const ClientProfile = () => {
                       />
                     </div>
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text">City</span>
+                        <span className="label-text">City / Municipality</span>
                       </label>
                       <input
                         type="text"
                         name="city"
                         className="input input-bordered w-full"
-                        placeholder="City"
+                        placeholder="City / Municipality"
                         value={formData.city}
                         onChange={handleChange}
                       />
@@ -309,32 +364,46 @@ const ClientProfile = () => {
                     </div>
                     <div className="form-control">
                       <label className="label">
-                        <span className="label-text">Zip Code</span>
+                        <span className="label-text">Postal / ZIP Code</span>
                       </label>
                       <input
                         type="text"
                         name="zipCode"
                         className="input input-bordered w-full"
-                        placeholder="1234"
+                        placeholder="Postal / ZIP Code"
                         value={formData.zipCode}
                         onChange={handleChange}
                       />
                     </div>
                   </div>
 
-                  <div className="form-control mb-6">
+                  <div className="form-control mb-4">
                     <label className="label">
                       <span className="label-text font-semibold">Complete Address *</span>
                     </label>
                     <textarea
                       name="fullAddress"
                       className="textarea textarea-bordered h-24 w-full"
-                      placeholder="Enter your complete address including landmarks"
+                      placeholder="Enter your complete address"
                       value={formData.fullAddress}
                       onChange={handleChange}
                       required
                     />
-                  </div><h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                  </div>
+                  <div className="form-control mb-6">
+                    <label className="label">
+                      <span className="label-text">Landmark</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="landmark"
+                      className="input input-bordered w-full"
+                      placeholder="Landmark (optional)"
+                      value={formData.landmark}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
                     <Map className="h-5 w-5" />
                     Pin Location (Optional)
                   </h2>

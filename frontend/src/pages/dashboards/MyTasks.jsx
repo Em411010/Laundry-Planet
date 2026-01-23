@@ -377,7 +377,38 @@ const MyTasks = () => {
                 </p>
                 <p className="text-sm text-base-content/60">{selectedOrder.customer.email}</p>
               </div>
-            </div>{selectedOrder.status === 'accepted' && (
+            </div>
+            <div className="grid grid-cols-2 gap-4 mb-6">
+              <div>
+                <label className="label">
+                  <span className="label-text font-semibold">Pickup Date</span>
+                </label>
+                <p className="text-base-content">
+                  {selectedOrder.pickupDate ? new Date(selectedOrder.pickupDate).toLocaleDateString() : 'N/A'}
+                </p>
+                <label className="label">
+                  <span className="label-text font-semibold">Pickup Time</span>
+                </label>
+                <p className="text-base-content">
+                  {selectedOrder.pickupTime || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="label">
+                  <span className="label-text font-semibold text-accent">Delivery Date</span>
+                </label>
+                <p className="text-base-content">
+                  {selectedOrder.deliverDate ? new Date(selectedOrder.deliverDate).toLocaleDateString() : 'N/A'}
+                </p>
+                <label className="label">
+                  <span className="label-text font-semibold text-accent">Delivery Time</span>
+                </label>
+                <p className="text-base-content">
+                  {selectedOrder.deliverTime || 'N/A'}
+                </p>
+              </div>
+            </div>
+            {selectedOrder.status === 'accepted' && (
               <div className="alert alert-warning mb-4">
                 <AlertCircle className="w-5 h-5" />
                 <div>

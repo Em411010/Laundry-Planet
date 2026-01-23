@@ -18,6 +18,7 @@ const Hero = () => {
       
       <div className="space-y-4">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold">Welcome to Laundry Planet</h1>
+        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-primary mb-2">Booking & Sales System</h2>
         <p className="text-sm sm:text-base text-base-content/70">
           Where your clothes get world-class care. Fast, reliable, and eco-friendly services with real-time tracking,
           pickup & delivery, and cashless payments.

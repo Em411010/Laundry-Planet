@@ -21,7 +21,7 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
     { icon: PlusCircle, label: 'New Order', path: '/dashboard/client/new-order' },
     { icon: Package, label: 'Track Orders', path: '/dashboard/client/track-orders' },
     { icon: History, label: 'Order History', path: '/dashboard/client/orders/history' },
-    { icon: MapPin, label: 'Pickup & Delivery', path: '/dashboard/client/pickup-delivery' },
+    // Removed Pickup & Delivery
     { icon: CreditCard, label: 'Payments', path: '/dashboard/client/payments' },
     { icon: FileText, label: 'Receipts', path: '/dashboard/client/receipts' },
     { icon: MessageSquare, label: 'Chat with Staff', path: '/dashboard/client/chat' },

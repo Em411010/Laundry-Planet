@@ -558,6 +558,14 @@ const StaffOrders = () => {
                             {order.pickupTime}
                           </p>
                           <p className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-accent" />
+                            Delivery: {order.deliverDate ? new Date(order.deliverDate).toLocaleDateString() : 'N/A'}
+                          </p>
+                          <p className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-accent" />
+                            {order.deliverTime || 'N/A'}
+                          </p>
+                          <p className="flex items-center gap-2">
                             <Package className="h-4 w-4" />
                             {order.services.length} service(s)
                           </p>
@@ -673,8 +681,10 @@ const StaffOrders = () => {
                     Pickup Details
                   </h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-semibold">Date:</span> {new Date(selectedOrder.pickupDate).toLocaleDateString()}</p>
-                    <p><span className="font-semibold">Time:</span> {selectedOrder.pickupTime}</p>
+                    <p><span className="font-semibold">Pickup Date:</span> {new Date(selectedOrder.pickupDate).toLocaleDateString()}</p>
+                    <p><span className="font-semibold">Pickup Time:</span> {selectedOrder.pickupTime}</p>
+                    <p><span className="font-semibold text-accent">Delivery Date:</span> {selectedOrder.deliverDate ? new Date(selectedOrder.deliverDate).toLocaleDateString() : 'N/A'}</p>
+                    <p><span className="font-semibold text-accent">Delivery Time:</span> {selectedOrder.deliverTime || 'N/A'}</p>
                     <p><span className="font-semibold">Payment:</span> {selectedOrder.paymentMethod}</p>
                     <p><span className="font-semibold">Status:</span> <span className={`badge ${getStatusBadge(selectedOrder.status)}`}>{getStatusDisplay(selectedOrder.status)}</span></p>
                   </div>
