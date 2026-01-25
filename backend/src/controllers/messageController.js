@@ -26,10 +26,11 @@ export const sendMessage = async (req, res) => {
     }
 
     // Determine sender role
-    const senderRole = isCustomer ? 'customer' : 'staff';
+    const senderRole = isCustomer ? 'client' : 'staff';
 
     // Create message
     const message = await Message.create({
+      type: 'order',
       order: orderId,
       sender: userId,
       senderRole,
@@ -123,5 +124,75 @@ export const getUnreadCount = async (req, res) => {
   } catch (error) {
     console.error('Get unread count error:', error);
     res.status(500).json({ message: 'Failed to get unread count', error: error.message });
+  }
+};
+
+// Send support message (for customer-admin communication)
+export const sendSupportMessage = async (req, res) => {
+  try {
+    const { content } = req.body;
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    // Only customers and admins can send support messages
+    if (userRole !== 'client' && userRole !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized to send support messages' });
+    }
+
+    // Create support message
+    const message = await Message.create({
+      type: 'support',
+      sender: userId,
+      senderRole: userRole,
+      content
+    });
+
+    // Populate sender info
+    await message.populate('sender', 'firstName lastName');
+
+    res.status(201).json(message);
+  } catch (error) {
+    console.error('Send support message error:', error);
+    res.status(500).json({ message: 'Failed to send support message', error: error.message });
+  }
+};
+
+// Get support messages (for customer-admin communication)
+export const getSupportMessages = async (req, res) => {
+  try {
+    const userId = req.userId;
+    const userRole = req.userRole;
+
+    console.log('Backend: Getting support messages for user:', { userId, userRole });
+
+    // Only customers and admins can view support messages
+    if (userRole !== 'client' && userRole !== 'admin') {
+      console.log('Backend: Access denied for role:', userRole);
+      return res.status(403).json({ message: 'Not authorized to view support messages' });
+    }
+
+    // Get all support messages
+    const messages = await Message.find({ type: 'support' })
+      .populate('sender', 'firstName lastName')
+      .sort({ createdAt: 1 });
+
+    console.log('Backend: Found support messages:', messages.length);
+
+    // Mark messages as read for the current user (messages not sent by them)
+    await Message.updateMany(
+      {
+        type: 'support',
+        sender: { $ne: userId },
+        read: false
+      },
+      { read: true }
+    );
+
+    console.log('Backend: Sending response with', messages.length, 'messages');
+
+    res.json(messages);
+  } catch (error) {
+    console.error('Backend: Get support messages error:', error);
+    res.status(500).json({ message: 'Failed to get support messages', error: error.message });
   }
 };

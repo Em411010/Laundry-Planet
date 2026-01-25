@@ -14,9 +14,12 @@ import ServicesPricing from './pages/dashboards/ServicesPricing'
 import PromoCode from './pages/dashboards/PromoCode'
 import AuditLogs from './pages/dashboards/AuditLogs'
 import ClientProfile from './pages/dashboards/ClientProfile'
+import ClientSupportChat from './pages/dashboards/ClientSupportChat'
+import AdminSupportChat from './pages/dashboards/AdminSupportChat'
 import NewOrder from './pages/dashboards/NewOrder'
 import TrackOrders from './pages/dashboards/TrackOrders'
 import OrderHistory from './pages/dashboards/OrderHistory'
+import Receipts from './pages/dashboards/Receipts'
 import StaffOrders from './pages/dashboards/StaffOrders'
 import MyTasks from './pages/dashboards/MyTasks'
 
@@ -35,9 +38,11 @@ function App() {
           <Route path='/verify-otp' element={<VerifyOTPPage />} />
           <Route path='/dashboard/client' element={<ClientDashboard />} />
           <Route path='/dashboard/client/profile' element={<ClientProfile />} />
+          <Route path='/dashboard/client/support' element={<ClientSupportChat />} />
           <Route path='/dashboard/client/new-order' element={<NewOrder />} />
           <Route path='/dashboard/client/track-orders' element={<TrackOrders />} />
           <Route path='/dashboard/client/orders/history' element={<OrderHistory />} />
+          <Route path='/dashboard/client/receipts' element={<Receipts />} />
           <Route path='/dashboard/staff' element={<StaffDashboard />} />
           <Route path='/dashboard/staff/orders' element={<StaffOrders />} />
           <Route path='/dashboard/staff/my-tasks' element={<MyTasks />} />
@@ -45,6 +50,7 @@ function App() {
           <Route path='/dashboard/admin/users' element={<UserManagement />} />
           <Route path='/dashboard/admin/services' element={<ServicesPricing />} />
           <Route path='/dashboard/admin/promos' element={<PromoCode />} />
+          <Route path='/dashboard/admin/support' element={<AdminSupportChat />} />
           <Route path='/dashboard/admin/audit-logs' element={<AuditLogs />} />
         </Routes>
       

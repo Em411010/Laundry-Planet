@@ -1,10 +1,15 @@
 import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['order', 'support'],
+    default: 'order'
+  },
   order: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Order',
-    required: true
+    required: function() { return this.type === 'order'; }
   },
   sender: {
     type: mongoose.Schema.Types.ObjectId,
@@ -13,7 +18,7 @@ const messageSchema = new mongoose.Schema({
   },
   senderRole: {
     type: String,
-    enum: ['customer', 'staff'],
+    enum: ['client', 'staff', 'admin'],
     required: true
   },
   content: {
@@ -34,7 +39,7 @@ const messageSchema = new mongoose.Schema({
 });
 
 // Index for efficient querying
-messageSchema.index({ order: 1, createdAt: 1 });
+messageSchema.index({ type: 1, order: 1, createdAt: 1 });
 messageSchema.index({ sender: 1 });
 
 const Message = mongoose.model('Message', messageSchema);

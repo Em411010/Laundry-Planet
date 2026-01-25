@@ -3,7 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, Users, Shield, Package, DollarSign, Tag, 
   Settings, FileText, CreditCard, BarChart3, FileSearch, 
-  Database, Lock, LogOut, Menu, X, ChevronDown, Sun, Moon
+  Database, Lock, LogOut, Menu, X, ChevronDown, Sun, Moon,
+  MessageSquare
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 
@@ -29,6 +30,11 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
       icon: Tag, 
       label: 'Promo Codes', 
       path: '/dashboard/admin/promos' 
+    },
+    { 
+      icon: MessageSquare, 
+      label: 'Customer Support', 
+      path: '/dashboard/admin/support' 
     },
     { 
       icon: FileText, 

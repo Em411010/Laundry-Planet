@@ -295,6 +295,18 @@ export const messageAPI = {
     return response.data
   },
 
+  // Send a support message (admin chat)
+  sendSupportMessage: async (content) => {
+    const response = await api.post('/messages/support', { content })
+    return response.data
+  },
+
+  // Get support messages (admin chat)
+  getSupportMessages: async () => {
+    const response = await api.get('/messages/support')
+    return response.data
+  },
+
   // Get unread message count
   getUnreadCount: async () => {
     const response = await api.get('/messages/unread-count')

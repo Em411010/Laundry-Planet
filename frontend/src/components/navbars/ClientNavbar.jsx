@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, PlusCircle, Package, MapPin, Clock, 
   History, CreditCard, FileText, MessageSquare, User,
-  LogOut, Menu, X, Bell, Sun, Moon
+  LogOut, Menu, X, Bell, Sun, Moon, Truck
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 
@@ -17,15 +17,14 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
   }
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/client' },
-    { icon: PlusCircle, label: 'New Order', path: '/dashboard/client/new-order' },
-    { icon: Package, label: 'Track Orders', path: '/dashboard/client/track-orders' },
-    { icon: History, label: 'Order History', path: '/dashboard/client/orders/history' },
-    // Removed Pickup & Delivery
-    { icon: CreditCard, label: 'Payments', path: '/dashboard/client/payments' },
-    { icon: FileText, label: 'Receipts', path: '/dashboard/client/receipts' },
-    { icon: MessageSquare, label: 'Chat with Staff', path: '/dashboard/client/chat' },
-    { icon: User, label: 'My Profile', path: '/dashboard/client/profile' }
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/client', desc: 'View all orders & tracking' },
+    { icon: PlusCircle, label: 'New Order', path: '/dashboard/client/new-order', desc: 'Book new pickup' },
+    { icon: Truck, label: 'Track Order', path: '/dashboard/client', desc: 'Real-time tracking' },
+    { icon: History, label: 'Order History', path: '/dashboard/client', desc: 'Past orders' },
+    { icon: CreditCard, label: 'Payments', path: '/dashboard/client/payments', desc: 'Payment history' },
+    { icon: FileText, label: 'Receipts', path: '/dashboard/client/receipts', desc: 'Download receipts' },
+    { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/client/support', desc: 'Message staff' },
+    { icon: User, label: 'My Profile', path: '/dashboard/client/profile', desc: 'Profile settings' }
   ]
 
   return (
@@ -69,7 +68,7 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
 
           {/* Quick Action */}
           <div className="p-4">
-            <Link to="/dashboard/client/new-order" className="btn btn-primary btn-sm w-full">
+            <Link to="/dashboard/client/new-order" className="btn btn-primary btn-sm w-full gap-2">
               <PlusCircle size={16} />
               New Order
             </Link>
@@ -80,9 +79,10 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
             <ul className="menu menu-sm gap-1">
               {menuItems.map((item, index) => (
                 <li key={index}>
-                  <Link to={item.path} className="flex items-center gap-2">
+                  <Link to={item.path} className="flex items-center gap-2 relative group">
                     <item.icon size={18} />
                     <span>{item.label}</span>
+                    <span className="absolute left-12 bottom-full mb-2 px-2 py-1 bg-base-300 text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap transition-opacity">{item.desc}</span>
                   </Link>
                 </li>
               ))}
