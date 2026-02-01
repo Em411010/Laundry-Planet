@@ -68,7 +68,6 @@ function App() {
           <Route path='/dashboard/admin/reports/sales' element={<SalesReport />} />
           <Route path='/dashboard/admin/reports/customers' element={<CustomerReport />} />
           <Route path='/dashboard/admin/reports/services' element={<ServiceReport />} />
-          {/* Payment Routes */}
           <Route path='/payment/success' element={<PaymentSuccess />} />
           <Route path='/payment/failed' element={<PaymentFailed />} />
         </Routes>

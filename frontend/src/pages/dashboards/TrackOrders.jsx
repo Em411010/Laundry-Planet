@@ -166,7 +166,6 @@ const TrackOrders = () => {
             <h1 className="text-3xl font-bold">Track Orders</h1>
           </div>
 
-          {/* Payment Error Alert */}
           {paymentError && (
             <div className="alert alert-error mb-6">
               <AlertCircle className="w-5 h-5" />
@@ -243,7 +242,6 @@ const TrackOrders = () => {
                         </span>
                       </div>
 
-                      {/* Payment Status for GCash orders */}
                       {order.paymentMethod === 'gcash' && (
                         <div className="flex items-center gap-2 text-sm">
                           <CreditCard className="w-4 h-4" />
@@ -254,7 +252,6 @@ const TrackOrders = () => {
                       )}
                     </div>
 
-                    {/* Pay Now button for GCash orders */}
                     {canPayNow(order) && (
                       <div className="mt-3">
                         <button
@@ -304,7 +301,6 @@ const TrackOrders = () => {
         </div>
       </div>
 
-      {/* Order Detail Modal */}
       {showModal && selectedOrder && (
         <div className="modal modal-open">
           <div className="modal-box max-w-4xl">
@@ -420,7 +416,6 @@ const TrackOrders = () => {
                   )}
                 </div>
 
-                {/* Pay Now button in modal */}
                 {canPayNow(selectedOrder) && (
                   <div className="mt-4">
                     <button
@@ -530,7 +525,6 @@ const TrackOrders = () => {
         </div>
       )}
 
-      {/* Chat Component */}
       {selectedOrder && (
         <OrderChat
           orderId={selectedOrder._id}

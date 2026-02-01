@@ -26,7 +26,6 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
 
   return (
     <>
-      {/* Overlay for mobile */}
       {isOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -34,10 +33,8 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
         />
       )}
 
-      {/* Sidebar */}
       <aside className={`fixed left-0 top-0 z-50 h-screen w-64 bg-base-100 border-r border-base-300 transition-transform duration-300 ${isOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
         <div className="flex flex-col h-full">
-          {/* Header */}
           <div className="flex items-center justify-between p-4 border-b border-base-300">
             <div className="flex items-center gap-2">
               <img src={Logo} alt="LP" className="w-8 h-8 rounded" />
@@ -48,7 +45,6 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
             </button>
           </div>
 
-          {/* User Info */}
           <div className="p-4 border-b border-base-300">
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
@@ -63,7 +59,6 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
             </div>
           </div>
 
-          {/* Navigation Menu */}
           <nav className="flex-1 overflow-y-auto p-4">
             <ul className="menu menu-sm gap-1">
               {menuItems.map((item, index) => (
@@ -77,7 +72,6 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
             </ul>
           </nav>
 
-          {/* Logout Button */}
           <div className="p-4 border-t border-base-300">
             <button onClick={handleLogout} className="btn btn-outline btn-error btn-sm w-full">
               <LogOut size={16} />

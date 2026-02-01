@@ -692,7 +692,6 @@ const AdminOrders = () => {
         </div>
       )}
 
-      {/* Cancel Order Modal */}
       {showCancelModal && selectedOrder && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
           <div className="bg-base-100 rounded-lg shadow-2xl w-full max-w-md">
@@ -752,7 +751,6 @@ const AdminOrders = () => {
         </div>
       )}
 
-      {/* Revive Order Modal */}
       {showReviveModal && selectedOrder && (
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
           <div className="bg-base-100 rounded-lg shadow-2xl w-full max-w-md">

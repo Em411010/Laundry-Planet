@@ -202,7 +202,6 @@ const Receipts = () => {
         </div>
       </div>
 
-      {/* Full receipt view */}
       {selectedOrder && (
         <div className="lg:ml-64 pt-6 p-4 md:p-8">
           <div className="max-w-4xl mx-auto">

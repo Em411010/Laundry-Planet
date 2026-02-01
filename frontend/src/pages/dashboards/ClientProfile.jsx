@@ -291,7 +291,6 @@ const ClientProfile = () => {
                     Address Information
                   </h2>
 
-                  {/* Address Fields - New Format */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div className="form-control">
                       <label className="label">

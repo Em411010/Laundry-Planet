@@ -82,7 +82,6 @@ const ClientSupportChat = () => {
       
       <div className="lg:ml-64 p-4 md:p-6 mt-10">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 rounded-lg bg-primary/10">
@@ -95,9 +94,7 @@ const ClientSupportChat = () => {
             </div>
           </div>
 
-          {/* Chat Container */}
           <div className="card bg-base-100 shadow-lg h-[600px] flex flex-col">
-            {/* Messages Area */}
             <div className="flex-1 overflow-y-auto p-6 border-b border-base-300">
               {isLoading ? (
                 <div className="flex items-center justify-center h-full">
@@ -153,7 +150,6 @@ const ClientSupportChat = () => {
               )}
             </div>
 
-            {/* Input Area */}
             <div className="p-6 bg-base-100 rounded-b-2xl">
               <div className="flex gap-3">
                 <textarea

@@ -1018,7 +1018,6 @@ const StaffOrders = () => {
         </div>
       )}
 
-      {/* Chat Component */}
       {selectedOrder && (
         <OrderChat 
           orderId={selectedOrder._id}

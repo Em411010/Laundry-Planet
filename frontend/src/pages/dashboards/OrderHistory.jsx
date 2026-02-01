@@ -159,7 +159,6 @@ const OrderHistory = () => {
           )}
         </div>
       </div>
-      {/* Order Detail Modal */}
       {showModal && selectedOrder && (
         <div className="modal modal-open">
           <div className="modal-box max-w-4xl">

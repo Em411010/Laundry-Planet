@@ -153,12 +153,10 @@ const PaymentSuccess = () => {
     <div className="min-h-screen bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center p-4">
       <div className="card bg-base-100 shadow-2xl max-w-md w-full">
         <div className="card-body text-center">
-          {/* Logo */}
           <div className="flex justify-center mb-4">
             <img src={Logo} alt="Laundry Planet" className="w-16 h-16" />
           </div>
 
-          {/* Success Icon */}
           <div className="mx-auto mb-4 p-4 rounded-full bg-success/10">
             {isProcessing ? (
               <Loader className="animate-spin text-warning" size={48} />
@@ -167,7 +165,6 @@ const PaymentSuccess = () => {
             )}
           </div>
 
-          {/* Title */}
           <h2 className="text-2xl font-bold text-success mb-2">
             {isProcessing ? 'Payment Processing' : 'Payment Successful!'}
           </h2>
@@ -178,7 +175,6 @@ const PaymentSuccess = () => {
               : 'Thank you! Your payment has been received.'}
           </p>
 
-          {/* Order Details */}
           {paymentData?.order && (
             <div className="bg-base-200 rounded-lg p-4 mb-6 text-left">
               <div className="space-y-2">
@@ -214,7 +210,6 @@ const PaymentSuccess = () => {
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex flex-col gap-3">
             <button onClick={handleGoToDashboard} className="btn btn-primary">
               <Home size={18} className="mr-2" />
@@ -228,7 +223,6 @@ const PaymentSuccess = () => {
             )}
           </div>
 
-          {/* Help Text */}
           <p className="text-xs text-base-content/50 mt-4">
             A confirmation email will be sent to your registered email address.
           </p>

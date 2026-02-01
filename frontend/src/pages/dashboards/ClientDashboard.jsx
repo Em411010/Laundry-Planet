@@ -181,7 +181,6 @@ const ClientDashboard = () => {
 
       <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          {/* Welcome Header */}
           <div className="mb-8">
             <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
@@ -206,7 +205,6 @@ const ClientDashboard = () => {
             </div>
           </div>
 
-          {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <div className="stats shadow bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
               <div className="stat">
@@ -261,7 +259,6 @@ const ClientDashboard = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
-              {/* Tabs */}
               <div className="flex gap-2 mb-4">
                 <button 
                   onClick={() => setActiveTab('active')}
@@ -279,7 +276,6 @@ const ClientDashboard = () => {
                 </button>
               </div>
 
-              {/* Active Orders Section */}
               {activeTab === 'active' && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -386,7 +382,6 @@ const ClientDashboard = () => {
             </div>
               )}
 
-              {/* Completed Orders Section */}
               {activeTab === 'completed' && (
                 <div>
                   <div className="flex items-center justify-between mb-4">
@@ -477,7 +472,6 @@ const ClientDashboard = () => {
             </div>
 
             <div className="space-y-6">
-              {/* Order Progress */}
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                   <h3 className="card-title text-lg flex items-center gap-2">
@@ -549,7 +543,6 @@ const ClientDashboard = () => {
                 </div>
               </div>
 
-              {/* Chat & Communication */}
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                   <h3 className="card-title text-lg flex items-center gap-2">
@@ -558,7 +551,6 @@ const ClientDashboard = () => {
                   </h3>
                   <div className="divider my-2"></div>
                   <div className="flex flex-col h-96">
-                    {/* Messages */}
                     <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
                       {chatLoading ? (
                         <div className="flex items-center justify-center h-full">
@@ -589,7 +581,6 @@ const ClientDashboard = () => {
                       )}
                     </div>
 
-                    {/* Message Input */}
                     <div className="flex gap-2">
                       <input 
                         type="text"
@@ -612,7 +603,6 @@ const ClientDashboard = () => {
                 </div>
               </div>
 
-              {/* Current Pricing */}
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                   <h3 className="card-title text-lg flex items-center gap-2">
@@ -653,7 +643,6 @@ const ClientDashboard = () => {
                 </div>
               </div>
 
-              {/* Quick Tips */}
               <div className="card bg-gradient-to-br from-primary/10 to-secondary/10 shadow-xl border-2 border-primary/20">
                 <div className="card-body">
                   <h3 className="card-title text-lg flex items-center gap-2">

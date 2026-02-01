@@ -287,9 +287,7 @@ const AdminWalkInOrder = () => {
           )}
 
           <div className="grid lg:grid-cols-3 gap-6">
-            {/* Left Column - Customer & Services */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Customer Selection */}
               <div className="card bg-base-100 shadow-md">
                 <div className="card-body">
                   <h3 className="card-title flex items-center gap-2">
@@ -436,7 +434,6 @@ const AdminWalkInOrder = () => {
                 </div>
               </div>
 
-              {/* Available Services */}
               <div className="card bg-base-100 shadow-md">
                 <div className="card-body">
                   <h3 className="card-title flex items-center gap-2">
@@ -472,9 +469,7 @@ const AdminWalkInOrder = () => {
               </div>
             </div>
 
-            {/* Right Column - Cart & Checkout */}
             <div className="space-y-6">
-              {/* Shopping Cart */}
               <div className="card bg-base-100 shadow-md sticky top-36">
                 <div className="card-body">
                   <h3 className="card-title flex items-center gap-2">
@@ -534,7 +529,6 @@ const AdminWalkInOrder = () => {
                     </div>
                   )}
 
-                  {/* Payment Details */}
                   <div className="space-y-3 mt-4">
                     <div className="form-control">
                       <label className="label">

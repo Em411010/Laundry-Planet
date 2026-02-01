@@ -58,7 +58,6 @@ const LandingNavbar = () => {
 
      
       <div className="navbar-end gap-2 px-2 sm:px-4">
-        {/* Mobile burger in top-right with dropdown */}
         <div className="dropdown dropdown-end lg:hidden">
           <button
             className="btn btn-ghost"
@@ -89,7 +88,6 @@ const LandingNavbar = () => {
           )}
         </div>
 
-        {/* Desktop actions */}
         <button aria-label="Toggle theme" className="btn btn-ghost hidden md:inline-flex" onClick={toggleTheme}>
           {theme === 'aqua' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
@@ -102,8 +100,6 @@ const LandingNavbar = () => {
           <span className="ml-1">Register</span>
         </Link>
       </div>
-
-      {/* Mobile dropdown handled above */}
     </div>
   )
 }

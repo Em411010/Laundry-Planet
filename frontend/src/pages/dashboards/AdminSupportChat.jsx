@@ -512,7 +512,6 @@ const AdminSupportChat = () => {
                   </div>
                 ) : clientDetails ? (
                   <div className="space-y-4">
-                    {/* User Profile Card */}
                     <div className="card bg-base-100 shadow-lg">
                       <div className="card-body">
                         <h3 className="card-title text-lg mb-4">Customer Details</h3>
@@ -560,7 +559,6 @@ const AdminSupportChat = () => {
                       </div>
                     </div>
 
-                    {/* Current/Recent Order */}
                     {clientOrders.length > 0 && (
                       <div className="card bg-base-100 shadow-lg">
                         <div className="card-body">

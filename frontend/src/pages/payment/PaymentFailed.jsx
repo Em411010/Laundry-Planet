@@ -114,24 +114,20 @@ const PaymentFailed = () => {
     <div className="min-h-screen bg-gradient-to-br from-base-200 to-base-300 flex items-center justify-center p-4">
       <div className="card bg-base-100 shadow-2xl max-w-md w-full">
         <div className="card-body text-center">
-          {/* Logo */}
           <div className="flex justify-center mb-4">
             <img src={Logo} alt="Laundry Planet" className="w-16 h-16" />
           </div>
 
-          {/* Failed Icon */}
           <div className="mx-auto mb-4 p-4 rounded-full bg-error/10">
             <XCircle className="text-error" size={48} />
           </div>
 
-          {/* Title */}
           <h2 className="text-2xl font-bold text-error mb-2">Payment Failed</h2>
           
           <p className="text-base-content/70 mb-6">
             Your GCash payment was not completed. This could be due to:
           </p>
 
-          {/* Reasons */}
           <div className="bg-warning/10 rounded-lg p-4 mb-6 text-left">
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2">
@@ -153,7 +149,6 @@ const PaymentFailed = () => {
             </ul>
           </div>
 
-          {/* Order Details */}
           {orderData && (
             <div className="bg-base-200 rounded-lg p-4 mb-6 text-left">
               <div className="space-y-2">
@@ -175,7 +170,6 @@ const PaymentFailed = () => {
             </div>
           )}
 
-          {/* Error Message */}
           {error && (
             <div className="alert alert-error mb-4">
               <AlertTriangle size={18} />
@@ -183,7 +177,6 @@ const PaymentFailed = () => {
             </div>
           )}
 
-          {/* Actions */}
           <div className="flex flex-col gap-3">
             <button 
               onClick={handleRetryPayment} 
@@ -213,7 +206,6 @@ const PaymentFailed = () => {
             </button>
           </div>
 
-          {/* Help Text */}
           <p className="text-xs text-base-content/50 mt-4">
             Your order has been saved. You can retry payment anytime from your dashboard.
           </p>
