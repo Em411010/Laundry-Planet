@@ -78,22 +78,65 @@ const AuditLogs = () => {
 
   const getActionBadgeClass = (action) => {
     switch (action) {
+      // User Management
       case 'USER_CREATED':
+      case 'user_registered':
+      case 'USER_ACTIVATED':
         return 'badge-success'
       case 'USER_UPDATED':
+      case 'profile_updated':
         return 'badge-info'
       case 'USER_DELETED':
         return 'badge-error'
-      case 'USER_ACTIVATED':
-        return 'badge-success'
       case 'USER_DEACTIVATED':
         return 'badge-warning'
       case 'ROLE_CHANGED':
         return 'badge-primary'
+      
+      // Authentication
+      case 'user_login':
+        return 'badge-success'
+      case 'email_verified':
+        return 'badge-success'
+      
+      // Orders
+      case 'order_created':
+      case 'walk_in_order_created':
+        return 'badge-success'
+      case 'order_status_updated':
+      case 'order_accepted':
+        return 'badge-info'
+      case 'order_cancelled':
+        return 'badge-error'
+      case 'order_revived':
+        return 'badge-success'
+      case 'order_weight_updated':
+        return 'badge-warning'
+      case 'order_image_added':
+        return 'badge-info'
+      case 'staff_assigned':
+        return 'badge-primary'
+      
+      // Payments
+      case 'gcash_payment_initiated':
+        return 'badge-info'
+      case 'gcash_payment_completed':
+      case 'gcash_payment_webhook_completed':
+        return 'badge-success'
+      case 'gcash_payment_failed':
+      case 'gcash_payment_webhook_failed':
+        return 'badge-error'
+      case 'gcash_payment_retry':
+        return 'badge-warning'
+      
+      // Services
       case 'PRICE_UPDATED':
         return 'badge-accent'
       case 'SERVICE_STATUS_CHANGED':
+      case 'SERVICE_CREATED':
+      case 'SERVICE_DELETED':
         return 'badge-secondary'
+      
       default:
         return 'badge-ghost'
     }
@@ -126,7 +169,7 @@ const AuditLogs = () => {
       <AdminSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <AdminNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 p-4 md:p-8">
+      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 mt-10">
@@ -174,14 +217,43 @@ const AuditLogs = () => {
                     onChange={(e) => setActionFilter(e.target.value)}
                   >
                     <option value="">All Actions</option>
-                    <option value="USER_CREATED">User Created</option>
-                    <option value="USER_UPDATED">User Updated</option>
-                    <option value="USER_DELETED">User Deleted</option>
-                    <option value="USER_ACTIVATED">User Activated</option>
-                    <option value="USER_DEACTIVATED">User Deactivated</option>
-                    <option value="ROLE_CHANGED">Role Changed</option>
-                    <option value="PRICE_UPDATED">Price Updated</option>
-                    <option value="SERVICE_STATUS_CHANGED">Service Status Changed</option>
+                    <optgroup label="User Management">
+                      <option value="USER_CREATED">User Created</option>
+                      <option value="user_registered">User Registered</option>
+                      <option value="USER_UPDATED">User Updated</option>
+                      <option value="profile_updated">Profile Updated</option>
+                      <option value="USER_DELETED">User Deleted</option>
+                      <option value="USER_ACTIVATED">User Activated</option>
+                      <option value="USER_DEACTIVATED">User Deactivated</option>
+                      <option value="ROLE_CHANGED">Role Changed</option>
+                    </optgroup>
+                    <optgroup label="Authentication">
+                      <option value="user_login">User Login</option>
+                      <option value="email_verified">Email Verified</option>
+                    </optgroup>
+                    <optgroup label="Orders">
+                      <option value="order_created">Order Created</option>
+                      <option value="walk_in_order_created">Walk-in Order Created</option>
+                      <option value="order_status_updated">Order Status Updated</option>
+                      <option value="order_accepted">Order Accepted</option>
+                      <option value="order_cancelled">Order Cancelled</option>
+                      <option value="order_revived">Order Revived</option>
+                      <option value="order_weight_updated">Weight Updated</option>
+                      <option value="order_image_added">Image Added</option>
+                      <option value="staff_assigned">Staff Assigned</option>
+                    </optgroup>
+                    <optgroup label="Services">
+                      <option value="SERVICE_CREATED">Service Created</option>
+                      <option value="SERVICE_DELETED">Service Deleted</option>
+                      <option value="PRICE_UPDATED">Price Updated</option>
+                      <option value="SERVICE_STATUS_CHANGED">Service Status Changed</option>
+                    </optgroup>
+                    <optgroup label="Payments">
+                      <option value="gcash_payment_initiated">GCash Payment Initiated</option>
+                      <option value="gcash_payment_completed">GCash Payment Completed</option>
+                      <option value="gcash_payment_failed">GCash Payment Failed</option>
+                      <option value="gcash_payment_retry">GCash Payment Retry</option>
+                    </optgroup>
                   </select>
                 </div><div className="form-control">
                   <label className="label">

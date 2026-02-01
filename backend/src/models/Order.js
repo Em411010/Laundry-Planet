@@ -8,7 +8,21 @@ const orderSchema = new mongoose.Schema({
   customer: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false // Made optional for guest customers
+  },
+  guestCustomer: {
+    firstName: String,
+    lastName: String,
+    phone: String,
+    email: String
+  },
+  isWalkIn: {
+    type: Boolean,
+    default: false
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User' // Staff who created the walk-in order
   },
   services: [{
     service: {
@@ -165,6 +179,45 @@ const orderSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
     default: null
+  },
+  // PayMongo payment details
+  paymentDetails: {
+    paymongoSourceId: {
+      type: String,
+      default: null
+    },
+    paymongoPaymentId: {
+      type: String,
+      default: null
+    },
+    checkoutUrl: {
+      type: String,
+      default: null
+    },
+    gcashReferenceNumber: {
+      type: String,
+      default: null
+    },
+    paidAt: {
+      type: Date,
+      default: null
+    },
+    failedAt: {
+      type: Date,
+      default: null
+    },
+    failureReason: {
+      type: String,
+      default: null
+    },
+    refundId: {
+      type: String,
+      default: null
+    },
+    refundedAt: {
+      type: Date,
+      default: null
+    }
   },
   statusHistory: [{
     status: String,

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar';
-import { orderAPI, messageAPI } from '../../services/api';
+import { orderAPI, messageAPI, paymentAPI } from '../../services/api';
 import OrderChat from '../../components/OrderChat';
 import { 
   Package, 
@@ -13,7 +13,9 @@ import {
   Eye,
   AlertCircle,
   User,
-  Calendar
+  Calendar,
+  CreditCard,
+  Loader
 } from 'lucide-react';
 
 const TrackOrders = () => {
@@ -25,6 +27,8 @@ const TrackOrders = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
+  const [payingOrder, setPayingOrder] = useState(null);
+  const [paymentError, setPaymentError] = useState(null);
 
   useEffect(() => {
     const userData = localStorage.getItem('user');
@@ -59,6 +63,37 @@ const TrackOrders = () => {
   };
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  // Check if order is ready for GCash payment
+  const canPayNow = (order) => {
+    return (
+      order.paymentMethod === 'gcash' &&
+      order.paymentStatus === 'unpaid' &&
+      ['processed', 'for-delivery'].includes(order.status) &&
+      !order.paymentDetails?.paymongoPaymentId
+    );
+  };
+
+  // Handle GCash payment
+  const handlePayNow = async (orderId) => {
+    try {
+      setPayingOrder(orderId);
+      setPaymentError(null);
+      
+      const response = await paymentAPI.initiateGCashPayment(orderId);
+      
+      if (response.success && response.data.checkoutUrl) {
+        window.location.href = response.data.checkoutUrl;
+      } else {
+        setPaymentError('Failed to initiate payment. Please try again.');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      setPaymentError(error.response?.data?.message || 'Failed to process payment');
+    } finally {
+      setPayingOrder(null);
+    }
+  };
 
   const getStatusBadge = (status) => {
     const badges = {
@@ -125,11 +160,20 @@ const TrackOrders = () => {
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 p-4 md:p-8">
+      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Track Orders</h1>
           </div>
+
+          {/* Payment Error Alert */}
+          {paymentError && (
+            <div className="alert alert-error mb-6">
+              <AlertCircle className="w-5 h-5" />
+              <span>{paymentError}</span>
+              <button onClick={() => setPaymentError(null)} className="btn btn-sm btn-ghost">✕</button>
+            </div>
+          )}
 
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -198,7 +242,40 @@ const TrackOrders = () => {
                           ₱{order.totalAmount.toFixed(2)}
                         </span>
                       </div>
+
+                      {/* Payment Status for GCash orders */}
+                      {order.paymentMethod === 'gcash' && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <CreditCard className="w-4 h-4" />
+                          <span className={`badge badge-sm ${order.paymentStatus === 'paid' ? 'badge-success' : 'badge-warning'}`}>
+                            {order.paymentStatus === 'paid' ? 'GCash Paid' : 'GCash - Pending Payment'}
+                          </span>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Pay Now button for GCash orders */}
+                    {canPayNow(order) && (
+                      <div className="mt-3">
+                        <button
+                          onClick={() => handlePayNow(order._id)}
+                          disabled={payingOrder === order._id}
+                          className="btn btn-success btn-sm w-full gap-2"
+                        >
+                          {payingOrder === order._id ? (
+                            <>
+                              <Loader className="w-4 h-4 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard className="w-4 h-4" />
+                              Pay Now via GCash
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
 
                     <div className="card-actions justify-end mt-4 gap-2">
                       <button
@@ -326,11 +403,45 @@ const TrackOrders = () => {
                   <p><span className="font-semibold">Pickup Time:</span> {selectedOrder.pickupTime}</p>
                   <p><span className="font-semibold text-accent">Delivery Date:</span> {selectedOrder.deliverDate ? new Date(selectedOrder.deliverDate).toLocaleDateString() : 'N/A'}</p>
                   <p><span className="font-semibold text-accent">Delivery Time:</span> {selectedOrder.deliverTime || 'N/A'}</p>
-                  <p><span className="font-semibold">Payment:</span> {selectedOrder.paymentMethod}</p>
+                  <p>
+                    <span className="font-semibold">Payment:</span> {selectedOrder.paymentMethod.toUpperCase()}
+                    <span className={`ml-2 badge badge-sm ${selectedOrder.paymentStatus === 'paid' ? 'badge-success' : 'badge-warning'}`}>
+                      {selectedOrder.paymentStatus === 'paid' ? 'Paid' : 'Unpaid'}
+                    </span>
+                  </p>
+                  {selectedOrder.paymentDetails?.gcashReferenceNumber && (
+                    <p><span className="font-semibold">GCash Ref:</span> {selectedOrder.paymentDetails.gcashReferenceNumber}</p>
+                  )}
+                  {selectedOrder.paymentDetails?.paidAt && (
+                    <p><span className="font-semibold">Paid At:</span> {new Date(selectedOrder.paymentDetails.paidAt).toLocaleString()}</p>
+                  )}
                   {selectedOrder.actualWeight && (
                     <p><span className="font-semibold">Weight:</span> {selectedOrder.actualWeight} kg</p>
                   )}
                 </div>
+
+                {/* Pay Now button in modal */}
+                {canPayNow(selectedOrder) && (
+                  <div className="mt-4">
+                    <button
+                      onClick={() => handlePayNow(selectedOrder._id)}
+                      disabled={payingOrder === selectedOrder._id}
+                      className="btn btn-success w-full gap-2"
+                    >
+                      {payingOrder === selectedOrder._id ? (
+                        <>
+                          <Loader className="w-5 h-5 animate-spin" />
+                          Processing Payment...
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-5 h-5" />
+                          Pay ₱{selectedOrder.totalAmount.toFixed(2)} via GCash
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
 

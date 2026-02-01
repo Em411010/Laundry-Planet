@@ -128,12 +128,12 @@ export const createOrder = async (req, res) => {
       .populate('customer', 'firstName lastName email')
       .populate('services.service', 'name category price');
 
-    // await logAudit(
-    //   'order_created',
-    //   req.userId,
-    //   `Order ${order.orderNumber} created - Services: ${services.length}`,
-    //   req
-    // );
+    await logAudit(
+      'order_created',
+      req.userId,
+      `Order created - Total: ₱${totalAmount} - Services: ${services.length}`,
+      req
+    );
 
     res.status(201).json({
       success: true,
@@ -323,12 +323,12 @@ export const updateOrderStatus = async (req, res) => {
 
     await order.save();
 
-    // await logAudit(
-    //   'order_updated',
-    //   req.userId,
-    //   `Order ${order.orderNumber} status changed from ${oldStatus} to ${status}`,
-    //   req
-    // );
+    await logAudit(
+      'order_status_updated',
+      req.userId,
+      `Order status changed from ${oldStatus} to ${status}`,
+      req
+    );
 
     console.log('Order saved, fetching updated order...');
     const updatedOrder = await Order.findById(id)
@@ -381,12 +381,12 @@ export const assignStaff = async (req, res) => {
     order.assignedStaff = staffId;
     await order.save();
 
-    // await logAudit(
-    //   'order_updated',
-    //   req.userId,
-    //   `Staff ${staff.firstName} ${staff.lastName} assigned to order ${order.orderNumber}`,
-    //   req
-    // );
+    await logAudit(
+      'staff_assigned',
+      req.userId,
+      `Staff ${staff.firstName} ${staff.lastName} assigned to order`,
+      req
+    );
 
     const updatedOrder = await Order.findById(id)
       .populate('customer', 'firstName lastName email')
@@ -451,12 +451,12 @@ export const cancelOrder = async (req, res) => {
     }
     await order.save();
 
-    // await logAudit(
-    //   'order_cancelled',
-    //   req.userId,
-    //   `Order ${order.orderNumber} cancelled`,
-    //   req
-    // );
+    await logAudit(
+      'order_cancelled',
+      req.userId,
+      `Order cancelled - Reason: ${reason || 'No reason provided'}`,
+      req
+    );
 
     res.json({
       success: true,
@@ -466,6 +466,69 @@ export const cancelOrder = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error cancelling order',
+      error: error.message
+    });
+  }
+};
+
+// Revive cancelled order (Admin only)
+export const reviveOrder = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { newStatus } = req.body;
+    const user = await User.findById(req.userId);
+
+    // Only admins can revive orders
+    if (user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Access denied. Only admins can revive cancelled orders.'
+      });
+    }
+
+    const order = await Order.findById(id);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    if (order.status !== 'cancelled') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only cancelled orders can be revived'
+      });
+    }
+
+    // Set the new status (default to 'pending')
+    const statusToSet = newStatus || 'pending';
+    order.status = statusToSet;
+    
+    order.notes.push({
+      addedBy: req.userId,
+      note: `Order revived from cancelled to ${statusToSet} by admin`,
+      timestamp: new Date()
+    });
+
+    await order.save();
+
+    await logAudit(
+      'order_revived',
+      req.userId,
+      `Order revived from cancelled to ${statusToSet}`,
+      req
+    );
+
+    res.json({
+      success: true,
+      message: 'Order revived successfully',
+      data: order
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error reviving order',
       error: error.message
     });
   }
@@ -590,12 +653,12 @@ export const acceptOrder = async (req, res) => {
 
     await order.save();
 
-    // await logAudit('ORDER_ACCEPTED', req.userId, {
-    //   orderId: order._id,
-    //   orderNumber: order.orderNumber,
-    //   stage,
-    //   newStatus
-    // }, req);
+    await logAudit(
+      'order_accepted',
+      req.userId,
+      `Order accepted for ${stage} - Status: ${newStatus}`,
+      req
+    );
 
     res.json({
       success: true,
@@ -647,12 +710,12 @@ export const updateOrderWeight = async (req, res) => {
 
     await order.save();
 
-    // await logAudit('ORDER_WEIGHT_UPDATED', req.userId, {
-    //   orderId: order._id,
-    //   orderNumber: order.orderNumber,
-    //   weight,
-    //   newTotal: order.totalAmount
-    // }, req);
+    await logAudit(
+      'order_weight_updated',
+      req.userId,
+      `Weight updated to ${weight}kg - New total: ₱${order.totalAmount}`,
+      req
+    );
 
     res.json({
       success: true,
@@ -690,10 +753,12 @@ export const addOrderImage = async (req, res) => {
 
     await order.save();
 
-    // await logAudit('ORDER_IMAGE_ADDED', req.userId, {
-    //   orderId: order._id,
-    //   orderNumber: order.orderNumber
-    // }, req);
+    await logAudit(
+      'order_image_added',
+      req.userId,
+      `Image uploaded - ${description || 'No description'}`,
+      req
+    );
 
     res.json({
       success: true,
@@ -1145,6 +1210,172 @@ export const getStaffAnalytics = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error fetching staff analytics',
+      error: error.message
+    });
+  }
+};
+
+// Create walk-in order (Staff only)
+export const createWalkInOrder = async (req, res) => {
+  try {
+    const { 
+      customerId, 
+      customerInfo,
+      services, 
+      pickupDate, 
+      pickupTime, 
+      deliverDate, 
+      deliverTime, 
+      specialInstructions, 
+      paymentMethod,
+      paymentStatus,
+      pickupAddress,
+      contactPhone,
+      isGuest
+    } = req.body;
+
+    // Validate services
+    if (!services || services.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please select at least one service'
+      });
+    }
+
+    // Validate payment method
+    if (!['cash', 'gcash', 'card'].includes(paymentMethod)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid payment method'
+      });
+    }
+
+    let customer = null;
+    let customerDetails = {};
+
+    // Handle customer (existing or guest)
+    if (customerId && !isGuest) {
+      customer = await User.findById(customerId);
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          message: 'Customer not found'
+        });
+      }
+      customerDetails = {
+        customer: customer._id,
+        contactPhone: contactPhone || customer.phone,
+        pickupAddress: pickupAddress || {
+          street: customer.address?.street || '',
+          barangay: customer.address?.barangay || '',
+          city: customer.address?.city || 'Walk-in',
+          province: customer.address?.province || '',
+          zipCode: customer.address?.zipCode || '',
+          fullAddress: customer.address?.fullAddress || 'Walk-in Customer',
+          location: customer.location || { type: 'Point', coordinates: [0, 0] }
+        }
+      };
+    } else if (isGuest && customerInfo) {
+      // Guest customer - store info but no user reference
+      customerDetails = {
+        guestCustomer: {
+          firstName: customerInfo.firstName,
+          lastName: customerInfo.lastName,
+          phone: customerInfo.phone,
+          email: customerInfo.email
+        },
+        contactPhone: customerInfo.phone,
+        pickupAddress: pickupAddress || {
+          fullAddress: 'Walk-in Customer',
+          city: 'Walk-in',
+          location: { type: 'Point', coordinates: [0, 0] }
+        }
+      };
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Customer information is required'
+      });
+    }
+
+    // Process services with exact quantities and prices
+    const orderServices = [];
+    let totalAmount = 0;
+
+    for (const item of services) {
+      const service = await Service.findById(item.serviceId);
+      if (!service) {
+        return res.status(404).json({
+          success: false,
+          message: `Service not found: ${item.serviceId}`
+        });
+      }
+
+      if (!service.isActive) {
+        return res.status(400).json({
+          success: false,
+          message: `Service "${service.name}" is currently unavailable`
+        });
+      }
+
+      const quantity = item.quantity || 1;
+      const subtotal = service.price * quantity;
+      totalAmount += subtotal;
+
+      orderServices.push({
+        service: service._id,
+        quantity,
+        price: service.price,
+        subtotal
+      });
+    }
+
+    // Create order
+    const orderData = {
+      ...customerDetails,
+      services: orderServices,
+      pickupDate: pickupDate || new Date(),
+      pickupTime: pickupTime || 'Immediate',
+      deliverDate,
+      deliverTime,
+      specialInstructions,
+      paymentMethod,
+      paymentStatus: paymentStatus || 'pending',
+      totalAmount,
+      status: 'pending',
+      isWalkIn: true,
+      createdBy: req.userId, // Staff who created the order
+      statusHistory: [{
+        status: 'pending',
+        timestamp: new Date(),
+        updatedBy: req.userId
+      }]
+    };
+
+    const order = await Order.create(orderData);
+
+    const populatedOrder = await Order.findById(order._id)
+      .populate('customer', 'firstName lastName email phone')
+      .populate('services.service', 'name category price')
+      .populate('createdBy', 'firstName lastName email');
+
+    await logAudit(
+      'walk_in_order_created',
+      req.userId,
+      `Walk-in order created - Total: ₱${totalAmount} - ${isGuest ? 'Guest' : 'Member'}`,
+      req
+    );
+
+    res.status(201).json({
+      success: true,
+      message: 'Walk-in order created successfully',
+      data: populatedOrder
+    });
+  } catch (error) {
+    console.error('Walk-in order creation error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating walk-in order',
       error: error.message
     });
   }

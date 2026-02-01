@@ -150,7 +150,7 @@ const Receipts = () => {
     <div className="min-h-screen bg-base-200 overflow-x-hidden">
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
-      <div className="lg:ml-64 pt-20 p-4 md:p-8 mt-10">
+      <div className="lg:ml-64 pt-24 p-4 md:p-8 mt-12">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Receipts</h1>
@@ -226,10 +226,25 @@ const Receipts = () => {
                   <div className="text-sm">{selectedOrder.contactPhone}</div>
                 </div>
                 <div>
-                  <h4 className="font-semibold">Delivery</h4>
+                  <h4 className="font-semibold">Delivery & Payment</h4>
                   <div className="text-sm">{selectedOrder.deliverDate ? new Date(selectedOrder.deliverDate).toLocaleDateString() : 'N/A'}</div>
                   <div className="text-sm">{selectedOrder.deliverTime || 'N/A'}</div>
-                  <div className="text-sm">Payment: {selectedOrder.paymentMethod}</div>
+                  <div className="text-sm">
+                    Payment: <span className="capitalize">{selectedOrder.paymentMethod}</span>
+                    {selectedOrder.paymentStatus === 'paid' && (
+                      <span className="badge badge-success badge-xs ml-2">Paid</span>
+                    )}
+                  </div>
+                  {selectedOrder.paymentMethod === 'gcash' && selectedOrder.paymentDetails?.gcashReferenceNumber && (
+                    <div className="text-sm text-info">
+                      GCash Ref: {selectedOrder.paymentDetails.gcashReferenceNumber}
+                    </div>
+                  )}
+                  {selectedOrder.paymentDetails?.paidAt && (
+                    <div className="text-sm text-success">
+                      Paid on: {new Date(selectedOrder.paymentDetails.paidAt).toLocaleDateString()} at {new Date(selectedOrder.paymentDetails.paidAt).toLocaleTimeString()}
+                    </div>
+                  )}
                   {selectedOrder.paymentReceiver && (
                     <div className="text-sm">Received By: {selectedOrder.paymentReceiver.firstName} {selectedOrder.paymentReceiver.lastName}</div>
                   )}

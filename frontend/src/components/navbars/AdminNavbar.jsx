@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, Shield, Package, DollarSign, Tag, 
   Settings, FileText, CreditCard, BarChart3, FileSearch, 
   Database, Lock, LogOut, Menu, X, ChevronDown, Sun, Moon,
-  MessageSquare
+  MessageSquare, ShoppingCart
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 
@@ -27,11 +27,6 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
     { icon: Users, label: 'User Management', path: '/dashboard/admin/users' },
     { icon: Package, label: 'Services & Pricing', path: '/dashboard/admin/services' },
     { 
-      icon: Tag, 
-      label: 'Promo Codes', 
-      path: '/dashboard/admin/promos' 
-    },
-    { 
       icon: MessageSquare, 
       label: 'Customer Support', 
       path: '/dashboard/admin/support' 
@@ -39,16 +34,12 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
     { 
       icon: FileText, 
       label: 'Orders', 
-      submenu: [
-        { label: 'All Orders', path: '/dashboard/admin/orders' },
-        { label: 'Pending Orders', path: '/dashboard/admin/orders/pending' },
-        { label: 'Completed Orders', path: '/dashboard/admin/orders/completed' }
-      ]
+      path: '/dashboard/admin/orders' 
     },
     { 
-      icon: CreditCard, 
-      label: 'Payments', 
-      path: '/dashboard/admin/payments' 
+      icon: ShoppingCart, 
+      label: 'Walk-in Order', 
+      path: '/dashboard/admin/walk-in-order' 
     },
     { 
       icon: BarChart3, 
@@ -63,21 +54,6 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
       icon: FileSearch, 
       label: 'Audit Logs', 
       path: '/dashboard/admin/audit-logs' 
-    },
-    { 
-      icon: Database, 
-      label: 'Backups', 
-      path: '/dashboard/admin/backups' 
-    },
-    { 
-      icon: Lock, 
-      label: 'Security', 
-      path: '/dashboard/admin/security' 
-    },
-    { 
-      icon: Settings, 
-      label: 'System Settings', 
-      path: '/dashboard/admin/settings' 
     }
   ]
 
@@ -188,8 +164,8 @@ const AdminNavbar = ({ toggleSidebar }) => {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 lg:w-[calc(100%-16rem)]">
-      <div className="navbar bg-base-100 border-b border-base-300 px-4">
+    <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 h-20">
+      <div className="navbar bg-base-100 border-b border-base-300 px-4 h-full">
         <div className="flex-1 min-w-0">
           <button onClick={toggleSidebar} className="btn btn-ghost btn-square lg:hidden">
             <Menu size={24} />

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { 
-  LayoutDashboard, ClipboardList, QrCode, TruckIcon, 
-  MessageSquare, Clock, CheckCircle, AlertCircle, CreditCard,
-  LogOut, Menu, X, Upload, Sun, Moon
+  LayoutDashboard, ClipboardList, 
+  MessageSquare, Clock, CreditCard,
+  LogOut, Menu, X, Sun, Moon
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 
@@ -20,10 +20,7 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/staff' },
     { icon: ClipboardList, label: 'Orders', path: '/dashboard/staff/orders' },
     { icon: Clock, label: 'My Tasks', path: '/dashboard/staff/my-tasks' },
-    { icon: TruckIcon, label: 'Deliveries', path: '/dashboard/staff/deliveries' },
-    { icon: QrCode, label: 'Scan QR', path: '/dashboard/staff/scan' },
-    { icon: Upload, label: 'Upload Proof', path: '/dashboard/staff/upload-proof' },
-    { icon: CreditCard, label: 'Walk-in Payments', path: '/dashboard/staff/payments' },
+    { icon: CreditCard, label: 'Walk-in Order', path: '/dashboard/staff/payments' },
     { icon: MessageSquare, label: 'Messages', path: '/dashboard/staff/messages' }
   ]
 

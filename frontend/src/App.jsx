@@ -16,12 +16,20 @@ import AuditLogs from './pages/dashboards/AuditLogs'
 import ClientProfile from './pages/dashboards/ClientProfile'
 import ClientSupportChat from './pages/dashboards/ClientSupportChat'
 import AdminSupportChat from './pages/dashboards/AdminSupportChat'
+import AdminOrders from './pages/dashboards/AdminOrders'
 import NewOrder from './pages/dashboards/NewOrder'
 import TrackOrders from './pages/dashboards/TrackOrders'
 import OrderHistory from './pages/dashboards/OrderHistory'
 import Receipts from './pages/dashboards/Receipts'
 import StaffOrders from './pages/dashboards/StaffOrders'
 import MyTasks from './pages/dashboards/MyTasks'
+import StaffWalkInOrder from './pages/dashboards/StaffWalkInOrder'
+import AdminWalkInOrder from './pages/dashboards/AdminWalkInOrder'
+import SalesReport from './pages/dashboards/SalesReport'
+import CustomerReport from './pages/dashboards/CustomerReport'
+import ServiceReport from './pages/dashboards/ServiceReport'
+import PaymentSuccess from './pages/payment/PaymentSuccess'
+import PaymentFailed from './pages/payment/PaymentFailed'
 
 
 function App() {
@@ -46,12 +54,23 @@ function App() {
           <Route path='/dashboard/staff' element={<StaffDashboard />} />
           <Route path='/dashboard/staff/orders' element={<StaffOrders />} />
           <Route path='/dashboard/staff/my-tasks' element={<MyTasks />} />
+          <Route path='/dashboard/staff/payments' element={<StaffWalkInOrder />} />
           <Route path='/dashboard/admin' element={<AdminDashboard />} />
           <Route path='/dashboard/admin/users' element={<UserManagement />} />
           <Route path='/dashboard/admin/services' element={<ServicesPricing />} />
           <Route path='/dashboard/admin/promos' element={<PromoCode />} />
           <Route path='/dashboard/admin/support' element={<AdminSupportChat />} />
+          <Route path='/dashboard/admin/orders' element={<AdminOrders />} />
+          <Route path='/dashboard/admin/orders/pending' element={<AdminOrders />} />
+          <Route path='/dashboard/admin/orders/completed' element={<AdminOrders />} />
+          <Route path='/dashboard/admin/walk-in-order' element={<AdminWalkInOrder />} />
           <Route path='/dashboard/admin/audit-logs' element={<AuditLogs />} />
+          <Route path='/dashboard/admin/reports/sales' element={<SalesReport />} />
+          <Route path='/dashboard/admin/reports/customers' element={<CustomerReport />} />
+          <Route path='/dashboard/admin/reports/services' element={<ServiceReport />} />
+          {/* Payment Routes */}
+          <Route path='/payment/success' element={<PaymentSuccess />} />
+          <Route path='/payment/failed' element={<PaymentFailed />} />
         </Routes>
       
       </div>

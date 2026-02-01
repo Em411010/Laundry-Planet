@@ -247,7 +247,7 @@ const MyTasks = () => {
         <StaffSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
         <StaffNavbar toggleSidebar={toggleSidebar} />
       
-      <div className="lg:ml-64 pt-20 p-4 md:p-8">
+      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
         <div className="max-w-7xl mx-auto"><div className="mb-6 mt-10">
             <h1 className="text-3xl font-bold text-base-content flex items-center gap-2">
               <Clock className="w-8 h-8 text-primary" />

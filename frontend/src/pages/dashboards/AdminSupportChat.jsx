@@ -1,19 +1,25 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Send, MessageSquare, Loader, Users, ArrowLeft, Clock } from 'lucide-react'
-import { messageAPI } from '../../services/api'
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
+import { Send, MessageSquare, Loader, Users, ArrowLeft, Clock, Mail, Phone, MapPin, Calendar, Package, TrendingUp } from 'lucide-react'
+import { messageAPI, userAPI, orderAPI } from '../../services/api'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 
 const AdminSupportChat = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [messages, setMessages] = useState([])
+  const [orderMessages, setOrderMessages] = useState([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSending, setIsSending] = useState(false)
-  const [viewMode, setViewMode] = useState('list') // 'list' or 'conversation'
+  const [viewMode, setViewMode] = useState('list') // 'list', 'conversation', or 'orderChat'
   const [selectedClient, setSelectedClient] = useState(null)
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [clientDetails, setClientDetails] = useState(null)
+  const [clientOrders, setClientOrders] = useState([])
+  const [loadingDetails, setLoadingDetails] = useState(false)
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
 
@@ -28,13 +34,40 @@ const AdminSupportChat = () => {
 
   useEffect(() => {
     if (user) {
-      loadSupportMessages()
+      const orderId = searchParams.get('orderId')
+      if (orderId) {
+        loadOrderChat(orderId)
+      } else {
+        loadSupportMessages()
+      }
     }
-  }, [user])
+  }, [user, searchParams])
+
+  const loadOrderChat = async (orderId) => {
+    try {
+      setIsLoading(true)
+      setViewMode('orderChat')
+      
+      // Fetch order details and messages
+      const [orderResponse, messagesResponse] = await Promise.all([
+        orderAPI.getOrderById(orderId),
+        messageAPI.getOrderMessages(orderId)
+      ])
+      
+      setSelectedOrder(orderResponse.data || orderResponse)
+      setOrderMessages(messagesResponse || [])
+    } catch (error) {
+      console.error('Admin: Error loading order chat:', error)
+      setOrderMessages([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   const loadSupportMessages = async () => {
     try {
       setIsLoading(true)
+      setViewMode('list')
       console.log('Admin: Loading support messages...')
       const response = await messageAPI.getSupportMessages()
       console.log('Admin: Support messages loaded:', response)
@@ -89,6 +122,23 @@ const AdminSupportChat = () => {
     setSelectedClient(client)
     setViewMode('conversation')
     setInputValue('')
+    fetchClientDetails(client.client._id)
+  }
+
+  const fetchClientDetails = async (clientId) => {
+    try {
+      setLoadingDetails(true)
+      const userResponse = await userAPI.getUserById(clientId)
+      setClientDetails(userResponse.data)
+      
+      // Fetch client orders using getAllOrders with client filter
+      const ordersResponse = await orderAPI.getAllOrders({ clientId })
+      setClientOrders(ordersResponse.data || [])
+    } catch (error) {
+      console.error('Error fetching client details:', error)
+    } finally {
+      setLoadingDetails(false)
+    }
   }
 
   const handleBackToList = () => {
@@ -146,9 +196,8 @@ const AdminSupportChat = () => {
       <AdminSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <AdminNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 p-4 md:p-8 mt-10">
+      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-3 rounded-lg bg-primary/10">
@@ -156,10 +205,18 @@ const AdminSupportChat = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold">
-                  {viewMode === 'conversation' ? `${selectedClient?.client?.firstName} ${selectedClient?.client?.lastName}` : 'Customer Support'}
+                  {viewMode === 'conversation' 
+                    ? `${selectedClient?.client?.firstName} ${selectedClient?.client?.lastName}` 
+                    : viewMode === 'orderChat'
+                    ? 'Order Staff-Client Chat'
+                    : 'Customer Support'}
                 </h1>
                 <p className="text-base-content/60">
-                  {viewMode === 'conversation' ? 'Chat with this customer' : 'Chat with customers and handle support requests'}
+                  {viewMode === 'conversation' 
+                    ? 'Chat with this customer' 
+                    : viewMode === 'orderChat'
+                    ? 'View all staff and client conversations for this order'
+                    : 'Chat with customers and handle support requests'}
                 </p>
               </div>
             </div>
@@ -174,7 +231,6 @@ const AdminSupportChat = () => {
             )}
           </div>
 
-          {/* Content */}
           {viewMode === 'list' ? (
             /* Conversations List */
             <div className="space-y-4">
@@ -243,90 +299,366 @@ const AdminSupportChat = () => {
                 ))
               )}
             </div>
-          ) : (
-            /* Chat Container - Conversation View */
-            <div className="card bg-base-100 shadow-lg h-[600px] flex flex-col">
-              {/* Messages Area */}
-              <div className="flex-1 overflow-y-auto p-6 border-b border-base-300">
-                {isLoading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center">
-                      <Loader className="animate-spin mx-auto mb-2 text-primary" size={32} />
-                      <p className="text-base-content/60">Loading messages...</p>
+          ) : viewMode === 'orderChat' ? (
+            <div className="space-y-6">
+              <button
+                onClick={() => navigate('/dashboard/admin/orders')}
+                className="btn btn-ghost btn-sm gap-2"
+              >
+                <ArrowLeft size={16} />
+                Back to Orders
+              </button>
+
+              {selectedOrder && (
+                <div className="card bg-base-100 shadow-lg">
+                  <div className="card-body">
+                    <h3 className="card-title text-lg flex items-center gap-2">
+                      <Package size={20} />
+                      Order #{selectedOrder.orderNumber || selectedOrder._id?.slice(-8)}
+                    </h3>
+                    <div className="grid md:grid-cols-3 gap-4 mt-2">
+                      <div>
+                        <p className="text-sm text-base-content/60">Customer</p>
+                        <p className="font-semibold">{selectedOrder.customer?.firstName} {selectedOrder.customer?.lastName}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-base-content/60">Status</p>
+                        <span className={`badge ${
+                          selectedOrder.status === 'completed' ? 'badge-success' :
+                          selectedOrder.status === 'pending' ? 'badge-warning' :
+                          selectedOrder.status === 'cancelled' ? 'badge-error' : 'badge-info'
+                        }`}>
+                          {selectedOrder.status}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-base-content/60">Total Amount</p>
+                        <p className="font-semibold">₱{selectedOrder.totalAmount || 0}</p>
+                      </div>
                     </div>
                   </div>
-                ) : getConversationMessages().length === 0 ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="text-center">
+                </div>
+              )}
+
+              <div className="card bg-base-100 shadow-lg">
+                <div className="card-body">
+                  <h3 className="card-title text-lg flex items-center gap-2 mb-4">
+                    <MessageSquare size={20} />
+                    Staff-Client Conversations
+                  </h3>
+                  
+                  {isLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <Loader className="animate-spin mx-auto mb-2 text-primary" size={32} />
+                        <p className="text-base-content/60">Loading messages...</p>
+                      </div>
+                    </div>
+                  ) : orderMessages.length === 0 ? (
+                    <div className="text-center py-12">
                       <MessageSquare className="mx-auto mb-3 text-base-content/40" size={40} />
-                      <p className="text-base-content/60">No messages in this conversation yet.</p>
+                      <p className="text-base-content/60">No messages in this order yet.</p>
+                      <p className="text-sm text-base-content/50 mt-2">Staff and client conversations will appear here</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 max-h-[600px] overflow-y-auto p-4 bg-base-200 rounded-lg">
+                      {orderMessages.map((msg) => {
+                        const isStaff = msg.senderRole === 'staff'
+                        const isClient = msg.senderRole === 'client'
+                        const isAdmin = msg.senderRole === 'admin'
+                        
+                        return (
+                          <div
+                            key={msg._id}
+                            className={`flex ${isClient ? 'justify-start' : 'justify-end'}`}
+                          >
+                            <div className="max-w-[70%]">
+                              <div
+                                className={`px-4 py-3 rounded-lg ${
+                                  isClient
+                                    ? 'bg-info/20 text-info-content border border-info/30'
+                                    : isStaff
+                                    ? 'bg-success/20 text-success-content border border-success/30'
+                                    : 'bg-primary/20 text-primary-content border border-primary/30'
+                                }`}
+                              >
+                                <div className="flex items-center gap-2 mb-1">
+                                  <p className="text-xs font-semibold opacity-75">
+                                    {msg.sender?.firstName || 'Unknown'} {msg.sender?.lastName || ''}
+                                  </p>
+                                  <span className={`badge badge-xs ${
+                                    isClient ? 'badge-info' :
+                                    isStaff ? 'badge-success' : 'badge-primary'
+                                  }`}>
+                                    {msg.senderRole}
+                                  </span>
+                                </div>
+                                <p className="text-sm break-words">{msg.content}</p>
+                                <p className="text-xs mt-2 opacity-60">
+                                  {new Date(msg.createdAt).toLocaleDateString()} at{' '}
+                                  {new Date(msg.createdAt).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  <div className="alert alert-info mt-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span className="text-sm">This is a read-only view of staff-client conversations for this order. Only assigned staff and the client can send messages.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="card bg-base-100 shadow-lg h-[600px] flex flex-col">
+                  <div className="flex-1 overflow-y-auto p-6 border-b border-base-300">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <Loader className="animate-spin mx-auto mb-2 text-primary" size={32} />
+                          <p className="text-base-content/60">Loading messages...</p>
+                        </div>
+                      </div>
+                    ) : getConversationMessages().length === 0 ? (
+                      <div className="flex items-center justify-center h-full">
+                        <div className="text-center">
+                          <MessageSquare className="mx-auto mb-3 text-base-content/40" size={40} />
+                          <p className="text-base-content/60">No messages in this conversation yet.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {getConversationMessages().map((msg) => {
+                          const isAdmin = msg.senderRole === 'admin'
+                          return (
+                            <div
+                              key={msg._id}
+                              className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
+                            >
+                              <div
+                                className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                                  isAdmin
+                                    ? 'bg-primary text-primary-content'
+                                    : 'bg-base-200 text-base-content'
+                                }`}
+                              >
+                                {!isAdmin && (
+                                  <p className="text-xs font-semibold opacity-75 mb-1">
+                                    {msg.sender?.firstName || 'Customer'}
+                                  </p>
+                                )}
+                                <p className="text-sm break-words">{msg.content}</p>
+                                <p
+                                  className={`text-xs mt-1 ${
+                                    isAdmin ? 'opacity-75' : 'opacity-60'
+                                  }`}
+                                >
+                                  {new Date(msg.createdAt).toLocaleTimeString([], {
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="p-6 bg-base-100 rounded-b-2xl">
+                    <div className="flex gap-3">
+                      <textarea
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Type your response here... (Shift+Enter for new line)"
+                        className="textarea textarea-bordered flex-1 resize-none"
+                        rows="2"
+                        disabled={isSending}
+                      />
+                      <button
+                        onClick={handleSendMessage}
+                        disabled={!inputValue.trim() || isSending}
+                        className="btn btn-primary gap-2 self-end"
+                      >
+                        {isSending ? (
+                          <Loader size={18} className="animate-spin" />
+                        ) : (
+                          <Send size={18} />
+                        )}
+                        Send
+                      </button>
                     </div>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    {getConversationMessages().map((msg) => {
-                      const isAdmin = msg.senderRole === 'admin'
-                      return (
-                        <div
-                          key={msg._id}
-                          className={`flex ${isAdmin ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div
-                            className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                              isAdmin
-                                ? 'bg-primary text-primary-content'
-                                : 'bg-base-200 text-base-content'
-                            }`}
-                          >
-                            {!isAdmin && (
-                              <p className="text-xs font-semibold opacity-75 mb-1">
-                                {msg.sender?.firstName || 'Customer'}
-                              </p>
-                            )}
-                            <p className="text-sm break-words">{msg.content}</p>
-                            <p
-                              className={`text-xs mt-1 ${
-                                isAdmin ? 'opacity-75' : 'opacity-60'
-                              }`}
-                            >
-                              {new Date(msg.createdAt).toLocaleTimeString([], {
-                                hour: '2-digit',
-                                minute: '2-digit'
-                              })}
-                            </p>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
+                </div>
               </div>
 
-              {/* Input Area */}
-              <div className="p-6 bg-base-100 rounded-b-2xl">
-                <div className="flex gap-3">
-                  <textarea
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Type your response here... (Shift+Enter for new line)"
-                    className="textarea textarea-bordered flex-1 resize-none"
-                    rows="2"
-                    disabled={isSending}
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    disabled={!inputValue.trim() || isSending}
-                    className="btn btn-primary gap-2 self-end"
-                  >
-                    {isSending ? (
-                      <Loader size={18} className="animate-spin" />
-                    ) : (
-                      <Send size={18} />
+              <div className="lg:col-span-1">
+                {loadingDetails ? (
+                  <div className="card bg-base-100 shadow-lg p-6">
+                    <div className="flex items-center justify-center py-12">
+                      <Loader className="animate-spin text-primary" size={32} />
+                    </div>
+                  </div>
+                ) : clientDetails ? (
+                  <div className="space-y-4">
+                    {/* User Profile Card */}
+                    <div className="card bg-base-100 shadow-lg">
+                      <div className="card-body">
+                        <h3 className="card-title text-lg mb-4">Customer Details</h3>
+                        
+                        <div className="space-y-3">
+                          <div className="flex items-center gap-3">
+                            <Mail size={18} className="text-primary" />
+                            <div>
+                              <p className="text-sm text-base-content/60">Email</p>
+                              <p className="font-semibold">{clientDetails.email}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <Phone size={18} className="text-primary" />
+                            <div>
+                              <p className="text-sm text-base-content/60">Phone</p>
+                              <p className="font-semibold">{clientDetails.phone || 'N/A'}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <MapPin size={18} className="text-primary" />
+                            <div>
+                              <p className="text-sm text-base-content/60">Address</p>
+                              <p className="font-semibold text-sm">
+                                {typeof clientDetails.address === 'object' && clientDetails.address
+                                  ? clientDetails.address.fullAddress || 
+                                    `${clientDetails.address.street}, ${clientDetails.address.barangay}, ${clientDetails.address.city}`
+                                  : clientDetails.address || 'N/A'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            <Calendar size={18} className="text-primary" />
+                            <div>
+                              <p className="text-sm text-base-content/60">Member Since</p>
+                              <p className="font-semibold">
+                                {new Date(clientDetails.createdAt).toLocaleDateString()}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Current/Recent Order */}
+                    {clientOrders.length > 0 && (
+                      <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                          <h3 className="card-title text-lg flex items-center gap-2 mb-4">
+                            <Package size={20} />
+                            Current Order
+                          </h3>
+                          
+                          {clientOrders[0] && (
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm text-base-content/60">Order ID</span>
+                                <span className="font-semibold text-sm">#{clientOrders[0]._id.slice(-8)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-base-content/60">Status</span>
+                                <span className={`badge ${
+                                  clientOrders[0].status === 'completed' ? 'badge-success' :
+                                  clientOrders[0].status === 'pending' ? 'badge-warning' :
+                                  clientOrders[0].status === 'cancelled' ? 'badge-error' : 'badge-info'
+                                }`}>
+                                  {clientOrders[0].status}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-base-content/60">Amount</span>
+                                <span className="font-semibold">₱{clientOrders[0].totalAmount || 0}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-sm text-base-content/60">Date</span>
+                                <span className="text-sm">{new Date(clientOrders[0].createdAt).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     )}
-                    Send
-                  </button>
-                </div>
+
+                    {clientOrders.length > 0 && (
+                      <div className="card bg-base-100 shadow-lg">
+                        <div className="card-body">
+                          <h3 className="card-title text-lg flex items-center gap-2 mb-4">
+                            <TrendingUp size={20} />
+                            Order History
+                          </h3>
+                          
+                          <div className="space-y-2">
+                            <div className="flex justify-between">
+                              <span className="text-sm text-base-content/60">Total Orders</span>
+                              <span className="font-semibold badge badge-primary">{clientOrders.length}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-base-content/60">Completed</span>
+                              <span className="font-semibold text-success">
+                                {clientOrders.filter(o => o.status === 'completed').length}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-base-content/60">Pending</span>
+                              <span className="font-semibold text-warning">
+                                {clientOrders.filter(o => o.status === 'pending').length}
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-sm text-base-content/60">Total Spent</span>
+                              <span className="font-semibold text-primary">
+                                ₱{clientOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="mt-4 pt-4 border-t border-base-300">
+                            <p className="text-sm font-semibold mb-2">Recent Orders</p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {clientOrders.slice(0, 5).map((order) => (
+                                <div key={order._id} className="text-xs p-2 bg-base-200 rounded">
+                                  <div className="flex justify-between mb-1">
+                                    <span className="font-semibold">#{order._id.slice(-6)}</span>
+                                    <span className={`badge badge-xs ${
+                                      order.status === 'completed' ? 'badge-success' :
+                                      order.status === 'pending' ? 'badge-warning' : 'badge-error'
+                                    }`}>
+                                      {order.status}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-base-content/60">
+                                    <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                                    <span>₱{order.totalAmount}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : null}
               </div>
             </div>
           )}

@@ -6,6 +6,7 @@ import {
   updateOrderStatus,
   assignStaff,
   cancelOrder,
+  reviveOrder,
   getOrderStats,
   acceptOrder,
   updateOrderWeight,
@@ -14,7 +15,8 @@ import {
   getStaffTasks,
   markPaymentReceived,
   modifyOrderServices,
-  getStaffAnalytics
+  getStaffAnalytics,
+  createWalkInOrder
 } from '../controllers/orderController.js';
 import { authenticate, authorize } from '../middlewares/auth.js';
 import { rateLimit } from '../middlewares/rateLimiter.js';
@@ -26,6 +28,7 @@ router.use(authenticate);
 
 // Client routes with rate limiting
 router.post('/', authorize(['client']), rateLimit('createOrder'), createOrder);
+router.post('/walk-in', authorize(['staff', 'admin']), rateLimit('createOrder'), createWalkInOrder);
 router.get('/', rateLimit('api'), getAllOrders); // Role-based filtering in controller
 
 // Staff routes - specific routes before parameterized routes
@@ -35,6 +38,7 @@ router.get('/stats/overview', authorize(['admin']), getOrderStats);
 
 router.get('/:id', getOrderById); // Role-based access in controller
 router.patch('/:id/cancel', cancelOrder); // Clients can cancel own orders
+router.patch('/:id/revive', authorize(['admin']), reviveOrder); // Admin can revive cancelled orders
 router.patch('/:id/accept', authorize(['staff', 'admin']), acceptOrder);
 router.patch('/:id/weight', authorize(['staff', 'admin']), updateOrderWeight);
 router.patch('/:id/services', authorize(['staff', 'admin']), modifyOrderServices);

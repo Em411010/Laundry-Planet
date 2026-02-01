@@ -1,4 +1,19 @@
 import User from '../models/User.js';
+import AuditLog from '../models/AuditLog.js';
+
+// Helper function to log audit
+const logAudit = async (action, performedBy, details, req) => {
+  try {
+    await AuditLog.create({
+      action,
+      performedBy,
+      details,
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+  } catch (error) {
+    console.error('Audit log error:', error);
+  }
+};
 
 // Get current user profile
 export const getProfile = async (req, res) => {
@@ -81,6 +96,13 @@ export const updateProfile = async (req, res) => {
     user.profileComplete = isProfileComplete;
 
     await user.save();
+
+    await logAudit(
+      'profile_updated',
+      req.userId,
+      `Profile updated${isProfileComplete ? ' - Profile completed' : ''}`,
+      req
+    );
 
     const updatedUser = user.toJSON();
 

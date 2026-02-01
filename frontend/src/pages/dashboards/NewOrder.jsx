@@ -249,8 +249,13 @@ const NewOrder = () => {
       }
 
       const response = await orderAPI.createOrder(orderData)
-      
-      setSuccess(`Order ${response.data.orderNumber} placed successfully!`)
+
+      // Payment will be processed after staff weighs the laundry
+      const paymentNote = orderDetails.paymentMethod === 'gcash' 
+        ? ' You will receive a payment link once your laundry is weighed and priced.'
+        : ' Payment will be collected upon delivery.'
+
+      setSuccess(`Order ${response.data.orderNumber} placed successfully!${paymentNote}`)
       setTimeout(() => {
         navigate('/dashboard/client')
       }, 2000)
@@ -276,7 +281,7 @@ const NewOrder = () => {
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 p-4 md:p-8">
+      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
         <div className="max-w-7xl mx-auto"><div className="flex items-center gap-3 mb-6 mt-10">
             <ShoppingCart className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">New Order</h1>
@@ -487,9 +492,27 @@ const NewOrder = () => {
                           onChange={handleInputChange}
                           required
                         >
-                          <option value="cash">Cash</option>
+                          <option value="cash">Cash on Delivery</option>
                           <option value="gcash">GCash</option>
                         </select>
+                        {orderDetails.paymentMethod === 'gcash' && (
+                          <div className="mt-2 p-3 bg-info/10 rounded-lg">
+                            <p className="text-sm text-info flex items-center gap-2">
+                              <AlertCircle size={16} />
+                              You'll receive a payment link once your laundry is weighed and final price is calculated.
+                            </p>
+                            <p className="text-xs text-base-content/60 mt-1">
+                              Pay securely via GCash before delivery. Minimum: ₱100
+                            </p>
+                          </div>
+                        )}
+                        {orderDetails.paymentMethod === 'cash' && (
+                          <div className="mt-2 p-3 bg-base-200 rounded-lg">
+                            <p className="text-sm text-base-content/70">
+                              Payment will be collected by delivery staff when your laundry is delivered.
+                            </p>
+                          </div>
+                        )}
                       </div>
 
                       <div className="form-control mb-4">

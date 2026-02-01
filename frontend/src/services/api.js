@@ -92,6 +92,12 @@ export const userAPI = {
   toggleUserStatus: async (id) => {
     const response = await api.patch(`/users/${id}/toggle-status`)
     return response.data
+  },
+
+  // Search customers (for walk-in orders - staff access)
+  searchUsers: async (query) => {
+    const response = await api.get('/users/search/customers', { params: { search: query, limit: 10 } })
+    return response.data
   }
 }
 
@@ -232,6 +238,12 @@ export const orderAPI = {
     return response.data
   },
 
+  // Revive cancelled order (Admin only)
+  reviveOrder: async (id, newStatus = 'pending') => {
+    const response = await api.patch(`/orders/${id}/revive`, { newStatus })
+    return response.data
+  },
+
   // Get order statistics (Admin)
   getOrderStats: async () => {
     const response = await api.get('/orders/stats/overview')
@@ -278,6 +290,12 @@ export const orderAPI = {
   getStaffAnalytics: async () => {
     const response = await api.get('/orders/staff/analytics')
     return response.data
+  },
+
+  // Create walk-in order (Staff only)
+  createWalkInOrder: async (orderData) => {
+    const response = await api.post('/orders/walk-in', orderData)
+    return response.data
   }
 }
 
@@ -319,6 +337,92 @@ export const dashboardAPI = {
   // Get admin dashboard statistics
   getAdminStats: async () => {
     const response = await api.get('/dashboard/admin/stats')
+    return response.data
+  }
+}
+
+// Sales Report API (Admin only)
+export const salesAPI = {
+  // Get comprehensive sales report
+  getSalesReport: async (params = {}) => {
+    const response = await api.get('/sales/report', { params })
+    return response.data
+  },
+
+  // Get revenue by date range
+  getRevenueByDateRange: async (startDate, endDate) => {
+    const response = await api.get('/sales/revenue-by-date', {
+      params: { startDate, endDate }
+    })
+    return response.data
+  },
+
+  // Get top performing services
+  getTopServices: async (params = {}) => {
+    const response = await api.get('/sales/top-services', { params })
+    return response.data
+  }
+}
+
+// Customer Report API (Admin only)
+export const customerAPI = {
+  // Get comprehensive customer report
+  getCustomerReport: async (params = {}) => {
+    const response = await api.get('/customers/report', { params })
+    return response.data
+  },
+
+  // Get customer segmentation data
+  getCustomerSegmentation: async () => {
+    const response = await api.get('/customers/segmentation')
+    return response.data
+  }
+}
+
+// Service Report API (Admin only)
+export const serviceReportAPI = {
+  // Get comprehensive service report
+  getServiceReport: async (params = {}) => {
+    const response = await api.get('/service-reports/report', { params })
+    return response.data
+  },
+
+  // Get detailed service performance
+  getServicePerformance: async (serviceId, params = {}) => {
+    const response = await api.get(`/service-reports/performance/${serviceId}`, { params })
+    return response.data
+  }
+}
+
+// Payment API (PayMongo GCash)
+export const paymentAPI = {
+  // Initiate GCash payment for an order
+  initiateGCashPayment: async (orderId) => {
+    const response = await api.post(`/payments/gcash/${orderId}`)
+    return response.data
+  },
+
+  // Get payment status for an order
+  getPaymentStatus: async (orderId) => {
+    const response = await api.get(`/payments/status/${orderId}`)
+    return response.data
+  },
+
+  // Verify payment after redirect
+  verifyPaymentSuccess: async (orderId) => {
+    const response = await api.get(`/payments/success?orderId=${orderId}`)
+    return response.data
+  },
+
+  // Handle payment failure
+  handlePaymentFailed: async (orderId) => {
+    const response = await api.get(`/payments/failed?orderId=${orderId}`)
+    return response.data
+  },
+
+  // Retry a failed payment
+  retryPayment: async (orderId) => {
+    const response = await api.post(`/payments/retry/${orderId}`)
     return response.data
   }
 }

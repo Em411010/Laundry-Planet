@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
 import { orderAPI, serviceAPI, messageAPI } from '../../services/api'
 import { 
@@ -11,6 +11,7 @@ import {
 
 const ClientDashboard = () => {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [orders, setOrders] = useState([])
@@ -36,6 +37,13 @@ const ClientDashboard = () => {
   }, [navigate])
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen)
+
+  useEffect(() => {
+    const tab = searchParams.get('tab')
+    if (tab === 'active' || tab === 'completed') {
+      setActiveTab(tab)
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (user) {
@@ -171,7 +179,7 @@ const ClientDashboard = () => {
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 p-4 md:p-8 mt-10">
+      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           {/* Welcome Header */}
           <div className="mb-8">

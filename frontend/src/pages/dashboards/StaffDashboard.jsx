@@ -69,7 +69,7 @@ const StaffDashboard = () => {
       <StaffNavbar toggleSidebar={toggleSidebar} />
 
     
-      <div className="lg:ml-64 pt-20 p-4 md:p-8 mt-10">
+      <div className="lg:ml-64 pt-24 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="card bg-base-100 shadow-xl mb-6">
             <div className="card-body">

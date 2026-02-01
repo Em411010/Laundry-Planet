@@ -377,3 +377,47 @@ export const getUserAuditLogs = async (req, res) => {
     });
   }
 };
+
+// Search customers (for walk-in orders - staff access)
+export const searchCustomers = async (req, res) => {
+  try {
+    const { search = '', limit = 10 } = req.query;
+
+    if (!search || search.length < 2) {
+      return res.json({
+        success: true,
+        data: []
+      });
+    }
+
+    // Escape special regex characters to prevent regex errors
+    const escapedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+    const query = {
+      role: 'client',
+      isActive: true,
+      $or: [
+        { firstName: { $regex: escapedSearch, $options: 'i' } },
+        { lastName: { $regex: escapedSearch, $options: 'i' } },
+        { email: { $regex: escapedSearch, $options: 'i' } },
+        { phone: { $regex: escapedSearch, $options: 'i' } }
+      ]
+    };
+
+    const customers = await User.find(query)
+      .select('firstName lastName email phone address')
+      .limit(parseInt(limit))
+      .sort({ firstName: 1 });
+
+    res.json({
+      success: true,
+      data: customers
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error searching customers',
+      error: error.message
+    });
+  }
+};

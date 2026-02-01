@@ -7,13 +7,17 @@ import {
   toggleUserStatus,
   deleteUser,
   bulkToggleStatus,
-  getUserAuditLogs
+  getUserAuditLogs,
+  searchCustomers
 } from '../controllers/userController.js';
-import { authenticate, requireAdmin } from '../middlewares/auth.js';
+import { authenticate, requireAdmin, authorize } from '../middlewares/auth.js';
 
 const router = express.Router();
 
-// All routes require authentication and admin role
+// Customer search for walk-in orders (staff can access)
+router.get('/search/customers', authenticate, authorize(['staff', 'admin']), searchCustomers);
+
+// All routes below require authentication and admin role
 router.use(authenticate, requireAdmin);
 
 // User CRUD routes

@@ -1,6 +1,21 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import AuditLog from '../models/AuditLog.js';
 import { generateOTP, sendOTPEmail, sendWelcomeEmail } from '../services/emailService.js';
+
+// Helper function to log audit
+const logAudit = async (action, performedBy, details, req) => {
+  try {
+    await AuditLog.create({
+      action,
+      performedBy,
+      details,
+      ipAddress: req.ip || req.connection.remoteAddress
+    });
+  } catch (error) {
+    console.error('Audit log error:', error);
+  }
+};
 
 // Generate JWT Token
 const generateToken = (userId) => {
@@ -52,6 +67,13 @@ export const register = async (req, res) => {
         message: 'Failed to send verification email. Please try again.'
       });
     }
+
+    await logAudit(
+      'user_registered',
+      user._id,
+      `New user registered: ${email}`,
+      req
+    );
 
     res.status(201).json({
       success: true,
@@ -114,6 +136,13 @@ export const login = async (req, res) => {
 
     // Generate token
     const token = generateToken(user._id);
+
+    await logAudit(
+      'user_login',
+      user._id,
+      `User logged in - Role: ${user.role}`,
+      req
+    );
 
     res.json({
       success: true,
@@ -188,6 +217,13 @@ export const verifyOTP = async (req, res) => {
       console.error('Welcome email failed:', emailError);
       // Don't fail the verification if welcome email fails
     }
+
+    await logAudit(
+      'email_verified',
+      user._id,
+      `Email verified for: ${user.email}`,
+      req
+    );
 
     // Generate token
     const token = generateToken(user._id);

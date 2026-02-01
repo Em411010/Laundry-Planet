@@ -12,6 +12,10 @@ import profileRoutes from './src/routes/profileRoutes.js';
 import orderRoutes from './src/routes/orderRoutes.js';
 import messageRoutes from './src/routes/messageRoutes.js';
 import dashboardRoutes from './src/routes/dashboardRoutes.js';
+import salesRoutes from './src/routes/salesRoutes.js';
+import customerRoutes from './src/routes/customerRoutes.js';
+import serviceReportRoutes from './src/routes/serviceReportRoutes.js';
+import paymentRoutes from './src/routes/paymentRoutes.js';
 import { seedServices } from './src/models/Service.js';
 
 dotenv.config();
@@ -41,6 +45,10 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/sales', salesRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/service-reports', serviceReportRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
