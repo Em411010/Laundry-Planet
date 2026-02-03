@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router'
 
 import SplashScreen from './pages/public/SplashScreen'
 import LandingPage from './pages/public/LandingPage'
+import HowItWorksPage from './pages/public/HowItWorksPage'
 import LoginPage from './pages/public/LoginPage'
 import RegisterPage from './pages/public/RegisterPage'
 import VerifyOTPPage from './pages/public/VerifyOTPPage'
@@ -42,6 +43,7 @@ function App() {
         <Routes>
           <Route path='/' element={<SplashScreen />} />
           <Route path='/landing' element={<LandingPage />} />
+          <Route path='/how-it-works' element={<HowItWorksPage />} />
           <Route path='/login' element={<LoginPage />} />
           <Route path='/register' element={<RegisterPage />} />
           <Route path='/verify-otp' element={<VerifyOTPPage />} />

@@ -367,14 +367,22 @@ const LandingPage = () => {
       <LandingNavbar />
 
       <main className="container mx-auto px-4 py-8 space-y-16">
-        <Hero />
+        <div id="home">
+          <Hero />
+        </div>
         <HowItWorks />
-        <Services />
+        <div id="services">
+          <Services />
+        </div>
         <Features />
         <Testimonials />
         <PricingPreview />
-        <TrackOrder />
-        <ContactUs />
+        <div id="track">
+          <TrackOrder />
+        </div>
+        <div id="contact">
+          <ContactUs />
+        </div>
         <FinalCTA />
       </main>
 
