@@ -3,6 +3,7 @@ import User from '../models/User.js';
 import Service from '../models/Service.js';
 import AuditLog from '../models/AuditLog.js';
 import { calculateShippingFee } from './settingsController.js';
+import { emitToUser, emitToRole, emitToOrder, emitToDashboard } from '../socket/socketHandler.js';
 
 // Helper function to log audit
 const logAudit = async (action, performedBy, details, req) => {
@@ -142,6 +143,33 @@ export const createOrder = async (req, res) => {
       `Order created - Total: ₱${totalAmount} - Services: ${services.length}`,
       req
     );
+
+    // Get socket.io instance
+    const io = req.app.get('io');
+
+    // Notify all admins and staff about new order
+    emitToRole(io, 'admin', 'order:new', {
+      orderId: populatedOrder._id,
+      orderNumber: populatedOrder.orderNumber,
+      customer: `${user.firstName} ${user.lastName}`,
+      totalAmount: populatedOrder.totalAmount,
+      message: `New order ${populatedOrder.orderNumber} received`
+    });
+
+    emitToRole(io, 'staff', 'order:new', {
+      orderId: populatedOrder._id,
+      orderNumber: populatedOrder.orderNumber,
+      customer: `${user.firstName} ${user.lastName}`,
+      totalAmount: populatedOrder.totalAmount,
+      message: `New order ${populatedOrder.orderNumber} received`
+    });
+
+    // Update dashboard
+    emitToDashboard(io, 'dashboard:newOrder', {
+      orderId: populatedOrder._id,
+      orderNumber: populatedOrder.orderNumber,
+      totalAmount: populatedOrder.totalAmount
+    });
 
     res.status(201).json({
       success: true,
@@ -349,6 +377,35 @@ export const updateOrderStatus = async (req, res) => {
 
     console.log('Updated order fetched successfully');
 
+    // Get socket.io instance from app
+    const io = req.app.get('io');
+    
+    // Emit order status update to customer
+    if (updatedOrder.customer) {
+      emitToUser(io, updatedOrder.customer._id.toString(), 'order:statusUpdate', {
+        orderId: updatedOrder._id,
+        orderNumber: updatedOrder.orderNumber,
+        status: updatedOrder.status,
+        oldStatus,
+        message: `Your order status has been updated to: ${status}`
+      });
+    }
+
+    // Emit to order-specific room
+    emitToOrder(io, updatedOrder._id.toString(), 'order:update', {
+      order: updatedOrder,
+      status,
+      oldStatus
+    });
+
+    // Emit dashboard update
+    emitToDashboard(io, 'dashboard:orderUpdate', {
+      orderId: updatedOrder._id,
+      orderNumber: updatedOrder.orderNumber,
+      status,
+      oldStatus
+    });
+
     res.json({
       success: true,
       message: 'Order status updated successfully',
@@ -403,6 +460,32 @@ export const assignStaff = async (req, res) => {
       .populate('assignedStaff.processing', 'firstName lastName')
       .populate('assignedStaff.delivery', 'firstName lastName')
       .populate('paymentReceiver', 'firstName lastName');
+
+    // Get socket.io instance
+    const io = req.app.get('io');
+
+    // Notify assigned staff
+    emitToUser(io, staffId, 'staff:newTask', {
+      orderId: updatedOrder._id,
+      orderNumber: updatedOrder.orderNumber,
+      message: `You have been assigned to order ${updatedOrder.orderNumber}`,
+      order: updatedOrder
+    });
+
+    // Notify customer
+    if (updatedOrder.customer) {
+      emitToUser(io, updatedOrder.customer._id.toString(), 'order:staffAssigned', {
+        orderId: updatedOrder._id,
+        orderNumber: updatedOrder.orderNumber,
+        staffName: `${staff.firstName} ${staff.lastName}`,
+        message: `A staff member has been assigned to your order`
+      });
+    }
+
+    // Emit to order room
+    emitToOrder(io, updatedOrder._id.toString(), 'order:update', {
+      order: updatedOrder
+    });
 
     res.json({
       success: true,

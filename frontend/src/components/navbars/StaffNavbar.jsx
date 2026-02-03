@@ -59,8 +59,8 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto p-4">
-            <ul className="menu menu-sm gap-1">
+          <nav className="flex-1 overflow-y-auto p-4 pb-0">
+            <ul className="menu menu-sm gap-1 pb-4">
               {menuItems.map((item, index) => (
                 <li key={index}>
                   <Link to={item.path} className="flex items-center gap-2">
@@ -72,7 +72,7 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
             </ul>
           </nav>
 
-          <div className="p-4 border-t border-base-300">
+          <div className="p-4 border-t border-base-300 mt-auto bg-base-100">
             <button onClick={handleLogout} className="btn btn-outline btn-error btn-sm w-full">
               <LogOut size={16} />
               Logout

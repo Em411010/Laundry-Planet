@@ -1,5 +1,7 @@
 import dotenv from 'dotenv';
 import express from 'express';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -19,6 +21,7 @@ import paymentRoutes from './src/routes/paymentRoutes.js';
 import settingsRoutes from './src/routes/settingsRoutes.js';
 import { seedServices } from './src/models/Service.js';
 import { seedShippingSettings } from './src/models/Settings.js';
+import { setupSocketIO } from './src/socket/socketHandler.js';
 
 dotenv.config();
 
@@ -26,12 +29,27 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
 const PORT = process.env.PORT || 5001;
+
+// Make io accessible to routes
+app.set('io', io);
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Setup Socket.IO handlers
+setupSocketIO(io);
 
 // Connect to MongoDB and seed services
 connectDB().then(() => {
@@ -86,7 +104,10 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+httpServer.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
+  console.log(`Socket.IO server running`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
+
+export { io };

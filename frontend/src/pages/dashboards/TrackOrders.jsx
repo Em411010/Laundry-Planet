@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar';
 import { orderAPI, messageAPI, paymentAPI } from '../../services/api';
+import { useSocket } from '../../contexts/SocketContext';
 import OrderChat from '../../components/OrderChat';
 import { 
   Package, 
@@ -21,6 +22,7 @@ import {
 
 const TrackOrders = () => {
   const navigate = useNavigate();
+  const { socket, isConnected } = useSocket();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -50,6 +52,44 @@ const TrackOrders = () => {
       loadOrders();
     }
   }, [user]);
+
+  // Setup real-time order updates
+  useEffect(() => {
+    if (isConnected && user) {
+      // Listen for order status updates
+      socket.onOrderStatusUpdate((data) => {
+        console.log('Order status updated:', data);
+        // Refresh orders list
+        loadOrders();
+        // If viewing this order in modal, update it
+        if (selectedOrder && selectedOrder._id === data.orderId) {
+          loadOrderDetails(data.orderId);
+        }
+      });
+
+      // Listen for order updates
+      socket.onOrderUpdate((data) => {
+        console.log('Order updated:', data);
+        loadOrders();
+        if (selectedOrder && selectedOrder._id === data.order._id) {
+          setSelectedOrder(data.order);
+        }
+      });
+
+      // Listen for staff assignments
+      socket.onStaffAssigned((data) => {
+        console.log('Staff assigned:', data);
+        loadOrders();
+      });
+
+      // Cleanup
+      return () => {
+        socket.removeAllListeners('order:statusUpdate');
+        socket.removeAllListeners('order:update');
+        socket.removeAllListeners('order:staffAssigned');
+      };
+    }
+  }, [isConnected, user, selectedOrder]);
 
   const loadOrders = async () => {
     try {
@@ -151,6 +191,15 @@ const TrackOrders = () => {
       setShowModal(true);
     } catch (error) {
       console.error('Failed to load order details:', error);
+    }
+  };
+
+  const loadOrderDetails = async (orderId) => {
+    try {
+      const response = await orderAPI.getOrderById(orderId);
+      setSelectedOrder(response.data);
+    } catch (error) {
+      console.error('Failed to reload order details:', error);
     }
   };
 

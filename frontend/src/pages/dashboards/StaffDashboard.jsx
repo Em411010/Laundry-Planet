@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar'
 import { orderAPI } from '../../services/api'
+import { useSocket } from '../../contexts/SocketContext'
 
 const StaffDashboard = () => {
   const navigate = useNavigate()
+  const { socket, isConnected } = useSocket()
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [analytics, setAnalytics] = useState(null)
@@ -20,6 +22,30 @@ const StaffDashboard = () => {
       navigate('/login')
     }
   }, [navigate])
+
+  // Setup real-time notifications for staff
+  useEffect(() => {
+    if (isConnected && user) {
+      // Listen for new task assignments
+      socket.onNewTask((data) => {
+        console.log('New task assigned:', data);
+        // Refresh analytics
+        fetchAnalytics();
+      });
+
+      // Listen for new orders
+      socket.onNewOrder((data) => {
+        console.log('New order received:', data);
+        fetchAnalytics();
+      });
+
+      // Cleanup
+      return () => {
+        socket.removeAllListeners('staff:newTask');
+        socket.removeAllListeners('order:new');
+      };
+    }
+  }, [isConnected, user]);
 
   const fetchAnalytics = async () => {
     try {

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 import { dashboardAPI, salesAPI } from '../../services/api'
+import { useSocket } from '../../contexts/SocketContext'
 import { 
   TrendingUp, 
   DollarSign, 
@@ -46,6 +47,7 @@ const STATUS_COLORS = {
 
 const AdminDashboard = () => {
   const navigate = useNavigate()
+  const { socket, isConnected } = useSocket()
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -72,6 +74,35 @@ const AdminDashboard = () => {
       fetchAllData()
     }
   }, [user])
+
+  // Setup real-time dashboard updates
+  useEffect(() => {
+    if (isConnected && user) {
+      // Join dashboard room for live updates
+      socket.joinDashboard()
+
+      // Listen for new orders
+      socket.onDashboardNewOrder((data) => {
+        console.log('New order received:', data)
+        // Refresh dashboard data
+        fetchAllData()
+      })
+
+      // Listen for order updates
+      socket.onDashboardOrderUpdate((data) => {
+        console.log('Order updated:', data)
+        // Refresh dashboard data
+        fetchAllData()
+      })
+
+      // Cleanup on unmount
+      return () => {
+        socket.leaveDashboard()
+        socket.removeAllListeners('dashboard:newOrder')
+        socket.removeAllListeners('dashboard:orderUpdate')
+      }
+    }
+  }, [isConnected, user])
 
   const fetchAllData = async () => {
     try {
