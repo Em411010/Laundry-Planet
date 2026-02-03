@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { orderAPI, userAPI, serviceAPI } from '../../services/api'
+import { orderAPI, userAPI, serviceAPI, settingsAPI } from '../../services/api'
 import { 
   ShoppingCart, 
   User, 
@@ -17,7 +18,8 @@ import {
   Phone,
   Mail,
   UserPlus,
-  DollarSign
+  DollarSign,
+  Truck
 } from 'lucide-react'
 
 const AdminWalkInOrder = () => {
@@ -25,8 +27,6 @@ const AdminWalkInOrder = () => {
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
 
   // Customer Management
   const [customerType, setCustomerType] = useState('existing') // existing, new, guest
@@ -46,6 +46,12 @@ const AdminWalkInOrder = () => {
   // Services
   const [availableServices, setAvailableServices] = useState([])
   const [cart, setCart] = useState([])
+
+  // Shipping settings
+  const [shippingSettings, setShippingSettings] = useState({
+    shippingFee: 50,
+    freeShippingThreshold: 4
+  })
 
   // Order Details
   const [orderDetails, setOrderDetails] = useState({
@@ -77,15 +83,26 @@ const AdminWalkInOrder = () => {
   useEffect(() => {
     if (user) {
       fetchServices()
+      fetchShippingSettings()
     }
   }, [user])
+
+  const fetchShippingSettings = async () => {
+    try {
+      const response = await settingsAPI.getShippingSettings()
+      setShippingSettings(response.data)
+    } catch (err) {
+      console.error('Error fetching shipping settings:', err)
+      // Use defaults if error
+    }
+  }
 
   const fetchServices = async () => {
     try {
       const response = await serviceAPI.getAllServices()
       setAvailableServices(response.data.filter(s => s.isActive))
     } catch (err) {
-      setError('Failed to load services')
+      toast.error('Failed to load services')
     }
   }
 
@@ -156,8 +173,21 @@ const AdminWalkInOrder = () => {
     setCart(cart.filter(item => item.serviceId !== serviceId))
   }
 
-  const calculateTotal = () => {
+  const calculateServicesSubtotal = () => {
     return cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+  }
+
+  const calculateTotalWeight = () => {
+    return cart.reduce((sum, item) => sum + item.quantity, 0)
+  }
+
+  const calculateShippingFee = () => {
+    const totalWeight = calculateTotalWeight()
+    return totalWeight >= shippingSettings.freeShippingThreshold ? 0 : shippingSettings.shippingFee
+  }
+
+  const calculateTotal = () => {
+    return calculateServicesSubtotal() + calculateShippingFee()
   }
 
   const validateOrder = () => {
@@ -187,14 +217,12 @@ const AdminWalkInOrder = () => {
   const handleSubmitOrder = async () => {
     const validationError = validateOrder()
     if (validationError) {
-      setError(validationError)
-      setTimeout(() => setError(null), 4000)
+      toast.error(validationError)
       return
     }
 
     try {
       setLoading(true)
-      setError(null)
 
       const orderData = {
         services: cart.map(item => ({
@@ -221,7 +249,7 @@ const AdminWalkInOrder = () => {
 
       const response = await orderAPI.createWalkInOrder(orderData)
       
-      setSuccess(`Order created successfully! Order #${response.data._id.slice(-8)}`)
+      toast.success(`Order created successfully! Order ${response.data.orderNumber}`)
       
       // Reset form after 2 seconds
       setTimeout(() => {
@@ -238,12 +266,10 @@ const AdminWalkInOrder = () => {
           deliverDate: '',
           deliverTime: ''
         })
-        setSuccess(null)
       }, 3000)
 
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create order')
-      setTimeout(() => setError(null), 4000)
+      toast.error(err.response?.data?.message || 'Failed to create order')
     } finally {
       setLoading(false)
     }
@@ -271,20 +297,6 @@ const AdminWalkInOrder = () => {
               </div>
             </div>
           </div>
-
-          {error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          {success && (
-            <div className="alert alert-success mb-6">
-              <CheckCircle className="h-5 w-5" />
-              <span>{success}</span>
-            </div>
-          )}
 
           <div className="grid lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
@@ -406,7 +418,7 @@ const AdminWalkInOrder = () => {
                         </div>
                       </div>
                       <div className="form-control">
-                        <label className="label">
+                        <label className="label mr-2">
                           <span className="label-text">Phone Number *</span>
                         </label>
                         <input
@@ -418,7 +430,7 @@ const AdminWalkInOrder = () => {
                         />
                       </div>
                       <div className="form-control">
-                        <label className="label">
+                        <label className="label mr-2">
                           <span className="label-text">Email (Optional)</span>
                         </label>
                         <input
@@ -522,9 +534,36 @@ const AdminWalkInOrder = () => {
 
                       <div className="divider my-2"></div>
 
-                      <div className="flex justify-between items-center text-lg font-bold">
-                        <span>Total:</span>
-                        <span className="text-primary">₱{totalAmount}</span>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Services Subtotal:</span>
+                          <span>₱{calculateServicesSubtotal()}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <div className="flex items-center gap-1">
+                            <Truck size={14} />
+                            <span>Shipping Fee:</span>
+                          </div>
+                          <span className={calculateShippingFee() === 0 ? "text-success font-medium" : ""}>
+                            {calculateShippingFee() === 0 ? 'FREE' : `₱${calculateShippingFee()}`}
+                          </span>
+                        </div>
+                        {calculateTotalWeight() >= shippingSettings.freeShippingThreshold && (
+                          <div className="text-xs text-success flex items-center gap-1">
+                            <CheckCircle size={12} />
+                            <span>Free shipping for {calculateTotalWeight()}kg!</span>
+                          </div>
+                        )}
+                        {calculateTotalWeight() < shippingSettings.freeShippingThreshold && (
+                          <div className="text-xs text-base-content/60">
+                            Add {(shippingSettings.freeShippingThreshold - calculateTotalWeight()).toFixed(1)}kg more for free shipping
+                          </div>
+                        )}
+                        <div className="divider my-1"></div>
+                        <div className="flex justify-between items-center text-lg font-bold">
+                          <span>Total:</span>
+                          <span className="text-primary">₱{totalAmount}</span>
+                        </div>
                       </div>
                     </div>
                   )}

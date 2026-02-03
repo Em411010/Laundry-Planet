@@ -16,7 +16,9 @@ import salesRoutes from './src/routes/salesRoutes.js';
 import customerRoutes from './src/routes/customerRoutes.js';
 import serviceReportRoutes from './src/routes/serviceReportRoutes.js';
 import paymentRoutes from './src/routes/paymentRoutes.js';
+import settingsRoutes from './src/routes/settingsRoutes.js';
 import { seedServices } from './src/models/Service.js';
+import { seedShippingSettings } from './src/models/Settings.js';
 
 dotenv.config();
 
@@ -34,6 +36,7 @@ app.use(express.urlencoded({ extended: true }));
 // Connect to MongoDB and seed services
 connectDB().then(() => {
   seedServices();
+  seedShippingSettings();
 });
 
 // Routes
@@ -49,6 +52,7 @@ app.use('/api/sales', salesRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/service-reports', serviceReportRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/settings', settingsRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

@@ -24,6 +24,20 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/admin' },
+    { 
+      icon: BarChart3, 
+      label: 'Reports', 
+      submenu: [
+        { label: 'Sales Report', path: '/dashboard/admin/reports/sales' },
+        { label: 'Customer Report', path: '/dashboard/admin/reports/customers' },
+        { label: 'Service Report', path: '/dashboard/admin/reports/services' }
+      ]
+    },
+    { 
+      icon: ShoppingCart, 
+      label: 'Walk-in Order', 
+      path: '/dashboard/admin/walk-in-order' 
+    },
     { icon: Users, label: 'User Management', path: '/dashboard/admin/users' },
     { icon: Package, label: 'Services & Pricing', path: '/dashboard/admin/services' },
     { 
@@ -36,20 +50,8 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
       label: 'Orders', 
       path: '/dashboard/admin/orders' 
     },
-    { 
-      icon: ShoppingCart, 
-      label: 'Walk-in Order', 
-      path: '/dashboard/admin/walk-in-order' 
-    },
-    { 
-      icon: BarChart3, 
-      label: 'Reports', 
-      submenu: [
-        { label: 'Sales Report', path: '/dashboard/admin/reports/sales' },
-        { label: 'Customer Report', path: '/dashboard/admin/reports/customers' },
-        { label: 'Service Report', path: '/dashboard/admin/reports/services' }
-      ]
-    },
+  
+  
     { 
       icon: FileSearch, 
       label: 'Audit Logs', 

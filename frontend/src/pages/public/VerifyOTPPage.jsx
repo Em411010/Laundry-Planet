@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useLocation, Link } from 'react-router-dom'
-import { Mail, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react'
+import { Mail, RefreshCw } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Logo from '../../assets/LP_Logo.png'
 import { authAPI } from '../../services/api'
 
@@ -9,8 +10,6 @@ const VerifyOTPPage = () => {
   const location = useLocation()
   const [otp, setOtp] = useState(['', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [success, setSuccess] = useState('')
   const [resending, setResending] = useState(false)
   const [resendTimer, setResendTimer] = useState(0)
   const inputRefs = useRef([])
@@ -37,7 +36,6 @@ const VerifyOTPPage = () => {
     const newOtp = [...otp]
     newOtp[index] = value.slice(-1) // Only take the last character
     setOtp(newOtp)
-    setError('')
 
     // Auto-focus next input
     if (value && index < 5) {
@@ -71,18 +69,17 @@ const VerifyOTPPage = () => {
     const otpString = otp.join('')
 
     if (otpString.length !== 6) {
-      setError('Please enter all 6 digits')
+      toast.error('Please enter all 6 digits')
       return
     }
 
     setLoading(true)
-    setError('')
 
     try {
       const response = await authAPI.verifyOTP({ email, otp: otpString })
 
       if (response.success) {
-        setSuccess('Email verified successfully!')
+        toast.success('Email verified successfully!')
         
         // Store token and user data
         localStorage.setItem('token', response.token)
@@ -94,7 +91,7 @@ const VerifyOTPPage = () => {
         }, 1500)
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Verification failed. Please try again.')
+      toast.error(err.response?.data?.message || 'Verification failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -104,20 +101,18 @@ const VerifyOTPPage = () => {
     if (resendTimer > 0) return
 
     setResending(true)
-    setError('')
-    setSuccess('')
 
     try {
       const response = await authAPI.resendOTP({ email })
       
       if (response.success) {
-        setSuccess('OTP sent successfully! Please check your email.')
+        toast.success('OTP sent successfully! Please check your email.')
         setResendTimer(60) // 60 seconds cooldown
         setOtp(['', '', '', '', '', ''])
         inputRefs.current[0]?.focus()
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to resend OTP. Please try again.')
+      toast.error(err.response?.data?.message || 'Failed to resend OTP. Please try again.')
     } finally {
       setResending(false)
     }
@@ -137,20 +132,6 @@ const VerifyOTPPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="alert alert-error">
-                <AlertCircle size={20} />
-                <span className="text-sm">{error}</span>
-              </div>
-            )}
-
-            {success && (
-              <div className="alert alert-success">
-                <CheckCircle size={20} />
-                <span className="text-sm">{success}</span>
-              </div>
-            )}
-
             <div className="form-control">
               <label className="label justify-center">
                 <span className="label-text font-medium">Enter OTP Code</span>

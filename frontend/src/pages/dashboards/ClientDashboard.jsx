@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
-import { orderAPI, serviceAPI, messageAPI } from '../../services/api'
+import { orderAPI, serviceAPI, messageAPI, settingsAPI } from '../../services/api'
 import { 
   Package, Clock, CheckCircle2, TruckIcon, 
   Calendar, DollarSign, FileText, Sparkles,
@@ -21,6 +21,7 @@ const ClientDashboard = () => {
   const [loadingCompleted, setLoadingCompleted] = useState(true)
   const [services, setServices] = useState([])
   const [loadingServices, setLoadingServices] = useState(true)
+  const [shippingSettings, setShippingSettings] = useState({ shippingFee: 0, freeShippingThreshold: 0 })
   const [chatMessages, setChatMessages] = useState([])
   const [newMessage, setNewMessage] = useState('')
   const [activeTab, setActiveTab] = useState('active')
@@ -50,6 +51,7 @@ const ClientDashboard = () => {
       loadActiveOrders()
       loadCompletedOrders()
       loadServices()
+      loadShippingSettings()
     }
   }, [user])
 
@@ -95,6 +97,20 @@ const ClientDashboard = () => {
       setServices([])
     } finally {
       setLoadingServices(false)
+    }
+  }
+
+  const loadShippingSettings = async () => {
+    try {
+      const res = await settingsAPI.getShippingSettings()
+      if (res.data) {
+        setShippingSettings({
+          shippingFee: res.data.shippingFee || 0,
+          freeShippingThreshold: res.data.freeShippingThreshold || 0
+        })
+      }
+    } catch (error) {
+      console.error('Failed to load shipping settings:', error)
     }
   }
 
@@ -361,6 +377,11 @@ const ClientDashboard = () => {
                                   <div className="text-right">
                                     <div className="text-xs text-base-content/60 mb-1">Total Amount</div>
                                     <div className="text-2xl font-bold text-primary">₱{(o.totalAmount || 0).toFixed(2)}</div>
+                                    {o.shippingFee !== undefined && (
+                                      <div className="text-xs text-base-content/60 mt-1">
+                                        Shipping: {o.shippingFee === 0 ? <span className="text-success">FREE</span> : `₱${o.shippingFee}`}
+                                      </div>
+                                    )}
                                   </div>
                                   <button 
                                     onClick={() => handleViewOrder(o)} 
@@ -621,7 +642,7 @@ const ClientDashboard = () => {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {services.map(s => (
+                      {services.filter(s => s.unit !== 'FREE').map(s => (
                         <div key={s._id} className="flex items-center justify-between p-3 rounded-lg bg-base-200 hover:bg-base-300 transition-colors">
                           <div className="flex-1">
                             <div className="font-semibold text-sm">{s.name}</div>
@@ -630,16 +651,23 @@ const ClientDashboard = () => {
                             </div>
                           </div>
                           <div className="text-right">
-                            {s.unit === 'FREE' ? (
-                              <span className="badge badge-success">FREE</span>
-                            ) : (
-                              <div className="font-bold text-primary">₱{s.price.toFixed(2)}</div>
-                            )}
+                            <div className="font-bold text-primary">₱{s.price.toFixed(2)}</div>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
+                  
+                  {/* Free Delivery Info */}
+                  <div className="divider my-2"></div>
+                  <div className="alert alert-info">
+                    <Truck size={20} />
+                    <div>
+                      <div className="font-semibold">Free Delivery Available!</div>
+                      <div className="text-sm">Orders of {shippingSettings.freeShippingThreshold} kg or more qualify for free delivery</div>
+                      <div className="text-xs mt-1 opacity-75">Delivery fee: ₱{shippingSettings.shippingFee.toFixed(2)} for orders below threshold</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

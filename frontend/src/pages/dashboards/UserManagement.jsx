@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { userAPI } from '../../services/api'
-import { Users, UserPlus, Search, Filter, Trash2, Power, PowerOff, Eye, Edit, AlertCircle } from 'lucide-react'
+import { userAPI, auditAPI, orderAPI } from '../../services/api'
+import { Users, UserPlus, Search, Filter, Trash2, Power, PowerOff, Eye, Edit, AlertCircle, FileText, ShoppingBag, History, X, Calendar, MapPin, Phone, Mail as MailIcon, User as UserIcon } from 'lucide-react'
 
 const UserManagement = () => {
   const navigate = useNavigate()
@@ -10,7 +11,6 @@ const UserManagement = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   
   // Pagination & Filters
   const [page, setPage] = useState(1)
@@ -24,8 +24,15 @@ const UserManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [selectedUsers, setSelectedUsers] = useState([])
+  const [detailsTab, setDetailsTab] = useState('profile') // profile, orders, audit
+  
+  // User details data
+  const [userOrders, setUserOrders] = useState([])
+  const [userAuditLogs, setUserAuditLogs] = useState([])
+  const [loadingDetails, setLoadingDetails] = useState(false)
   
   // Form data
   const [formData, setFormData] = useState({
@@ -59,7 +66,6 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true)
-      setError(null)
       const response = await userAPI.getAllUsers({
         page,
         limit,
@@ -70,7 +76,7 @@ const UserManagement = () => {
       setUsers(response.data)
       setTotal(response.pagination.total)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch users')
+      toast.error(err.response?.data?.message || 'Failed to fetch users')
       console.error('Error fetching users:', err)
     } finally {
       setLoading(false)
@@ -84,9 +90,9 @@ const UserManagement = () => {
       setShowCreateModal(false)
       setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'client' })
       fetchUsers()
-      alert('User created successfully!')
+      toast.success('User created successfully!')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to create user')
+      toast.error(err.response?.data?.message || 'Failed to create user')
     }
   }
 
@@ -98,9 +104,9 @@ const UserManagement = () => {
       setSelectedUser(null)
       setFormData({ firstName: '', lastName: '', email: '', password: '', role: 'client' })
       fetchUsers()
-      alert('User updated successfully!')
+      toast.success('User updated successfully!')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update user')
+      toast.error(err.response?.data?.message || 'Failed to update user')
     }
   }
 
@@ -110,9 +116,9 @@ const UserManagement = () => {
       setShowDeleteModal(false)
       setSelectedUser(null)
       fetchUsers()
-      alert('User deleted successfully!')
+      toast.success('User deleted successfully!')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete user')
+      toast.error(err.response?.data?.message || 'Failed to delete user')
     }
   }
 
@@ -121,22 +127,22 @@ const UserManagement = () => {
       await userAPI.toggleUserStatus(userId)
       fetchUsers()
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to toggle user status')
+      toast.error(err.response?.data?.message || 'Failed to toggle user status')
     }
   }
 
   const handleBulkToggle = async (isActive) => {
     if (selectedUsers.length === 0) {
-      alert('Please select users first')
+      toast.error('Please select users first')
       return
     }
     try {
       await userAPI.bulkToggleStatus(selectedUsers, isActive)
       setSelectedUsers([])
       fetchUsers()
-      alert(`${selectedUsers.length} users ${isActive ? 'activated' : 'deactivated'}`)
+      toast.success(`${selectedUsers.length} users ${isActive ? 'activated' : 'deactivated'}`)
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to perform bulk action')
+      toast.error(err.response?.data?.message || 'Failed to perform bulk action')
     }
   }
 
@@ -155,6 +161,32 @@ const UserManagement = () => {
   const openDeleteModal = (userData) => {
     setSelectedUser(userData)
     setShowDeleteModal(true)
+  }
+
+  const openDetailsModal = async (userData) => {
+    setSelectedUser(userData)
+    setShowDetailsModal(true)
+    setDetailsTab('profile')
+    await fetchUserDetails(userData._id)
+  }
+
+  const fetchUserDetails = async (userId) => {
+    try {
+      setLoadingDetails(true)
+      
+      // Fetch user orders
+      const ordersResponse = await orderAPI.getAllOrders({ userId })
+      setUserOrders(ordersResponse.data || [])
+      
+      // Fetch user audit logs
+      const auditResponse = await auditAPI.getAllAuditLogs({ userId, limit: 50 })
+      setUserAuditLogs(auditResponse.data || [])
+    } catch (err) {
+      console.error('Error fetching user details:', err)
+      toast.error('Failed to load user details')
+    } finally {
+      setLoadingDetails(false)
+    }
   }
 
   const toggleUserSelection = (userId) => {
@@ -239,12 +271,9 @@ const UserManagement = () => {
                 </div>
               </div>
             </div>
-          </div>{error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}<div className="card bg-base-100 shadow-xl">
+          </div>
+
+          <div className="card bg-base-100 shadow-xl">
             <div className="card-body p-0">
               <div className="overflow-x-auto">
                 <table className="table table-zebra">
@@ -319,6 +348,14 @@ const UserManagement = () => {
                           <td>{new Date(userData.createdAt).toLocaleDateString()}</td>
                           <td>
                             <div className="flex gap-2">
+                              <div className="tooltip" data-tip="View Details">
+                                <button 
+                                  className="btn btn-sm btn-ghost"
+                                  onClick={() => openDetailsModal(userData)}
+                                >
+                                  <Eye className="h-4 w-4 text-info" />
+                                </button>
+                              </div>
                               <div className="tooltip" data-tip="Edit User">
                                 <button 
                                   className="btn btn-sm btn-ghost"
@@ -515,6 +552,325 @@ const UserManagement = () => {
             </div>
           </div>
           <div className="modal-backdrop" onClick={() => setShowDeleteModal(false)}></div>
+        </div>
+      )}
+
+      {/* User Details Modal */}
+      {showDetailsModal && selectedUser && (
+        <div className="modal modal-open">
+          <div className="modal-box max-w-6xl h-[90vh] p-0 overflow-hidden">
+            {/* Header */}
+            <div className="sticky top-0 bg-base-100 border-b border-base-300 p-6 flex items-center justify-between z-10">
+              <div className="flex items-center gap-4">
+                <div className="avatar placeholder">
+                  <div className="bg-primary text-primary-content rounded-full w-16">
+                    <span className="text-2xl">{selectedUser.firstName[0]}{selectedUser.lastName[0]}</span>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-bold text-2xl">{selectedUser.firstName} {selectedUser.lastName}</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className={`badge ${
+                      selectedUser.role === 'admin' ? 'badge-error' :
+                      selectedUser.role === 'staff' ? 'badge-warning' :
+                      'badge-info'
+                    }`}>
+                      {selectedUser.role}
+                    </div>
+                    <div className={`badge ${selectedUser.isActive ? 'badge-success' : 'badge-ghost'}`}>
+                      {selectedUser.isActive ? 'Active' : 'Inactive'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <button 
+                className="btn btn-sm btn-circle btn-ghost"
+                onClick={() => setShowDetailsModal(false)}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="tabs tabs-boxed bg-base-100 px-6 pt-4">
+              <a 
+                className={`tab tab-lg ${detailsTab === 'profile' ? 'tab-active' : ''}`}
+                onClick={() => setDetailsTab('profile')}
+              >
+                <UserIcon size={16} className="mr-2" />
+                Profile
+              </a>
+              <a 
+                className={`tab tab-lg ${detailsTab === 'orders' ? 'tab-active' : ''}`}
+                onClick={() => setDetailsTab('orders')}
+              >
+                <ShoppingBag size={16} className="mr-2" />
+                Orders ({userOrders.length})
+              </a>
+              <a 
+                className={`tab tab-lg ${detailsTab === 'audit' ? 'tab-active' : ''}`}
+                onClick={() => setDetailsTab('audit')}
+              >
+                <History size={16} className="mr-2" />
+                Activity Logs
+              </a>
+            </div>
+
+            {/* Content */}
+            <div className="overflow-y-auto p-6" style={{ maxHeight: 'calc(90vh - 200px)' }}>
+              {loadingDetails ? (
+                <div className="flex justify-center items-center py-12">
+                  <span className="loading loading-spinner loading-lg"></span>
+                </div>
+              ) : (
+                <>
+                  {/* Profile Tab */}
+                  {detailsTab === 'profile' && (
+                    <div className="space-y-6">
+                      {/* Contact Information */}
+                      <div className="card bg-base-200">
+                        <div className="card-body">
+                          <h4 className="card-title text-lg mb-4">Contact Information</h4>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="flex items-center gap-3">
+                              <MailIcon size={20} className="text-base-content/60" />
+                              <div>
+                                <div className="text-xs text-base-content/60">Email</div>
+                                <div className="font-semibold">{selectedUser.email}</div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Phone size={20} className="text-base-content/60" />
+                              <div>
+                                <div className="text-xs text-base-content/60">Phone</div>
+                                <div className="font-semibold">{selectedUser.phone || 'N/A'}</div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Address Information */}
+                      {selectedUser.address && (
+                        <div className="card bg-base-200">
+                          <div className="card-body">
+                            <h4 className="card-title text-lg mb-4">Address</h4>
+                            <div className="flex items-start gap-3">
+                              <MapPin size={20} className="text-base-content/60 mt-1" />
+                              <div>
+                                <div className="font-semibold">{selectedUser.address.street}</div>
+                                <div className="text-sm text-base-content/60">
+                                  {selectedUser.address.barangay}, {selectedUser.address.city}
+                                </div>
+                                <div className="text-sm text-base-content/60">
+                                  {selectedUser.address.province}, {selectedUser.address.zipCode}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Account Information */}
+                      <div className="card bg-base-200">
+                        <div className="card-body">
+                          <h4 className="card-title text-lg mb-4">Account Information</h4>
+                          <div className="grid md:grid-cols-2 gap-4">
+                            <div className="flex items-center gap-3">
+                              <Calendar size={20} className="text-base-content/60" />
+                              <div>
+                                <div className="text-xs text-base-content/60">Member Since</div>
+                                <div className="font-semibold">
+                                  {new Date(selectedUser.createdAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <Calendar size={20} className="text-base-content/60" />
+                              <div>
+                                <div className="text-xs text-base-content/60">Last Updated</div>
+                                <div className="font-semibold">
+                                  {new Date(selectedUser.updatedAt).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                  })}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Orders Tab */}
+                  {detailsTab === 'orders' && (
+                    <div className="space-y-4">
+                      {userOrders.length === 0 ? (
+                        <div className="text-center py-12">
+                          <ShoppingBag size={48} className="mx-auto text-base-content/30 mb-4" />
+                          <p className="text-base-content/60">No orders found</p>
+                        </div>
+                      ) : (
+                        userOrders.map((order) => (
+                          <div key={order._id} className="card bg-base-200">
+                            <div className="card-body">
+                              {/* Order Header */}
+                              <div className="flex justify-between items-start mb-4">
+                                <div>
+                                  <h4 className="font-bold text-lg">{order.orderNumber}</h4>
+                                  <p className="text-sm text-base-content/60">
+                                    {new Date(order.createdAt).toLocaleString()}
+                                  </p>
+                                </div>
+                                <div className={`badge badge-lg ${
+                                  order.status === 'delivered' ? 'badge-success' :
+                                  order.status === 'cancelled' ? 'badge-error' :
+                                  order.status === 'in-progress' ? 'badge-info' :
+                                  'badge-warning'
+                                }`}>
+                                  {order.status}
+                                </div>
+                              </div>
+
+                              {/* Services */}
+                              <div className="mb-4">
+                                <h5 className="font-semibold mb-2">Services:</h5>
+                                <div className="space-y-2">
+                                  {order.services.map((service, idx) => (
+                                    <div key={idx} className="flex justify-between items-center bg-base-300 p-2 rounded">
+                                      <div>
+                                        <div className="font-medium">{service.service?.name || 'Unknown Service'}</div>
+                                        <div className="text-sm text-base-content/60">
+                                          Qty: {service.quantity} × ₱{service.price}
+                                        </div>
+                                      </div>
+                                      <div className="font-bold">₱{service.subtotal}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Order Details */}
+                              <div className="grid md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                  <div className="text-xs text-base-content/60">Weight</div>
+                                  <div className="font-semibold">{order.actualWeight || 'N/A'} kg</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-base-content/60">Payment Method</div>
+                                  <div className="font-semibold capitalize">{order.paymentMethod}</div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-base-content/60">Payment Status</div>
+                                  <div className={`badge ${
+                                    order.paymentStatus === 'paid' ? 'badge-success' :
+                                    order.paymentStatus === 'pending' ? 'badge-warning' :
+                                    'badge-error'
+                                  }`}>
+                                    {order.paymentStatus}
+                                  </div>
+                                </div>
+                                <div>
+                                  <div className="text-xs text-base-content/60">Assigned Staff</div>
+                                  <div className="font-semibold">
+                                    {order.assignedStaff?.pickup || order.assignedStaff?.processing || order.assignedStaff?.delivery ? 
+                                      `${(order.assignedStaff.pickup || order.assignedStaff.processing || order.assignedStaff.delivery).firstName} ${(order.assignedStaff.pickup || order.assignedStaff.processing || order.assignedStaff.delivery).lastName}` : 
+                                      'Not assigned'}
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Receipt Summary */}
+                              <div className="border-t border-base-300 pt-4">
+                                <div className="flex justify-between mb-2">
+                                  <span>Subtotal:</span>
+                                  <span className="font-semibold">₱{order.servicesSubtotal || 0}</span>
+                                </div>
+                                <div className="flex justify-between mb-2">
+                                  <span>Shipping Fee:</span>
+                                  <span className="font-semibold">₱{order.shippingFee || 0}</span>
+                                </div>
+                                {order.discount > 0 && (
+                                  <div className="flex justify-between mb-2 text-success">
+                                    <span>Discount:</span>
+                                    <span className="font-semibold">-₱{order.discount}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between text-lg font-bold border-t border-base-300 pt-2">
+                                  <span>Total:</span>
+                                  <span className="text-primary">₱{order.totalAmount}</span>
+                                </div>
+                              </div>
+
+                              {/* Special Instructions */}
+                              {order.specialInstructions && (
+                                <div className="mt-4 p-3 bg-base-300 rounded">
+                                  <div className="text-xs text-base-content/60 mb-1">Special Instructions:</div>
+                                  <div className="text-sm">{order.specialInstructions}</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+
+                  {/* Audit Logs Tab */}
+                  {detailsTab === 'audit' && (
+                    <div className="space-y-3">
+                      {userAuditLogs.length === 0 ? (
+                        <div className="text-center py-12">
+                          <History size={48} className="mx-auto text-base-content/30 mb-4" />
+                          <p className="text-base-content/60">No activity logs found</p>
+                        </div>
+                      ) : (
+                        userAuditLogs.map((log) => (
+                          <div key={log._id} className="card bg-base-200">
+                            <div className="card-body p-4">
+                              <div className="flex justify-between items-start">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className={`badge ${
+                                      log.action.includes('create') ? 'badge-success' :
+                                      log.action.includes('delete') ? 'badge-error' :
+                                      log.action.includes('update') ? 'badge-warning' :
+                                      'badge-info'
+                                    }`}>
+                                      {log.action}
+                                    </div>
+                                    <span className="text-sm text-base-content/60">{log.module}</span>
+                                  </div>
+                                  <p className="text-sm mb-2">{log.description}</p>
+                                  {log.details && Object.keys(log.details).length > 0 && (
+                                    <div className="text-xs text-base-content/60 bg-base-300 p-2 rounded mt-2">
+                                      <pre className="whitespace-pre-wrap">
+                                        {JSON.stringify(log.details, null, 2)}
+                                      </pre>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-xs text-base-content/60 text-right">
+                                  {new Date(log.createdAt).toLocaleString()}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setShowDetailsModal(false)}></div>
         </div>
       )}
     </div>

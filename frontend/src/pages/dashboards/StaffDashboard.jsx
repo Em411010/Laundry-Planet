@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar'
 import { orderAPI } from '../../services/api'
 
@@ -29,6 +30,7 @@ const StaffDashboard = () => {
       }
     } catch (error) {
       console.error('Error fetching analytics:', error)
+      toast.error('Unable to load analytics')
     } finally {
       setLoading(false)
     }
@@ -71,7 +73,7 @@ const StaffDashboard = () => {
     
       <div className="lg:ml-64 pt-24 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="card bg-base-100 shadow-xl mb-6">
+          <div className="card bg-base-100 shadow-xl mb-6 mt-12">
             <div className="card-body">
               <h2 className="card-title text-3xl">Welcome, {user.firstName}!</h2>
               <p className="text-base-content/70">Here's your performance overview</p>
@@ -377,11 +379,7 @@ const StaffDashboard = () => {
                 </div>
               </div>
             </>
-          ) : (
-            <div className="alert alert-error">
-              <span>Unable to load analytics</span>
-            </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

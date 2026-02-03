@@ -11,7 +11,8 @@ const auditLogSchema = new mongoose.Schema({
       'USER_ACTIVATED',
       'USER_DEACTIVATED',
       'ROLE_CHANGED',
-      'PASSWORD_RESET'
+      'PASSWORD_RESET',
+      'PASSWORD_CHANGED'
     ]
   },
   performedBy: {
@@ -25,6 +26,18 @@ const auditLogSchema = new mongoose.Schema({
     required: true
   },
   changes: {
+    type: mongoose.Schema.Types.Mixed,
+    default: {}
+  },
+  description: {
+    type: String,
+    default: ''
+  },
+  module: {
+    type: String,
+    default: 'User Management'
+  },
+  details: {
     type: mongoose.Schema.Types.Mixed,
     default: {}
   },

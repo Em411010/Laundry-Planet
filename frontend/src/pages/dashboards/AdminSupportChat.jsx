@@ -314,7 +314,7 @@ const AdminSupportChat = () => {
                   <div className="card-body">
                     <h3 className="card-title text-lg flex items-center gap-2">
                       <Package size={20} />
-                      Order #{selectedOrder.orderNumber || selectedOrder._id?.slice(-8)}
+                      Order {selectedOrder.orderNumber}
                     </h3>
                     <div className="grid md:grid-cols-3 gap-4 mt-2">
                       <div>
@@ -571,7 +571,7 @@ const AdminSupportChat = () => {
                             <div className="space-y-2">
                               <div className="flex justify-between">
                                 <span className="text-sm text-base-content/60">Order ID</span>
-                                <span className="font-semibold text-sm">#{clientOrders[0]._id.slice(-8)}</span>
+                                <span className="font-semibold text-sm">{clientOrders[0].orderNumber}</span>
                               </div>
                               <div className="flex justify-between">
                                 <span className="text-sm text-base-content/60">Status</span>
@@ -636,7 +636,7 @@ const AdminSupportChat = () => {
                               {clientOrders.slice(0, 5).map((order) => (
                                 <div key={order._id} className="text-xs p-2 bg-base-200 rounded">
                                   <div className="flex justify-between mb-1">
-                                    <span className="font-semibold">#{order._id.slice(-6)}</span>
+                                    <span className="font-semibold">{order.orderNumber}</span>
                                     <span className={`badge badge-xs ${
                                       order.status === 'completed' ? 'badge-success' :
                                       order.status === 'pending' ? 'badge-warning' : 'badge-error'

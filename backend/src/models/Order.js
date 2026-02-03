@@ -115,6 +115,14 @@ const orderSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  servicesSubtotal: {
+    type: Number,
+    default: 0
+  },
+  shippingFee: {
+    type: Number,
+    default: 0
+  },
   assignedStaff: {
     pickup: {
       type: mongoose.Schema.Types.ObjectId,

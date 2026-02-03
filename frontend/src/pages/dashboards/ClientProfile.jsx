@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
 import { profileAPI } from '../../services/api'
 import { User, MapPin, Phone, Save, AlertCircle, CheckCircle, Map } from 'lucide-react'
@@ -10,8 +11,6 @@ const ClientProfile = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -71,7 +70,7 @@ const ClientProfile = () => {
         longitude: profile.location?.coordinates[0] || ''
       })
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch profile')
+      toast.error(err.response?.data?.message || 'Failed to fetch profile')
     } finally {
       setLoading(false)
     }
@@ -123,7 +122,7 @@ const ClientProfile = () => {
 
   const getMyLocation = () => {
     if (navigator.geolocation) {
-      setSuccess('Getting your location...')
+      toast.loading('Getting your location...')
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setFormData(prev => ({
@@ -131,17 +130,16 @@ const ClientProfile = () => {
             latitude: position.coords.latitude.toFixed(6),
             longitude: position.coords.longitude.toFixed(6)
           }))
-          setSuccess('Location captured successfully!')
-          setTimeout(() => setSuccess(null), 3000)
+          toast.dismiss()
+          toast.success('Location captured successfully!')
         },
         (error) => {
-          setError('Unable to get your location. Please allow location access.')
-          setTimeout(() => setError(null), 3000)
+          toast.dismiss()
+          toast.error('Unable to get your location. Please allow location access.')
         }
       )
     } else {
-      setError('Geolocation is not supported by your browser.')
-      setTimeout(() => setError(null), 3000)
+      toast.error('Geolocation is not supported by your browser.')
     }
   }
 
@@ -150,18 +148,16 @@ const ClientProfile = () => {
     
     // Validation
     if (!formData.phone) {
-      setError('Phone number is required')
+      toast.error('Phone number is required')
       return
     }
     if (!formData.fullAddress) {
-      setError('Full address is required')
+      toast.error('Full address is required')
       return
     }
 
     try {
       setSaving(true)
-      setError(null)
-      setSuccess(null)
 
       const profileData = {
         firstName: formData.firstName,
@@ -193,10 +189,9 @@ const ClientProfile = () => {
       localStorage.setItem('user', JSON.stringify(updatedUser))
       setUser(updatedUser)
       
-      setSuccess('Profile updated successfully!')
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success('Profile updated successfully!')
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update profile')
+      toast.error(err.response?.data?.message || 'Failed to update profile')
     } finally {
       setSaving(false)
     }
@@ -221,17 +216,9 @@ const ClientProfile = () => {
               <span className="font-semibold">Complete your profile</span>
               <div className="text-sm">Please provide your contact information and address to place orders.</div>
             </div>
-          </div>{success && (
-            <div className="alert alert-success mb-6">
-              <CheckCircle className="h-5 w-5" />
-              <span>{success}</span>
-            </div>
-          )}{error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}<div className="card bg-base-100 shadow-xl">
+          </div>
+
+          <div className="card bg-base-100 shadow-xl mb-6">
             <div className="card-body">
               {loading ? (
                 <div className="flex justify-center py-12">
@@ -244,7 +231,7 @@ const ClientProfile = () => {
                   </h2>
                   <div className="grid md:grid-cols-2 gap-4 mb-6">
                     <div className="form-control">
-                      <label className="label">
+                      <label className="label mr-2">
                         <span className="label-text">First Name</span>
                       </label>
                       <input
@@ -257,7 +244,7 @@ const ClientProfile = () => {
                       />
                     </div>
                     <div className="form-control">
-                      <label className="label">
+                      <label className="label mr-2">
                         <span className="label-text">Last Name</span>
                       </label>
                       <input

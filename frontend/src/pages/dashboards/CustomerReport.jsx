@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 import { customerAPI } from '../../services/api'
 import { 
@@ -24,7 +25,6 @@ const CustomerReport = () => {
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   
   const [customerData, setCustomerData] = useState(null)
   const [segmentationData, setSegmentationData] = useState(null)
@@ -60,7 +60,6 @@ const CustomerReport = () => {
   const fetchCustomerReport = async () => {
     try {
       setLoading(true)
-      setError(null)
       
       let params = {}
       if (filterPeriod === 'custom') {
@@ -70,7 +69,7 @@ const CustomerReport = () => {
             endDate: customDateRange.endDate
           }
         } else {
-          setError('Please select both start and end dates for custom range')
+          toast.error('Please select both start and end dates for custom range')
           setLoading(false)
           return
         }
@@ -81,7 +80,7 @@ const CustomerReport = () => {
       const response = await customerAPI.getCustomerReport(params)
       setCustomerData(response.data)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load customer report')
+      toast.error(err.response?.data?.message || 'Failed to load customer report')
     } finally {
       setLoading(false)
     }
@@ -100,7 +99,7 @@ const CustomerReport = () => {
     if (customDateRange.startDate && customDateRange.endDate) {
       fetchCustomerReport()
     } else {
-      setError('Please select both start and end dates')
+      toast.error('Please select both start and end dates')
     }
   }
 
@@ -247,13 +246,6 @@ const CustomerReport = () => {
               </div>
             </div>
           </div>
-
-          {error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-12">

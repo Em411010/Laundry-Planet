@@ -5,11 +5,44 @@ import bcrypt from 'bcryptjs';
 // Helper function to log audit
 const logAudit = async (action, performedBy, targetUser, changes = {}, req) => {
   try {
+    // Generate description based on action
+    let description = '';
+    switch (action) {
+      case 'USER_CREATED':
+        description = `Created new user account`;
+        break;
+      case 'USER_UPDATED':
+        description = `Updated user information`;
+        break;
+      case 'USER_DELETED':
+        description = `Deleted user account`;
+        break;
+      case 'USER_ACTIVATED':
+        description = `Activated user account`;
+        break;
+      case 'USER_DEACTIVATED':
+        description = `Deactivated user account`;
+        break;
+      case 'ROLE_CHANGED':
+        const oldRole = changes.role?.from || changes.oldRole || 'unknown';
+        const newRole = changes.role?.to || changes.newRole || 'unknown';
+        description = `Changed user role from ${oldRole} to ${newRole}`;
+        break;
+      case 'PASSWORD_CHANGED':
+        description = `Changed account password`;
+        break;
+      default:
+        description = action;
+    }
+
     await AuditLog.create({
       action,
       performedBy,
       targetUser,
       changes,
+      description,
+      module: 'User Management',
+      details: changes,
       ipAddress: req.ip || req.connection.remoteAddress,
       userAgent: req.get('user-agent')
     });

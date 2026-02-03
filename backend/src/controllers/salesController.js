@@ -58,7 +58,7 @@ export const getSalesReport = async (req, res) => {
 
     // Calculate revenue analytics
     const totalRevenue = orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
-    const completedOrders = orders.filter(o => o.status === 'completed');
+    const completedOrders = orders.filter(o => o.status === 'delivered');
     const completedRevenue = completedOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
     const pendingOrders = orders.filter(o => o.status === 'pending' || o.status === 'in-progress');
     const pendingRevenue = pendingOrders.reduce((sum, order) => sum + (order.totalAmount || 0), 0);
@@ -132,18 +132,27 @@ export const getSalesReport = async (req, res) => {
       new Date(a.date) - new Date(b.date)
     );
 
-    // Monthly revenue (current year)
+    // Monthly revenue (all time for monthly performance table)
+    // Fetch all orders for monthly trend regardless of filter
+    const allOrders = await Order.find({})
+      .select('createdAt totalAmount status')
+      .lean();
+    
     const monthlyRevenue = {};
-    orders.forEach(order => {
-      const month = new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
-      if (!monthlyRevenue[month]) {
-        monthlyRevenue[month] = { month, revenue: 0, orders: 0 };
+    allOrders.forEach(order => {
+      const orderDate = new Date(order.createdAt);
+      const monthKey = `${orderDate.getFullYear()}-${String(orderDate.getMonth() + 1).padStart(2, '0')}`;
+      const monthLabel = orderDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+      if (!monthlyRevenue[monthKey]) {
+        monthlyRevenue[monthKey] = { month: monthLabel, monthKey, revenue: 0, orders: 0 };
       }
-      monthlyRevenue[month].revenue += order.totalAmount || 0;
-      monthlyRevenue[month].orders++;
+      monthlyRevenue[monthKey].revenue += order.totalAmount || 0;
+      monthlyRevenue[monthKey].orders++;
     });
 
-    const monthlyTrend = Object.values(monthlyRevenue);
+    const monthlyTrend = Object.values(monthlyRevenue)
+      .sort((a, b) => a.monthKey.localeCompare(b.monthKey))
+      .map(({ month, revenue, orders }) => ({ month, revenue, orders }));
 
     // Order statistics
     const orderStats = {

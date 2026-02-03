@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 import { orderAPI } from '../../services/api'
 import { 
@@ -25,7 +26,6 @@ const AdminOrders = () => {
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   
   const [filterType, setFilterType] = useState('all') // all, pending, completed
   const [allOrders, setAllOrders] = useState([])
@@ -72,11 +72,10 @@ const AdminOrders = () => {
   const fetchOrders = async () => {
     try {
       setLoading(true)
-      setError(null)
       const response = await orderAPI.getAllOrders({ limit: 1000 })
       setAllOrders(response.data || [])
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load orders')
+      toast.error(err.response?.data?.message || 'Failed to load orders')
     } finally {
       setLoading(false)
     }
@@ -86,7 +85,7 @@ const AdminOrders = () => {
     if (filterType === 'pending') {
       return allOrders.filter(o => o.status === 'pending')
     } else if (filterType === 'completed') {
-      return allOrders.filter(o => o.status === 'completed')
+      return allOrders.filter(o => o.status === 'delivered')
     } else if (filterType === 'cancelled') {
       return allOrders.filter(o => o.status === 'cancelled')
     }
@@ -114,10 +113,9 @@ const AdminOrders = () => {
       setCancelReason('')
       setSelectedOrder(null)
       
-      // Show success message
-      alert('Order cancelled successfully')
+      toast.success('Order cancelled successfully')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to cancel order')
+      toast.error(err.response?.data?.message || 'Failed to cancel order')
     } finally {
       setActionLoading(false)
     }
@@ -139,10 +137,9 @@ const AdminOrders = () => {
       setReviveStatus('pending')
       setSelectedOrder(null)
       
-      // Show success message
-      alert('Order revived successfully')
+      toast.success('Order revived successfully')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to revive order')
+      toast.error(err.response?.data?.message || 'Failed to revive order')
     } finally {
       setActionLoading(false)
     }
@@ -217,7 +214,7 @@ const AdminOrders = () => {
                 onClick={() => setFilterType('completed')}
                 className={`btn ${filterType === 'completed' ? 'btn-success' : 'btn-ghost'}`}
               >
-                Completed ({allOrders.filter(o => o.status === 'completed').length})
+                Completed ({allOrders.filter(o => o.status === 'delivered').length})
               </button>
               <button
                 onClick={() => setFilterType('cancelled')}
@@ -227,13 +224,6 @@ const AdminOrders = () => {
               </button>
             </div>
           </div>
-
-          {error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-12">
@@ -256,7 +246,7 @@ const AdminOrders = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           {getStatusIcon(order.status)}
-                          <h3 className="font-semibold text-lg">Order #{order._id.slice(-8)}</h3>
+                          <h3 className="font-semibold text-lg">Order {order.orderNumber}</h3>
                           <span className={`badge ${getStatusBadgeClass(order.status)}`}>
                             {order.status}
                           </span>
@@ -387,6 +377,21 @@ const AdminOrders = () => {
                                   <span className="font-semibold">₱{item.subtotal || item.price * item.quantity}</span>
                                 </div>
                               ))}
+                              <div className="divider my-1"></div>
+                              <div className="flex justify-between text-sm">
+                                <span>Services Subtotal:</span>
+                                <span>₱{(order.servicesSubtotal || order.totalAmount - (order.shippingFee || 0)).toFixed(2)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>Shipping Fee:</span>
+                                <span className={order.shippingFee === 0 ? "text-success font-medium" : ""}>
+                                  {order.shippingFee === 0 ? 'FREE' : `₱${(order.shippingFee || 0).toFixed(2)}`}
+                                </span>
+                              </div>
+                              <div className="flex justify-between font-bold text-base mt-1">
+                                <span>Total:</span>
+                                <span className="text-primary">₱{order.totalAmount.toFixed(2)}</span>
+                              </div>
                             </div>
                           ) : (
                             <p className="text-base-content/60 text-sm">No services</p>
@@ -424,7 +429,7 @@ const AdminOrders = () => {
           <div className="bg-base-100 rounded-lg shadow-2xl w-full max-w-5xl my-8">
             <div className="sticky top-0 bg-base-100 border-b border-base-300 p-6 flex items-center justify-between rounded-t-lg">
               <div>
-                <h3 className="font-bold text-2xl mb-1">Order Details - {selectedOrder.orderNumber || `#${selectedOrder._id.slice(-8)}`}</h3>
+                <h3 className="font-bold text-2xl mb-1">Order Details - {selectedOrder.orderNumber}</h3>
                 <div className="flex items-center gap-2">
                   {getStatusIcon(selectedOrder.status)}
                   <span className={`badge ${getStatusBadgeClass(selectedOrder.status)}`}>
@@ -544,8 +549,16 @@ const AdminOrders = () => {
                               </div>
                             </div>
                           ))}
-                          <div className="divider my-2"></div>
-                          <div className="flex justify-between font-bold text-lg">
+                          <div className="divider my-2"></div>                          <div className="flex justify-between text-sm mb-1">
+                            <span>Services Subtotal:</span>
+                            <span>₱{(selectedOrder.servicesSubtotal || selectedOrder.totalAmount - (selectedOrder.shippingFee || 0)).toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm mb-2">
+                            <span>Shipping Fee:</span>
+                            <span className={selectedOrder.shippingFee === 0 ? "text-success font-medium" : ""}>
+                              {selectedOrder.shippingFee === 0 ? 'FREE' : `₱${(selectedOrder.shippingFee || 0).toFixed(2)}`}
+                            </span>
+                          </div>                          <div className="flex justify-between font-bold text-lg">
                             <span>Total:</span>
                             <span className="text-primary">₱{selectedOrder.totalAmount}</span>
                           </div>

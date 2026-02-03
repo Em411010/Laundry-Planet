@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar';
 import { orderAPI, messageAPI, paymentAPI } from '../../services/api';
 import OrderChat from '../../components/OrderChat';
@@ -383,6 +384,16 @@ const TrackOrders = () => {
                     </div>
                   ))}
                   <div className="divider my-2"></div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Services Subtotal:</span>
+                    <span>₱{(selectedOrder.servicesSubtotal || selectedOrder.totalAmount - (selectedOrder.shippingFee || 0)).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Shipping Fee:</span>
+                    <span className={selectedOrder.shippingFee === 0 ? "text-success font-medium" : ""}>
+                      {selectedOrder.shippingFee === 0 ? 'FREE' : `₱${(selectedOrder.shippingFee || 0).toFixed(2)}`}
+                    </span>
+                  </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
                     <span className="text-primary">₱{selectedOrder.totalAmount.toFixed(2)}</span>

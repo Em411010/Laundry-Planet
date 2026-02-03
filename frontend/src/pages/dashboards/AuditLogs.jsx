@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 import { auditAPI } from '../../services/api'
 import { FileSearch, Filter, Calendar, User, Activity, AlertCircle } from 'lucide-react'
@@ -10,7 +11,6 @@ const AuditLogs = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   
   // Pagination & Filters
   const [page, setPage] = useState(1)
@@ -47,7 +47,6 @@ const AuditLogs = () => {
   const fetchLogs = async () => {
     try {
       setLoading(true)
-      setError(null)
       const response = await auditAPI.getAllAuditLogs({
         page,
         limit,
@@ -58,7 +57,7 @@ const AuditLogs = () => {
       setLogs(response.data)
       setTotal(response.pagination.total)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch audit logs')
+      toast.error(err.response?.data?.message || 'Failed to fetch audit logs')
       console.error('Error fetching audit logs:', err)
     } finally {
       setLoading(false)
@@ -299,12 +298,9 @@ const AuditLogs = () => {
                 </button>
               </div>
             </div>
-          </div>{error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}<div className="card bg-base-100 shadow-xl">
+          </div>
+
+          <div className="card bg-base-100 shadow-xl">
             <div className="card-body p-0">
               <div className="overflow-x-auto">
                 <table className="table table-zebra">

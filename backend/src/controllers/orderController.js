@@ -2,6 +2,7 @@ import Order from '../models/Order.js';
 import User from '../models/User.js';
 import Service from '../models/Service.js';
 import AuditLog from '../models/AuditLog.js';
+import { calculateShippingFee } from './settingsController.js';
 
 // Helper function to log audit
 const logAudit = async (action, performedBy, details, req) => {
@@ -63,7 +64,7 @@ export const createOrder = async (req, res) => {
 
     // Prepare service items (quantity will be updated by staff after weighing)
     const orderServices = [];
-    let totalAmount = 0;
+    let servicesSubtotal = 0;
 
     for (const item of services) {
       const service = await Service.findById(item.serviceId);
@@ -83,7 +84,7 @@ export const createOrder = async (req, res) => {
 
       // Initial quantity is 1, will be updated by staff
       const subtotal = service.price * 1;
-      totalAmount += subtotal;
+      servicesSubtotal += subtotal;
 
       orderServices.push({
         service: service._id,
@@ -92,6 +93,11 @@ export const createOrder = async (req, res) => {
         subtotal
       });
     }
+
+    // Calculate shipping fee (initial estimate, will be recalculated after weighing)
+    const initialWeight = orderServices.length; // Estimate 1kg per service initially
+    const shippingFee = await calculateShippingFee(initialWeight);
+    const totalAmount = servicesSubtotal + shippingFee;
 
     // Use custom address if provided, otherwise use profile address
     const pickupAddressData = customAddress || {
@@ -116,6 +122,8 @@ export const createOrder = async (req, res) => {
       deliverTime,
       specialInstructions,
       paymentMethod,
+      servicesSubtotal,
+      shippingFee,
       totalAmount, // Initial estimate, will be updated by staff
       status: 'pending',
       statusHistory: [{
@@ -1004,8 +1012,14 @@ export const modifyOrderServices = async (req, res) => {
     // Calculate total weight from all services
     order.actualWeight = updatedServices.reduce((sum, s) => sum + s.quantity, 0);
 
-    // Recalculate total amount
-    order.totalAmount = updatedServices.reduce((sum, s) => sum + s.subtotal, 0);
+    // Calculate services subtotal
+    order.servicesSubtotal = updatedServices.reduce((sum, s) => sum + s.subtotal, 0);
+
+    // Calculate shipping fee based on actual weight
+    order.shippingFee = await calculateShippingFee(order.actualWeight);
+
+    // Recalculate total amount (services + shipping)
+    order.totalAmount = order.servicesSubtotal + order.shippingFee;
 
     await order.save();
 
@@ -1300,7 +1314,8 @@ export const createWalkInOrder = async (req, res) => {
 
     // Process services with exact quantities and prices
     const orderServices = [];
-    let totalAmount = 0;
+    let servicesSubtotal = 0;
+    let totalWeight = 0;
 
     for (const item of services) {
       const service = await Service.findById(item.serviceId);
@@ -1320,7 +1335,8 @@ export const createWalkInOrder = async (req, res) => {
 
       const quantity = item.quantity || 1;
       const subtotal = service.price * quantity;
-      totalAmount += subtotal;
+      servicesSubtotal += subtotal;
+      totalWeight += quantity; // Assuming quantity is in kg
 
       orderServices.push({
         service: service._id,
@@ -1329,6 +1345,10 @@ export const createWalkInOrder = async (req, res) => {
         subtotal
       });
     }
+
+    // Calculate shipping fee based on total weight
+    const shippingFee = await calculateShippingFee(totalWeight);
+    const totalAmount = servicesSubtotal + shippingFee;
 
     // Create order
     const orderData = {
@@ -1341,7 +1361,10 @@ export const createWalkInOrder = async (req, res) => {
       specialInstructions,
       paymentMethod,
       paymentStatus: paymentStatus || 'pending',
+      servicesSubtotal,
+      shippingFee,
       totalAmount,
+      actualWeight: totalWeight,
       status: 'pending',
       isWalkIn: true,
       createdBy: req.userId, // Staff who created the order

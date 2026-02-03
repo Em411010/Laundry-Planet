@@ -187,6 +187,16 @@ const OrderHistory = () => {
                     </div>
                   ))}
                   <div className="divider my-2"></div>
+                  <div className="flex justify-between text-sm mb-1">
+                    <span>Services Subtotal:</span>
+                    <span>₱{(selectedOrder.servicesSubtotal || selectedOrder.totalAmount - (selectedOrder.shippingFee || 0)).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm mb-2">
+                    <span>Shipping Fee:</span>
+                    <span className={selectedOrder.shippingFee === 0 ? "text-success font-medium" : ""}>
+                      {selectedOrder.shippingFee === 0 ? 'FREE' : `₱${(selectedOrder.shippingFee || 0).toFixed(2)}`}
+                    </span>
+                  </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
                     <span className="text-primary">₱{selectedOrder.totalAmount.toFixed(2)}</span>

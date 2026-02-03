@@ -49,6 +49,18 @@ export const authAPI = {
     return response.data
   },
 
+  // Forgot Password
+  forgotPassword: async ({ email }) => {
+    const response = await api.post('/auth/forgot-password', { email })
+    return response.data
+  },
+
+  // Reset Password
+  resetPassword: async ({ email, otp, newPassword }) => {
+    const response = await api.post('/auth/reset-password', { email, otp, newPassword })
+    return response.data
+  },
+
   // Verify token
   verifyToken: async () => {
     const response = await api.get('/auth/verify')
@@ -423,6 +435,33 @@ export const paymentAPI = {
   // Retry a failed payment
   retryPayment: async (orderId) => {
     const response = await api.post(`/payments/retry/${orderId}`)
+    return response.data
+  }
+}
+
+// Settings API
+export const settingsAPI = {
+  // Get shipping settings (public)
+  getShippingSettings: async () => {
+    const response = await api.get('/settings/shipping')
+    return response.data
+  },
+
+  // Get all settings (admin)
+  getAllSettings: async () => {
+    const response = await api.get('/settings')
+    return response.data
+  },
+
+  // Get specific setting (admin)
+  getSetting: async (key) => {
+    const response = await api.get(`/settings/${key}`)
+    return response.data
+  },
+
+  // Update setting (admin)
+  updateSetting: async (key, value) => {
+    const response = await api.put(`/settings/${key}`, { value })
     return response.data
   }
 }

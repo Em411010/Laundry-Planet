@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { serviceAPI } from '../../services/api'
-import { Package, DollarSign, Edit, Power, PowerOff, AlertCircle, Save, X, Plus, Trash2 } from 'lucide-react'
+import { serviceAPI, settingsAPI } from '../../services/api'
+import { Package, DollarSign, Edit, Power, PowerOff, AlertCircle, Save, X, Plus, Trash2, Truck } from 'lucide-react'
 
 const ServicesPricing = () => {
   const navigate = useNavigate()
@@ -10,7 +11,6 @@ const ServicesPricing = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [services, setServices] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   const [editingService, setEditingService] = useState(null)
   const [newPrice, setNewPrice] = useState('')
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -23,6 +23,16 @@ const ServicesPricing = () => {
     minRequirement: '4kgs per load'
   })
   const [creatingService, setCreatingService] = useState(false)
+
+  // Shipping settings
+  const [shippingSettings, setShippingSettings] = useState({
+    shippingFee: 50,
+    freeShippingThreshold: 4
+  })
+  const [editingShipping, setEditingShipping] = useState(false)
+  const [tempShippingFee, setTempShippingFee] = useState('')
+  const [tempThreshold, setTempThreshold] = useState('')
+  const [updatingShipping, setUpdatingShipping] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -41,21 +51,58 @@ const ServicesPricing = () => {
   useEffect(() => {
     if (user) {
       fetchServices()
+      fetchShippingSettings()
     }
   }, [user])
 
   const fetchServices = async () => {
     try {
       setLoading(true)
-      setError(null)
       const response = await serviceAPI.getAllServices()
-      setServices(response.data)
+      setServices(response.data.filter(s => s.category !== 'FREE'))
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch services')
+      toast.error(err.response?.data?.message || 'Failed to fetch services')
       console.error('Error fetching services:', err)
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchShippingSettings = async () => {
+    try {
+      const response = await settingsAPI.getShippingSettings()
+      setShippingSettings(response.data)
+    } catch (err) {
+      console.error('Error fetching shipping settings:', err)
+    }
+  }
+
+  const handleEditShipping = () => {
+    setTempShippingFee(shippingSettings.shippingFee)
+    setTempThreshold(shippingSettings.freeShippingThreshold)
+    setEditingShipping(true)
+  }
+
+  const handleSaveShipping = async () => {
+    try {
+      setUpdatingShipping(true)
+      await settingsAPI.updateSetting('shippingFee', parseFloat(tempShippingFee))
+      await settingsAPI.updateSetting('freeShippingThreshold', parseFloat(tempThreshold))
+      await fetchShippingSettings()
+      setEditingShipping(false)
+      toast.success('Shipping settings updated successfully!')
+    } catch (err) {
+      console.error('Error updating shipping settings:', err)
+      toast.error('Failed to update shipping settings')
+    } finally {
+      setUpdatingShipping(false)
+    }
+  }
+
+  const handleCancelShippingEdit = () => {
+    setEditingShipping(false)
+    setTempShippingFee('')
+    setTempThreshold('')
   }
 
   const handleEditClick = (service) => {
@@ -72,7 +119,7 @@ const ServicesPricing = () => {
     try {
       const priceValue = parseFloat(newPrice)
       if (isNaN(priceValue) || priceValue < 0) {
-        alert('Please enter a valid price')
+        toast.error('Please enter a valid price')
         return
       }
 
@@ -80,9 +127,9 @@ const ServicesPricing = () => {
       setEditingService(null)
       setNewPrice('')
       fetchServices()
-      alert('Price updated successfully!')
+      toast.success('Price updated successfully!')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update price')
+      toast.error(err.response?.data?.message || 'Failed to update price')
     }
   }
 
@@ -91,7 +138,7 @@ const ServicesPricing = () => {
       await serviceAPI.toggleServiceStatus(serviceId)
       fetchServices()
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to toggle service status')
+      toast.error(err.response?.data?.message || 'Failed to toggle service status')
     }
   }
 
@@ -100,13 +147,13 @@ const ServicesPricing = () => {
     
     // Validation
     if (!createFormData.name.trim() || !createFormData.description.trim()) {
-      alert('Please fill in all fields')
+      toast.error('Please fill in all fields')
       return
     }
 
     const price = createFormData.unit === 'FREE' ? 0 : parseFloat(createFormData.price)
     if (createFormData.unit !== 'FREE' && (isNaN(price) || price < 0)) {
-      alert('Please enter a valid price')
+      toast.error('Please enter a valid price')
       return
     }
 
@@ -127,9 +174,9 @@ const ServicesPricing = () => {
         minRequirement: '4kgs per load'
       })
       fetchServices()
-      alert('Service created successfully!')
+      toast.success('Service created successfully!')
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to create service')
+      toast.error(err.response?.data?.message || 'Failed to create service')
     } finally {
       setCreatingService(false)
     }
@@ -140,9 +187,9 @@ const ServicesPricing = () => {
       try {
         await serviceAPI.deleteService(serviceId)
         fetchServices()
-        alert('Service deleted successfully!')
+        toast.success('Service deleted successfully!')
       } catch (err) {
-        alert(err.response?.data?.message || 'Failed to delete service')
+        toast.error(err.response?.data?.message || 'Failed to delete service')
       }
     }
   }
@@ -313,6 +360,97 @@ const ServicesPricing = () => {
             </div>
           )}<div className="card bg-base-100 shadow-xl mb-6">
             <div className="card-body">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="card-title text-lg flex items-center gap-2">
+                  <Truck className="h-5 w-5" />
+                  Shipping & Delivery Settings
+                </h3>
+                {!editingShipping && (
+                  <button onClick={handleEditShipping} className="btn btn-sm btn-outline gap-2">
+                    <Edit className="h-4 w-4" />
+                    Edit
+                  </button>
+                )}
+              </div>
+
+              {editingShipping ? (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold">Shipping Fee (PHP)</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="input input-bordered"
+                      value={tempShippingFee}
+                      onChange={(e) => setTempShippingFee(e.target.value)}
+                      min="0"
+                      step="1"
+                    />
+                    <label className="label">
+                      <span className="label-text-alt">Applied when weight is below threshold</span>
+                    </label>
+                  </div>
+                  <div className="form-control">
+                    <label className="label">
+                      <span className="label-text font-semibold">Free Shipping Threshold (kg)</span>
+                    </label>
+                    <input
+                      type="number"
+                      className="input input-bordered"
+                      value={tempThreshold}
+                      onChange={(e) => setTempThreshold(e.target.value)}
+                      min="0"
+                      step="0.1"
+                    />
+                    <label className="label">
+                      <span className="label-text-alt">Minimum weight for free shipping</span>
+                    </label>
+                  </div>
+                  <div className="col-span-full flex gap-2 justify-end">
+                    <button
+                      onClick={handleCancelShippingEdit}
+                      className="btn btn-ghost"
+                      disabled={updatingShipping}
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSaveShipping}
+                      className="btn btn-primary gap-2"
+                      disabled={updatingShipping}
+                    >
+                      {updatingShipping ? <span className="loading loading-spinner"></span> : <Save className="h-4 w-4" />}
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div className="flex flex-col gap-2 p-4 bg-base-200 rounded-lg">
+                    <div className="text-sm text-base-content/60">Shipping Fee</div>
+                    <div className="text-2xl font-bold text-primary">₱{shippingSettings.shippingFee}</div>
+                    <div className="text-xs text-base-content/60">Applied when weight {'<'} {shippingSettings.freeShippingThreshold}kg</div>
+                  </div>
+                  <div className="flex flex-col gap-2 p-4 bg-base-200 rounded-lg">
+                    <div className="text-sm text-base-content/60">Free Shipping Threshold</div>
+                    <div className="text-2xl font-bold text-success">{shippingSettings.freeShippingThreshold} kg</div>
+                    <div className="text-xs text-base-content/60">Orders ≥ this weight get free shipping</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="alert alert-info mt-4">
+                <AlertCircle className="h-5 w-5" />
+                <div className="text-sm">
+                  <strong>Note:</strong> These settings apply to all new orders. Walk-in orders and online orders will automatically calculate shipping based on total weight.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="card bg-base-100 shadow-xl mb-6">
+            <div className="card-body">
               <h3 className="card-title text-lg">General Service Information</h3>
               <div className="grid md:grid-cols-2 gap-4 mt-2">
                 <div className="flex items-center gap-2">
@@ -320,8 +458,8 @@ const ServicesPricing = () => {
                   <span className="text-sm">4kgs per load for most services</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="badge badge-outline">Delivery</div>
-                  <span className="text-sm">Free within 1km radius (min 6kgs)</span>
+                  <div className="badge badge-outline">Current Shipping</div>
+                  <span className="text-sm">₱{shippingSettings.shippingFee} fee, FREE for ≥{shippingSettings.freeShippingThreshold}kg</span>
                 </div>
               </div>
             </div>
@@ -337,12 +475,9 @@ const ServicesPricing = () => {
                 Add Service
               </button>
             </div>
-          )}{error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}<div className="card bg-base-100 shadow-xl">
+          )}
+
+          <div className="card bg-base-100 shadow-xl">
             <div className="card-body p-0">
               <div className="overflow-x-auto">
                 <table className="table table-zebra">

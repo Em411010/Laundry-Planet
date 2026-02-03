@@ -8,7 +8,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "build": "cd ../frontend && npm install && npm run build",
-    "deploy": "npm run build && npm start"
+    "deploy": "npm run build && npm start",
+    "seed:test": "node src/scripts/seedTestData.js"
   },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",

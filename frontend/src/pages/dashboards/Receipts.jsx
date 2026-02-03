@@ -275,8 +275,21 @@ const Receipts = () => {
 
               <div className="flex justify-end mt-4">
                 <div className="w-full md:w-1/3">
-                  <div className="flex justify-between py-1"><span className="text-sm">Subtotal</span><span>₱{selectedOrder.totalAmount.toFixed(2)}</span></div>
-                  <div className="flex justify-between font-bold text-lg py-2"><span>Total</span><span>₱{selectedOrder.totalAmount.toFixed(2)}</span></div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-sm">Services Subtotal</span>
+                    <span>₱{(selectedOrder.servicesSubtotal || selectedOrder.totalAmount - (selectedOrder.shippingFee || 0)).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-sm">Shipping Fee</span>
+                    <span className={selectedOrder.shippingFee === 0 ? "text-success" : ""}>
+                      {selectedOrder.shippingFee === 0 ? 'FREE' : `₱${(selectedOrder.shippingFee || 0).toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div className="divider my-1"></div>
+                  <div className="flex justify-between font-bold text-lg py-2">
+                    <span>Total</span>
+                    <span>₱{selectedOrder.totalAmount.toFixed(2)}</span>
+                  </div>
                 </div>
               </div>
 

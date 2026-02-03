@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar'
 import { orderAPI, serviceAPI } from '../../services/api'
 import OrderChat from '../../components/OrderChat'
@@ -27,8 +28,6 @@ const StaffOrders = () => {
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
   
   const [activeTab, setActiveTab] = useState('myTasks') // myTasks, waitingToAccept, all, pending, completed
   const [allOrders, setAllOrders] = useState([])
@@ -87,7 +86,7 @@ const StaffOrders = () => {
       setAllOrders(allOrdersRes.data)
       setMyTasks(myTasksRes.data)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load orders')
+      toast.error(err.response?.data?.message || 'Failed to load orders')
     } finally {
       setLoading(false)
     }
@@ -99,13 +98,11 @@ const StaffOrders = () => {
       setUpdatingOrder(true)
       const result = await orderAPI.acceptOrder(orderId)
       console.log('Accept order result:', result)
-      setSuccess('Order accepted successfully!')
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success('Order accepted successfully!')
       fetchOrders()
     } catch (err) {
       console.error('Accept order error:', err)
-      setError(err.response?.data?.message || 'Failed to accept order')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to accept order')
     } finally {
       setUpdatingOrder(false)
     }
@@ -115,15 +112,13 @@ const StaffOrders = () => {
     try {
       // Validate all services have weights
       if (!weightForm.services || weightForm.services.length === 0) {
-        setError('Please enter weights for all services')
-        setTimeout(() => setError(null), 3000)
+        toast.error('Please enter weights for all services')
         return
       }
 
       const allWeightsValid = weightForm.services.every(s => s.quantity > 0)
       if (!allWeightsValid) {
-        setError('Please enter a valid weight for all services')
-        setTimeout(() => setError(null), 3000)
+        toast.error('Please enter a valid weight for all services')
         return
       }
 
@@ -135,8 +130,7 @@ const StaffOrders = () => {
         weight: totalWeight,
         services: weightForm.services
       })
-      setSuccess('Weights updated successfully!')
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success('Weights updated successfully!')
       setWeightForm({ weight: '', services: [] })
       fetchOrders()
       if (selectedOrder) {
@@ -144,8 +138,7 @@ const StaffOrders = () => {
         setSelectedOrder(updated.data)
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update weight')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to update weight')
     } finally {
       setUpdatingOrder(false)
     }
@@ -154,15 +147,13 @@ const StaffOrders = () => {
   const handleAddImage = async (orderId) => {
     try {
       if (!imageUrl.trim()) {
-        setError('Please enter an image URL')
-        setTimeout(() => setError(null), 3000)
+        toast.error('Please enter an image URL')
         return
       }
 
       setUpdatingOrder(true)
       await orderAPI.addOrderImage(orderId, imageUrl, imageDescription)
-      setSuccess('Image added successfully!')
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success('Image added successfully!')
       setImageUrl('')
       setImageDescription('')
       fetchOrders()
@@ -171,8 +162,7 @@ const StaffOrders = () => {
         setSelectedOrder(updated.data)
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to add image')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to add image')
     } finally {
       setUpdatingOrder(false)
     }
@@ -182,16 +172,14 @@ const StaffOrders = () => {
     try {
       setUpdatingOrder(true)
       await orderAPI.updateOrderStatus(orderId, status)
-      setSuccess(`Status updated to ${status}!`)
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success(`Status updated to ${status}!`)
       fetchOrders()
       if (selectedOrder) {
         const updated = await orderAPI.getOrderById(orderId)
         setSelectedOrder(updated.data)
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to update status')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to update status')
     } finally {
       setUpdatingOrder(false)
     }
@@ -201,8 +189,7 @@ const StaffOrders = () => {
     const nextStatus = getNextStatus(selectedOrder.status)
     
     if (!nextStatus) {
-      setError('This order is already at the final stage')
-      setTimeout(() => setError(null), 3000)
+      toast.error('This order is already at the final stage')
       return
     }
 
@@ -210,8 +197,7 @@ const StaffOrders = () => {
     if (selectedOrder.status === 'accepted') {
       const allWeightsEntered = selectedOrder.services.every(s => s.quantity > 0)
       if (!allWeightsEntered) {
-        setError('Please weigh all services before marking as picked up')
-        setTimeout(() => setError(null), 3000)
+        toast.error('Please weigh all services before marking as picked up')
         return
       }
     }
@@ -219,14 +205,12 @@ const StaffOrders = () => {
     try {
       setUpdatingOrder(true)
       await orderAPI.updateOrderStatus(selectedOrder._id, nextStatus)
-      setSuccess(`Order advanced to ${getStatusDisplay(nextStatus)}!`)
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success(`Order advanced to ${getStatusDisplay(nextStatus)}!`)
       fetchOrders()
       setShowDetailModal(false)
       setSelectedOrder(null)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to advance order status')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to advance order status')
     } finally {
       setUpdatingOrder(false)
     }
@@ -236,16 +220,14 @@ const StaffOrders = () => {
     try {
       setUpdatingOrder(true)
       await orderAPI.markPaymentReceived(selectedOrder._id)
-      setSuccess('Payment confirmed successfully!')
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success('Payment confirmed successfully!')
       
       // Refresh order details
       const updated = await orderAPI.getOrderById(selectedOrder._id)
       setSelectedOrder(updated.data)
       fetchOrders()
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to confirm payment')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to confirm payment')
     } finally {
       setUpdatingOrder(false)
     }
@@ -255,16 +237,14 @@ const StaffOrders = () => {
     try {
       setModifyingServices(true)
       await orderAPI.modifyOrderServices(selectedOrder._id, services)
-      setSuccess('Services updated successfully!')
-      setTimeout(() => setSuccess(null), 3000)
+      toast.success('Services updated successfully!')
       
       // Refresh order details
       const updated = await orderAPI.getOrderById(selectedOrder._id)
       setSelectedOrder(updated.data)
       fetchOrders()
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to modify services')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to modify services')
     } finally {
       setModifyingServices(false)
     }
@@ -319,8 +299,7 @@ const StaffOrders = () => {
       }))
     
     if (services.length === 0) {
-      setError('Please select at least one service with quantity')
-      setTimeout(() => setError(null), 3000)
+      toast.error('Please select at least one service with quantity')
       return
     }
     
@@ -346,8 +325,7 @@ const StaffOrders = () => {
         }))
       })
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load order details')
-      setTimeout(() => setError(null), 3000)
+      toast.error(err.response?.data?.message || 'Failed to load order details')
     }
   }
 
@@ -460,19 +438,9 @@ const StaffOrders = () => {
         <div className="max-w-7xl mx-auto"><div className="flex items-center gap-3 mb-6 mt-10">
             <Package className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">Order Management</h1>
-          </div>{success && (
-            <div className="alert alert-success mb-6">
-              <CheckCircle className="h-5 w-5" />
-              <span>{success}</span>
-            </div>
-          )}
+          </div>
 
-          {error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}<div className="tabs tabs-boxed mb-6 bg-base-100 p-2">
+          <div className="tabs tabs-boxed mb-6 bg-base-100 p-2">
             <a 
               className={`tab ${activeTab === 'myTasks' ? 'tab-active' : ''}`}
               onClick={() => setActiveTab('myTasks')}
@@ -740,6 +708,16 @@ const StaffOrders = () => {
                     {selectedOrder.status !== 'pending' && selectedOrder.status !== 'accepted' && (
                       <>
                         <div className="divider my-2"></div>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>Services Subtotal:</span>
+                          <span>₱{(selectedOrder.servicesSubtotal || selectedOrder.totalAmount - (selectedOrder.shippingFee || 0)).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Shipping Fee:</span>
+                          <span className={selectedOrder.shippingFee === 0 ? "text-success font-medium" : ""}>
+                            {selectedOrder.shippingFee === 0 ? 'FREE' : `₱${(selectedOrder.shippingFee || 0).toFixed(2)}`}
+                          </span>
+                        </div>
                         <div className="flex justify-between font-bold text-lg">
                           <span>Total:</span>
                           <span className="text-primary">₱{selectedOrder.totalAmount.toFixed(2)}</span>

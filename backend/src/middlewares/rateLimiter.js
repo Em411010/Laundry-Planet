@@ -38,6 +38,12 @@ export const rateLimiters = {
   // Resend OTP (3 requests per 10 minutes)
   resendOTP: createRateLimiter(3, '10 m', 'ratelimit:resend'),
   
+  // Forgot password (3 requests per 15 minutes)
+  forgotPassword: createRateLimiter(3, '15 m', 'ratelimit:forgot'),
+  
+  // Reset password (5 attempts per 15 minutes)
+  resetPassword: createRateLimiter(5, '15 m', 'ratelimit:reset'),
+  
   // General API rate limit (100 requests per minute)
   api: createRateLimiter(100, '1 m', 'ratelimit:api'),
   

@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 import { serviceReportAPI } from '../../services/api'
 import { 
@@ -23,7 +24,6 @@ const ServiceReport = () => {
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
   
   const [serviceData, setServiceData] = useState(null)
   const [filterPeriod, setFilterPeriod] = useState('month')
@@ -51,7 +51,6 @@ const ServiceReport = () => {
   const fetchServiceReport = useCallback(async () => {
     try {
       setLoading(true)
-      setError(null)
       
       let params = {}
       if (filterPeriod === 'custom') {
@@ -61,7 +60,7 @@ const ServiceReport = () => {
             endDate: customDateRange.endDate
           }
         } else {
-          setError('Please select both start and end dates for custom range')
+          toast.error('Please select both start and end dates for custom range')
           setLoading(false)
           return
         }
@@ -72,7 +71,7 @@ const ServiceReport = () => {
       const response = await serviceReportAPI.getServiceReport(params)
       setServiceData(response.data)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load service report')
+      toast.error(err.response?.data?.message || 'Failed to load service report')
     } finally {
       setLoading(false)
     }
@@ -88,7 +87,7 @@ const ServiceReport = () => {
     if (customDateRange.startDate && customDateRange.endDate) {
       fetchServiceReport()
     } else {
-      setError('Please select both start and end dates')
+      toast.error('Please select both start and end dates')
     }
   }
 
@@ -233,13 +232,6 @@ const ServiceReport = () => {
               </div>
             </div>
           </div>
-
-          {error && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
-            </div>
-          )}
 
           {loading ? (
             <div className="flex items-center justify-center py-12">

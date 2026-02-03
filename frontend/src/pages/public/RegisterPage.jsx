@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import toast from 'react-hot-toast'
 import Logo from '../../assets/LP_Logo.png'
 import { authAPI } from '../../services/api'
 
@@ -16,29 +17,26 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
-    setError('')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError('')
 
     // Validate passwords match
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match')
+      toast.error('Passwords do not match')
       return
     }
 
     // Validate password length
     if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters')
+      toast.error('Password must be at least 8 characters')
       return
     }
 
@@ -62,7 +60,7 @@ const RegisterPage = () => {
         })
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.')
+      toast.error(err.response?.data?.message || 'Registration failed. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -71,15 +69,15 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
       <div className="card w-full max-w-md bg-base-100 shadow-xl">
-        <div className="card-body"><div className="text-center mb-6">
+        <div className="card-body">
+          <div className="text-center mb-6">
             <img src={Logo} alt="Laundry Planet" className="w-24 h-24 mx-auto mb-4" />
             <h2 className="text-3xl font-bold">Create Account</h2>
             <p className="text-base-content/60 mt-2">Join Laundry Planet today</p>
-          </div><form onSubmit={handleSubmit} className="space-y-4">{error && (
-              <div className="alert alert-error">
-                <span className="text-sm">{error}</span>
-              </div>
-            )}<div className="form-control">
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">First Name</span>
               </label>
@@ -95,7 +93,9 @@ const RegisterPage = () => {
                 />
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
               </div>
-            </div><div className="form-control">
+            </div>
+
+            <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Last Name</span>
               </label>
@@ -111,7 +111,9 @@ const RegisterPage = () => {
                 />
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
               </div>
-            </div><div className="form-control">
+            </div>
+
+            <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Email</span>
               </label>
@@ -127,7 +129,9 @@ const RegisterPage = () => {
                 />
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40" size={20} />
               </div>
-            </div><div className="form-control">
+            </div>
+
+            <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Password</span>
               </label>
@@ -151,7 +155,9 @@ const RegisterPage = () => {
                   {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-            </div><div className="form-control">
+            </div>
+
+            <div className="form-control">
               <label className="label">
                 <span className="label-text font-medium">Confirm Password</span>
               </label>
@@ -174,21 +180,29 @@ const RegisterPage = () => {
                   {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                 </button>
               </div>
-            </div><button
+            </div>
+
+            <button
               type="submit"
               className={`btn btn-primary w-full mt-6 ${loading ? 'loading' : ''}`}
               disabled={loading}
             >
               {loading ? 'Creating Account...' : 'Create Account'}
             </button>
-          </form><div className="divider">OR</div><div className="text-center">
+          </form>
+
+          <div className="divider">OR</div>
+
+          <div className="text-center">
             <p className="text-base-content/60">
               Already have an account?{' '}
               <Link to="/login" className="link link-primary font-medium">
                 Sign In
               </Link>
             </p>
-          </div><div className="text-center mt-4">
+          </div>
+
+          <div className="text-center mt-4">
             <Link to="/landing" className="text-sm link link-hover">
               ← Back to Home
             </Link>

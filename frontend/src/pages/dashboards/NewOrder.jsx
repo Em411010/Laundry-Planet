@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
 import { orderAPI, serviceAPI, profileAPI } from '../../services/api'
 import { ShoppingCart, Calendar, Clock, CreditCard, AlertCircle, CheckCircle, MapPin, Phone, Map, Edit } from 'lucide-react'
@@ -10,8 +11,6 @@ const NewOrder = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState(null)
-  const [success, setSuccess] = useState(null)
   
   const [services, setServices] = useState([])
   const [profile, setProfile] = useState(null)
@@ -89,10 +88,10 @@ const NewOrder = () => {
 
       // Check if profile is complete
       if (!profileRes.data.profileComplete) {
-        setError('Please complete your profile before placing an order')
+        toast.error('Please complete your profile before placing an order')
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load data')
+      toast.error(err.response?.data?.message || 'Failed to load data')
     } finally {
       setLoading(false)
     }
@@ -182,17 +181,14 @@ const NewOrder = () => {
             latitude: position.coords.latitude.toFixed(6),
             longitude: position.coords.longitude.toFixed(6)
           }))
-          setSuccess('Location captured successfully!')
-          setTimeout(() => setSuccess(null), 3000)
+          toast.success('Location captured successfully!')
         },
         () => {
-          setError('Unable to get your location. Please enter manually or use Google Maps.')
-          setTimeout(() => setError(null), 3000)
+          toast.error('Unable to get your location. Please enter manually or use Google Maps.')
         }
       )
     } else {
-      setError('Geolocation is not supported by your browser.')
-      setTimeout(() => setError(null), 3000)
+      toast.error('Geolocation is not supported by your browser.')
     }
   }
 
@@ -200,23 +196,22 @@ const NewOrder = () => {
     e.preventDefault()
 
     if (!profile?.profileComplete) {
-      setError('Please complete your profile first')
+      toast.error('Please complete your profile first')
       return
     }
 
     if (selectedServices.length === 0) {
-      setError('Please select at least one service')
+      toast.error('Please select at least one service')
       return
     }
 
     if (!pickupAddress.fullAddress) {
-      setError('Please provide a complete pickup address')
+      toast.error('Please provide a complete pickup address')
       return
     }
 
     try {
       setSubmitting(true)
-      setError(null)
 
       const orderData = {
         services: selectedServices.map(serviceId => ({
@@ -255,12 +250,12 @@ const NewOrder = () => {
         ? ' You will receive a payment link once your laundry is weighed and priced.'
         : ' Payment will be collected upon delivery.'
 
-      setSuccess(`Order ${response.data.orderNumber} placed successfully!${paymentNote}`)
+      toast.success(`Order ${response.data.orderNumber} placed successfully!${paymentNote}`)
       setTimeout(() => {
         navigate('/dashboard/client')
       }, 2000)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to place order')
+      toast.error(err.response?.data?.message || 'Failed to place order')
     } finally {
       setSubmitting(false)
     }
@@ -298,16 +293,6 @@ const NewOrder = () => {
               >
                 Complete Profile
               </button>
-            </div>
-          )}{success && (
-            <div className="alert alert-success mb-6">
-              <CheckCircle className="h-5 w-5" />
-              <span>{success}</span>
-            </div>
-          )}{error && !success && (
-            <div className="alert alert-error mb-6">
-              <AlertCircle className="h-5 w-5" />
-              <span>{error}</span>
             </div>
           )}
 

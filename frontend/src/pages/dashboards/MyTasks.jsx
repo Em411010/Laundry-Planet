@@ -502,11 +502,25 @@ const MyTasks = () => {
                           sum + parseFloat(serviceWeights[idx] || 0), 0
                         ).toFixed(2)} kg
                       </td>
-                      <td className="text-right">Total:</td>
+                      <td className="text-right">Services Subtotal:</td>
                       <td>
                         ₱{selectedOrder.services.reduce((sum, service, idx) => 
                           sum + (service.price * (parseFloat(serviceWeights[idx]) || service.quantity || 0)), 0
                         ).toFixed(2)}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td colSpan="3"></td>
+                      <td className="text-right">Shipping Fee:</td>
+                      <td className={selectedOrder.shippingFee === 0 ? "text-success font-medium" : ""}>
+                        {selectedOrder.shippingFee === 0 ? 'FREE' : `₱${(selectedOrder.shippingFee || 0).toFixed(2)}`}
+                      </td>
+                    </tr>
+                    <tr className="font-bold text-lg">
+                      <td colSpan="3"></td>
+                      <td className="text-right">Total:</td>
+                      <td className="text-primary">
+                        ₱{selectedOrder.totalAmount.toFixed(2)}
                       </td>
                     </tr>
                   </tbody>
