@@ -40,23 +40,28 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
-console.log('Allowed CORS origins:', allowedOrigins);
+// Remove duplicates
+const uniqueOrigins = [...new Set(allowedOrigins)];
+console.log('Allowed CORS origins:', uniqueOrigins);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (uniqueOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked:', origin);
+      callback(null, false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
 const io = new Server(httpServer, {
-  cors: {
-    origin: function (origin, callback) {
-      // Allow requests with no origin (mobile apps, curl, etc.)
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: ['GET', 'POST'],
-    credentials: true
-  }
+  cors: corsOptions
 });
 
 const PORT = process.env.PORT || 5001;
@@ -64,25 +69,11 @@ const PORT = process.env.PORT || 5001;
 // Make io accessible to routes
 app.set('io', io);
 
-// Middleware
-app.use(cors({
-  origin: function (origin, callback) {
-    console.log('CORS request from origin:', origin);
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.includes(origin)) {
-      console.log('✅ CORS allowed for:', origin);
-      callback(null, true);
-    } else {
-      console.log('❌ CORS blocked for:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Handle ALL preflight OPTIONS requests FIRST
+app.options('*', cors(corsOptions));
+
+// CORS Middleware
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
