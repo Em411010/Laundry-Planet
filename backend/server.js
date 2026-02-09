@@ -69,10 +69,7 @@ const PORT = process.env.PORT || 5001;
 // Make io accessible to routes
 app.set('io', io);
 
-// Handle ALL preflight OPTIONS requests FIRST
-app.options('*', cors(corsOptions));
-
-// CORS Middleware
+// CORS Middleware (handles preflight OPTIONS automatically)
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
