@@ -137,12 +137,8 @@ export const login = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
-    await logAudit(
-      'user_login',
-      user._id,
-      `User logged in - Role: ${user.role}`,
-      req
-    );
+    // Note: Login tracking is handled by authentication middleware, not audit logs
+    // Audit logs are specifically for user management actions (create/update/delete)
 
     res.json({
       success: true,

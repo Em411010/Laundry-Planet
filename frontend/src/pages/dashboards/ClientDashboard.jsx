@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
-import { orderAPI, serviceAPI, messageAPI, settingsAPI } from '../../services/api'
+import { orderAPI, serviceAPI, messageAPI, settingsAPI, paymentAPI } from '../../services/api'
+import toast from 'react-hot-toast'
 import { 
   Package, Clock, CheckCircle2, TruckIcon, 
   Calendar, DollarSign, FileText, Sparkles,
   ShoppingBag, ArrowRight, Truck, MapPin, Send,
-  MessageCircle, History, AlertCircle
+  MessageCircle, History, AlertCircle, CreditCard
 } from 'lucide-react'
 
 const ClientDashboard = () => {
@@ -27,6 +28,7 @@ const ClientDashboard = () => {
   const [activeTab, setActiveTab] = useState('active')
   const [chatLoading, setChatLoading] = useState(false)
   const [chatSending, setChatSending] = useState(false)
+  const [payingOrders, setPayingOrders] = useState(new Set())
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -186,6 +188,43 @@ const ClientDashboard = () => {
 
   const handleViewOrder = async (order) => {
     setSelectedOrder(order)
+  }
+
+  const canPayNow = (order) => {
+    // Client can pay after staff weighs the laundry (actualWeight is set)
+    return (
+      order.paymentMethod === 'gcash' &&
+      order.paymentStatus === 'unpaid' &&
+      order.actualWeight && order.actualWeight > 0 && // Payment available after weighing
+      !order.paymentDetails?.paymongoPaymentId
+    )
+  }
+
+  const handleGCashPayment = async (orderId) => {
+    if (payingOrders.has(orderId)) return
+
+    setPayingOrders(prev => new Set(prev).add(orderId))
+    const loadingToast = toast.loading('Initiating GCash payment...')
+
+    try {
+      const response = await paymentAPI.initiateGCashPayment(orderId)
+      
+      if (response.success && response.data?.checkoutUrl) {
+        toast.success('Redirecting to GCash payment...', { id: loadingToast })
+        // Redirect to PayMongo GCash checkout
+        window.location.href = response.data.checkoutUrl
+      } else {
+        throw new Error(response.message || 'Failed to create payment link')
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      toast.error(error.response?.data?.message || error.message || 'Failed to initiate GCash payment', { id: loadingToast })
+      setPayingOrders(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(orderId)
+        return newSet
+      })
+    }
   }
 
   if (!user) return null
@@ -382,14 +421,33 @@ const ClientDashboard = () => {
                                         Shipping: {o.shippingFee === 0 ? <span className="text-success">FREE</span> : `₱${o.shippingFee}`}
                                       </div>
                                     )}
+                                    {o.paymentMethod === 'gcash' && o.paymentStatus === 'unpaid' && (
+                                      <div className="badge badge-warning badge-sm mt-1">Payment Pending</div>
+                                    )}
                                   </div>
-                                  <button 
-                                    onClick={() => handleViewOrder(o)} 
-                                    className="btn btn-primary btn-sm gap-1"
-                                  >
-                                    View Details
-                                    <ArrowRight size={14} />
-                                  </button>
+                                  <div className="flex flex-col gap-1">
+                                    <button 
+                                      onClick={() => handleViewOrder(o)} 
+                                      className="btn btn-primary btn-sm gap-1"
+                                    >
+                                      View Details
+                                      <ArrowRight size={14} />
+                                    </button>
+                                    {canPayNow(o) && (
+                                      <button 
+                                        onClick={() => handleGCashPayment(o._id)}
+                                        disabled={payingOrders.has(o._id)}
+                                        className="btn btn-success btn-sm gap-1"
+                                      >
+                                        {payingOrders.has(o._id) ? (
+                                          <span className="loading loading-spinner loading-xs"></span>
+                                        ) : (
+                                          <CreditCard size={14} />
+                                        )}
+                                        Pay via GCash
+                                      </button>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>

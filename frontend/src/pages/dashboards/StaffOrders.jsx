@@ -511,7 +511,7 @@ const StaffOrders = () => {
                         <div className="grid md:grid-cols-2 gap-2 text-sm">
                           <p className="flex items-center gap-2">
                             <User className="h-4 w-4" />
-                            {order.customer.firstName} {order.customer.lastName}
+                            {order.customer?.firstName || 'Guest'} {order.customer?.lastName || 'Customer'}
                           </p>
                           <p className="flex items-center gap-2">
                             <Phone className="h-4 w-4" />
@@ -637,8 +637,8 @@ const StaffOrders = () => {
                     Customer Information
                   </h4>
                   <div className="space-y-2 text-sm">
-                    <p><span className="font-semibold">Name:</span> {selectedOrder.customer.firstName} {selectedOrder.customer.lastName}</p>
-                    <p><span className="font-semibold">Email:</span> {selectedOrder.customer.email}</p>
+                    <p><span className="font-semibold">Name:</span> {selectedOrder.customer?.firstName || 'Guest'} {selectedOrder.customer?.lastName || 'Customer'}</p>
+                    <p><span className="font-semibold">Email:</span> {selectedOrder.customer?.email || 'N/A'}</p>
                     <p><span className="font-semibold">Phone:</span> {selectedOrder.contactPhone}</p>
                   </div>
                 </div>
@@ -662,7 +662,7 @@ const StaffOrders = () => {
                   <h4 className="font-bold flex items-center gap-2">
                     <MapPin className="h-5 w-5" />
                     Pickup Address
-                  </h4>                  <p className="text-sm font-semibold mb-1">{selectedOrder.customer.firstName} {selectedOrder.customer.lastName}</p>                  <p className="text-sm mb-3">{selectedOrder.pickupAddress.fullAddress}</p>
+                  </h4>                  <p className="text-sm font-semibold mb-1">{selectedOrder.customer?.firstName || 'Guest'} {selectedOrder.customer?.lastName || 'Customer'}</p>                  <p className="text-sm mb-3">{selectedOrder.pickupAddress.fullAddress}</p>
                   {selectedOrder.pickupAddress.location?.coordinates[0] !== 0 && (
                     <div className="mt-2 space-y-2">
                       <iframe
