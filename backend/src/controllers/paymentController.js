@@ -1,20 +1,8 @@
 import Order from '../models/Order.js';
-import AuditLog from '../models/AuditLog.js';
 import paymongoService from '../services/paymongoService.js';
 
-// Helper function to log audit
-const logAudit = async (action, performedBy, details, req) => {
-  try {
-    await AuditLog.create({
-      action,
-      performedBy,
-      details,
-      ipAddress: req?.ip || req?.connection?.remoteAddress || 'webhook'
-    });
-  } catch (error) {
-    console.error('Audit log error:', error);
-  }
-};
+// Note: Payment events are tracked in order.paymentDetails and order history
+// AuditLog is specifically for user management actions only
 
 /**
  * Initiate GCash payment for an order
@@ -33,8 +21,14 @@ export const initiateGCashPayment = async (req, res) => {
     }
 
     // Check if order belongs to user (for clients) or user is staff/admin
-    const user = req.user;
-    if (user.role === 'client' && order.customer?._id?.toString() !== req.userId) {
+    if (!req.userId || !req.userRole) {
+      return res.status(401).json({
+        success: false,
+        message: 'Authentication required'
+      });
+    }
+
+    if (req.userRole === 'customer' && order.customer?._id?.toString() !== req.userId.toString()) {
       return res.status(403).json({
         success: false,
         message: 'Access denied'
@@ -88,12 +82,7 @@ export const initiateGCashPayment = async (req, res) => {
     };
     await order.save();
 
-    await logAudit(
-      'gcash_payment_initiated',
-      req.userId,
-      `GCash payment initiated for order ${order.orderNumber} - Amount: ₱${order.totalAmount}`,
-      req
-    );
+    console.log(`GCash payment initiated for order ${order.orderNumber} - Amount: ₱${order.totalAmount}`);
 
     res.json({
       success: true,
@@ -164,12 +153,7 @@ export const handlePaymentSuccess = async (req, res) => {
         order.paymentDetails.gcashReferenceNumber = payment.attributes.external_reference_number || payment.id;
         await order.save();
 
-        await logAudit(
-          'gcash_payment_completed',
-          order.customer?._id || order.createdBy,
-          `GCash payment completed for order ${order.orderNumber} - Amount: ₱${order.totalAmount}`,
-          req
-        );
+        console.log(`GCash payment completed for order ${order.orderNumber} - Amount: ₱${order.totalAmount}`);
 
         return res.json({
           success: true,
@@ -235,12 +219,7 @@ export const handlePaymentFailed = async (req, res) => {
     order.paymentDetails.failureReason = 'Payment was cancelled or failed';
     await order.save();
 
-    await logAudit(
-      'gcash_payment_failed',
-      order.customer?._id || order.createdBy,
-      `GCash payment failed/cancelled for order ${order.orderNumber}`,
-      req
-    );
+    console.log(`GCash payment failed/cancelled for order ${order.orderNumber}`);
 
     res.json({
       success: true,
@@ -343,14 +322,7 @@ export const handlePayMongoWebhook = async (req, res) => {
                 payment.attributes.external_reference_number || payment.id;
               await order.save();
 
-              await logAudit(
-                'gcash_payment_webhook_completed',
-                order.customer || order.createdBy,
-                `GCash payment confirmed via webhook for order ${order.orderNumber}`,
-                { ip: 'webhook' }
-              );
-
-              console.log(`Payment completed for order ${order.orderNumber}`);
+              console.log(`GCash payment confirmed via webhook for order ${order.orderNumber}`);
             } catch (paymentError) {
               console.error('Failed to create payment from webhook:', paymentError);
             }
@@ -392,14 +364,7 @@ export const handlePayMongoWebhook = async (req, res) => {
             eventData.attributes?.last_payment_error?.message || 'Payment failed';
           await order.save();
 
-          await logAudit(
-            'gcash_payment_webhook_failed',
-            order.customer || order.createdBy,
-            `GCash payment failed via webhook for order ${order.orderNumber}`,
-            { ip: 'webhook' }
-          );
-
-          console.log(`Payment failed for order ${order.orderNumber}`);
+          console.log(`GCash payment failed via webhook for order ${order.orderNumber}`);
         }
         break;
       }
@@ -476,12 +441,7 @@ export const retryPayment = async (req, res) => {
     order.paymentDetails.checkoutUrl = source.attributes.redirect.checkout_url;
     await order.save();
 
-    await logAudit(
-      'gcash_payment_retry',
-      req.userId,
-      `GCash payment retry initiated for order ${order.orderNumber}`,
-      req
-    );
+    console.log(`Payment retry initiated for order ${order.orderNumber}`);
 
     res.json({
       success: true,
