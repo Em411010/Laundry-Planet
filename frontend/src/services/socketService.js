@@ -23,7 +23,11 @@ class SocketService {
       reconnection: true,
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 5,
+      transports: ['polling', 'websocket'], // Try polling first, then upgrade
+      upgrade: true,
+      rememberUpgrade: true,
+      timeout: 20000
     });
 
     this.socket.on('connect', () => {
