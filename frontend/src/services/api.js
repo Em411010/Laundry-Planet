@@ -222,7 +222,7 @@ export const orderAPI = {
 
   // Get my orders (Client)
   getMyOrders: async () => {
-    const response = await api.get('/orders')
+    const response = await api.get('/orders', { params: { limit: 1000 } })
     return response.data
   },
 

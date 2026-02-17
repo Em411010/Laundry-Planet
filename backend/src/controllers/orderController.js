@@ -192,6 +192,14 @@ export const createOrder = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
     const { status, page = 1, limit = 10, search } = req.query;
 
     let query = {};
