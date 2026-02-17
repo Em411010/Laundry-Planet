@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import jsPDF from 'jspdf'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 import { userAPI, auditAPI, orderAPI } from '../../services/api'
-import { Users, UserPlus, Search, Filter, Trash2, Power, PowerOff, Eye, Edit, AlertCircle, FileText, ShoppingBag, History, X, Calendar, MapPin, Phone, Mail as MailIcon, User as UserIcon } from 'lucide-react'
+import { Users, UserPlus, Search, Filter, Trash2, Power, PowerOff, Eye, Edit, AlertCircle, FileText, ShoppingBag, History, X, Calendar, MapPin, Phone, Mail as MailIcon, User as UserIcon, Download, CreditCard, XCircle } from 'lucide-react'
 
 const UserManagement = () => {
   const navigate = useNavigate()
@@ -186,6 +187,58 @@ const UserManagement = () => {
       toast.error('Failed to load user details')
     } finally {
       setLoadingDetails(false)
+    }
+  }
+
+  const handleDownloadReceipt = (order) => {
+    try {
+      const doc = new jsPDF({ unit: 'pt' })
+      doc.setFontSize(16)
+      doc.text('Laundry Planet', 40, 50)
+      doc.setFontSize(10)
+      doc.text(`Receipt - ${order.orderNumber}`, 40, 70)
+      doc.setLineWidth(0.5)
+      doc.line(40, 78, 560, 78)
+
+      doc.setFontSize(11)
+      let y = 100
+      doc.text(`Customer: ${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`, 40, y)
+      y += 16
+      doc.text(`Email: ${order.customer?.email || ''}`, 40, y)
+      y += 20
+      doc.text(`Delivery: ${order.deliverDate ? new Date(order.deliverDate).toLocaleDateString() : 'N/A'} ${order.deliverTime || ''}`, 40, y)
+      y += 20
+      doc.text(`Payment: ${order.paymentMethod.toUpperCase()}`, 40, y)
+      
+      if (order.paymentMethod === 'gcash' && order.paymentDetails?.gcashReferenceNumber) {
+        y += 16
+        doc.text(`GCash Ref: ${order.paymentDetails.gcashReferenceNumber}`, 40, y)
+      }
+      
+      if (order.paymentReceiver) {
+        y += 16
+        doc.text(`Received By: ${order.paymentReceiver.firstName} ${order.paymentReceiver.lastName}`, 40, y)
+      }
+
+      y += 24
+      doc.text('Services', 40, y)
+      y += 12
+      doc.setFontSize(10)
+      ;(order.services || []).forEach((s) => {
+        doc.text(`${s.service?.name || 'Service'} - ${s.quantity} ${s.service?.unit || ''}`, 40, y)
+        doc.text(`₱${s.subtotal.toFixed(2)}`, 480, y, { align: 'right' })
+        y += 14
+      })
+
+      y += 8
+      doc.setFontSize(12)
+      doc.text(`Total: ₱${order.totalAmount.toFixed(2)}`, 480, y, { align: 'right' })
+
+      doc.save(`Receipt_${order.orderNumber}.pdf`)
+      toast.success('Receipt downloaded successfully')
+    } catch (err) {
+      console.error('Receipt generation failed:', err)
+      toast.error('Failed to generate receipt')
     }
   }
 
@@ -786,6 +839,54 @@ const UserManagement = () => {
                                 </div>
                               </div>
 
+                              {/* GCash Payment Details */}
+                              {order.paymentMethod === 'gcash' && order.paymentDetails && (
+                                <div className="mb-4 p-4 bg-success/10 border border-success/20 rounded-lg">
+                                  <h5 className="font-semibold mb-3 flex items-center gap-2">
+                                    <CreditCard size={16} className="text-success" />
+                                    GCash Payment Details
+                                  </h5>
+                                  <div className="grid md:grid-cols-2 gap-3 text-sm">
+                                    {order.paymentDetails.gcashReferenceNumber && (
+                                      <div>
+                                        <div className="text-xs text-base-content/60">Reference Number</div>
+                                        <div className="font-mono font-semibold">{order.paymentDetails.gcashReferenceNumber}</div>
+                                      </div>
+                                    )}
+                                    {order.paymentDetails.paymongoSourceId && (
+                                      <div>
+                                        <div className="text-xs text-base-content/60">PayMongo Source ID</div>
+                                        <div className="font-mono text-xs">{order.paymentDetails.paymongoSourceId}</div>
+                                      </div>
+                                    )}
+                                    {order.paymentDetails.paymongoPaymentId && (
+                                      <div>
+                                        <div className="text-xs text-base-content/60">PayMongo Payment ID</div>
+                                        <div className="font-mono text-xs">{order.paymentDetails.paymongoPaymentId}</div>
+                                      </div>
+                                    )}
+                                    {order.paymentDetails.paidAt && (
+                                      <div>
+                                        <div className="text-xs text-base-content/60">Paid At</div>
+                                        <div className="font-semibold">{new Date(order.paymentDetails.paidAt).toLocaleString()}</div>
+                                      </div>
+                                    )}
+                                    {order.paymentDetails.failedAt && (
+                                      <div>
+                                        <div className="text-xs text-base-content/60">Failed At</div>
+                                        <div className="font-semibold text-error">{new Date(order.paymentDetails.failedAt).toLocaleString()}</div>
+                                      </div>
+                                    )}
+                                    {order.paymentDetails.failureReason && (
+                                      <div className="md:col-span-2">
+                                        <div className="text-xs text-base-content/60">Failure Reason</div>
+                                        <div className="font-semibold text-error">{order.paymentDetails.failureReason}</div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
                               {/* Receipt Summary */}
                               <div className="border-t border-base-300 pt-4">
                                 <div className="flex justify-between mb-2">
@@ -808,6 +909,29 @@ const UserManagement = () => {
                                 </div>
                               </div>
 
+                              {/* Cancellation Reason */}
+                              {order.status === 'cancelled' && order.notes && order.notes.length > 0 && (() => {
+                                const cancellationNote = order.notes.find(n => n.note?.startsWith('Cancellation reason:'))
+                                if (cancellationNote) {
+                                  const reason = cancellationNote.note.replace('Cancellation reason: ', '')
+                                  return (
+                                    <div className="mt-4 p-3 bg-error/10 border border-error/30 rounded">
+                                      <div className="text-xs text-base-content/60 mb-1 flex items-center gap-1">
+                                        <XCircle size={12} className="text-error" />
+                                        Cancellation Reason:
+                                      </div>
+                                      <div className="text-sm">{reason || 'No reason provided'}</div>
+                                      {cancellationNote.timestamp && (
+                                        <div className="text-xs text-base-content/60 mt-1">
+                                          {new Date(cancellationNote.timestamp).toLocaleString()}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                                }
+                                return null
+                              })()}
+
                               {/* Special Instructions */}
                               {order.specialInstructions && (
                                 <div className="mt-4 p-3 bg-base-300 rounded">
@@ -815,6 +939,17 @@ const UserManagement = () => {
                                   <div className="text-sm">{order.specialInstructions}</div>
                                 </div>
                               )}
+
+                              {/* Actions */}
+                              <div className="mt-4 flex gap-2">
+                                <button
+                                  onClick={() => handleDownloadReceipt(order)}
+                                  className="btn btn-sm btn-primary gap-2"
+                                >
+                                  <Download size={16} />
+                                  Download Receipt
+                                </button>
+                              </div>
                             </div>
                           </div>
                         ))

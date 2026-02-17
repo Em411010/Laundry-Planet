@@ -7,7 +7,7 @@ import {
   Package, Clock, CheckCircle2, TruckIcon, 
   Calendar, DollarSign, FileText, Sparkles,
   ShoppingBag, ArrowRight, Truck, MapPin, Send,
-  MessageCircle, History, AlertCircle, CreditCard
+  MessageCircle, History, AlertCircle, CreditCard, XCircle
 } from 'lucide-react'
 
 const ClientDashboard = () => {
@@ -29,6 +29,7 @@ const ClientDashboard = () => {
   const [chatLoading, setChatLoading] = useState(false)
   const [chatSending, setChatSending] = useState(false)
   const [payingOrders, setPayingOrders] = useState(new Set())
+  const [cancellingOrders, setCancellingOrders] = useState(new Set())
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -81,7 +82,7 @@ const ClientDashboard = () => {
     try {
       setLoadingCompleted(true)
       const res = await orderAPI.getMyOrders()
-      const completed = (res.data || []).filter(o => ['delivered', 'completed'].includes(o.status))
+      const completed = (res.data || []).filter(o => ['delivered', 'completed', 'cancelled'].includes(o.status))
       setCompletedOrders(completed.reverse())
     } catch {
       setCompletedOrders([])
@@ -220,6 +221,39 @@ const ClientDashboard = () => {
       console.error('Payment error:', error)
       toast.error(error.response?.data?.message || error.message || 'Failed to initiate GCash payment', { id: loadingToast })
       setPayingOrders(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(orderId)
+        return newSet
+      })
+    }
+  }
+
+  const canCancelOrder = (order) => {
+    return order.status === 'pending'
+  }
+
+  const handleCancelOrder = async (orderId) => {
+    if (cancellingOrders.has(orderId)) return
+
+    const confirmed = window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')
+    if (!confirmed) return
+
+    const reason = prompt('Please provide a reason for cancellation (optional):')
+
+    setCancellingOrders(prev => new Set(prev).add(orderId))
+    const loadingToast = toast.loading('Cancelling order...')
+
+    try {
+      await orderAPI.cancelOrder(orderId, reason || '')
+      toast.success('Order cancelled successfully', { id: loadingToast })
+      // Reload orders
+      await loadActiveOrders()
+      await loadCompletedOrders()
+    } catch (error) {
+      console.error('Cancel order error:', error)
+      toast.error(error.response?.data?.message || 'Failed to cancel order', { id: loadingToast })
+    } finally {
+      setCancellingOrders(prev => {
         const newSet = new Set(prev)
         newSet.delete(orderId)
         return newSet
@@ -447,6 +481,20 @@ const ClientDashboard = () => {
                                         Pay via GCash
                                       </button>
                                     )}
+                                    {canCancelOrder(o) && (
+                                      <button 
+                                        onClick={() => handleCancelOrder(o._id)}
+                                        disabled={cancellingOrders.has(o._id)}
+                                        className="btn btn-error btn-sm gap-1"
+                                      >
+                                        {cancellingOrders.has(o._id) ? (
+                                          <span className="loading loading-spinner loading-xs"></span>
+                                        ) : (
+                                          <XCircle size={14} />
+                                        )}
+                                        Cancel Order
+                                      </button>
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -491,15 +539,22 @@ const ClientDashboard = () => {
                       ) : (
                         <div className="space-y-3">
                           {completedOrders.map((o) => (
-                            <div key={o._id} className="card bg-gradient-to-br from-base-100 to-base-200 hover:shadow-lg transition-all duration-200 border border-success/30">
+                            <div key={o._id} className={`card bg-gradient-to-br from-base-100 to-base-200 hover:shadow-lg transition-all duration-200 border ${o.status === 'cancelled' ? 'border-error/30' : 'border-success/30'}`}>
                               <div className="card-body p-4">
                                 <div className="flex items-start justify-between gap-4">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
-                                      <span className="badge badge-success gap-1">
-                                        <CheckCircle2 size={14} />
-                                        Completed
-                                      </span>
+                                      {o.status === 'cancelled' ? (
+                                        <span className="badge badge-error gap-1">
+                                          <XCircle size={14} />
+                                          Cancelled
+                                        </span>
+                                      ) : (
+                                        <span className="badge badge-success gap-1">
+                                          <CheckCircle2 size={14} />
+                                          Completed
+                                        </span>
+                                      )}
                                       <span className="text-xs text-base-content/60 font-mono">{o.orderNumber}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-sm text-base-content/70 mb-3">
@@ -521,6 +576,19 @@ const ClientDashboard = () => {
                                         <div className="text-xs text-base-content/50 pl-3">+{o.services.length - 2} more</div>
                                       )}
                                     </div>
+                                    {o.status === 'cancelled' && o.notes && o.notes.length > 0 && (() => {
+                                      const cancellationNote = o.notes.find(n => n.note?.startsWith('Cancellation reason:'))
+                                      if (cancellationNote) {
+                                        const reason = cancellationNote.note.replace('Cancellation reason: ', '')
+                                        return (
+                                          <div className="mt-3 p-2 bg-error/10 border border-error/20 rounded">
+                                            <div className="text-xs text-error font-semibold mb-1">Cancellation Reason:</div>
+                                            <div className="text-xs text-base-content/80">{reason || 'No reason provided'}</div>
+                                          </div>
+                                        )
+                                      }
+                                      return null
+                                    })()}
                                   </div>
                                   <div className="flex flex-col items-end gap-2">
                                     <button 

@@ -858,7 +858,33 @@ const StaffOrders = () => {
                     </div>
                   </div>
                 </div>
-              )}{(() => {
+              )}
+
+              {selectedOrder.status === 'cancelled' && selectedOrder.notes && selectedOrder.notes.length > 0 && (() => {
+                const cancellationNote = selectedOrder.notes.find(n => n.note?.startsWith('Cancellation reason:'))
+                if (cancellationNote) {
+                  const reason = cancellationNote.note.replace('Cancellation reason: ', '')
+                  return (
+                    <div className="card bg-error/10 border border-error/30 lg:col-span-2">
+                      <div className="card-body">
+                        <h4 className="font-bold flex items-center gap-2 text-error">
+                          <XCircle className="h-5 w-5" />
+                          Cancellation Reason
+                        </h4>
+                        <p className="text-sm mt-2">{reason || 'No reason provided'}</p>
+                        {cancellationNote.timestamp && (
+                          <p className="text-xs text-base-content/60 mt-1">
+                            Cancelled on {new Date(cancellationNote.timestamp).toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )
+                }
+                return null
+              })()}
+
+              {(() => {
                 const userId = user?._id || user?.id;
                 const isAssigned = selectedOrder?.assignedStaff?.pickup?._id === userId ||
                                    selectedOrder?.assignedStaff?.processing?._id === userId ||
