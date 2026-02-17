@@ -61,7 +61,14 @@ const corsOptions = {
 };
 
 const io = new Server(httpServer, {
-  cors: corsOptions
+  cors: corsOptions,
+  transports: ['polling', 'websocket'], // Try polling first, then upgrade to websocket
+  allowEIO3: true, // Allow Engine.IO v3 compatibility
+  pingTimeout: 60000, // Increase timeout for production
+  pingInterval: 25000,
+  upgradeTimeout: 30000,
+  maxHttpBufferSize: 1e6,
+  allowUpgrades: true
 });
 
 const PORT = process.env.PORT || 5001;
