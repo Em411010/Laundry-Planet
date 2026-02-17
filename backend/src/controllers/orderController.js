@@ -518,7 +518,7 @@ export const cancelOrder = async (req, res) => {
 
     // Clients can only cancel their own pending orders
     if (user.role === 'client') {
-      if (order.customer.toString() !== req.userId) {
+      if (order.customer.toString() !== req.userId.toString()) {
         return res.status(403).json({
           success: false,
           message: 'Access denied'
@@ -542,12 +542,7 @@ export const cancelOrder = async (req, res) => {
     }
     await order.save();
 
-    await logAudit(
-      'order_cancelled',
-      req.userId,
-      `Order cancelled - Reason: ${reason || 'No reason provided'}`,
-      req
-    );
+    console.log(`Order ${order.orderNumber} cancelled by user ${req.userId}. Reason: ${reason || 'No reason provided'}`);
 
     res.json({
       success: true,

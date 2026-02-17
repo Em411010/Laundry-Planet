@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import jsPDF from 'jspdf'
 import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
 import { orderAPI } from '../../services/api'
 import { 
@@ -17,7 +18,9 @@ import {
   AlertCircle,
   Eye,
   ChevronDown,
-  Camera
+  Camera,
+  Download,
+  CreditCard
 } from 'lucide-react'
 
 const AdminOrders = () => {
@@ -78,6 +81,58 @@ const AdminOrders = () => {
       toast.error(err.response?.data?.message || 'Failed to load orders')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDownloadReceipt = (order) => {
+    try {
+      const doc = new jsPDF({ unit: 'pt' })
+      doc.setFontSize(16)
+      doc.text('Laundry Planet', 40, 50)
+      doc.setFontSize(10)
+      doc.text(`Receipt - ${order.orderNumber}`, 40, 70)
+      doc.setLineWidth(0.5)
+      doc.line(40, 78, 560, 78)
+
+      doc.setFontSize(11)
+      let y = 100
+      doc.text(`Customer: ${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`, 40, y)
+      y += 16
+      doc.text(`Email: ${order.customer?.email || ''}`, 40, y)
+      y += 20
+      doc.text(`Delivery: ${order.deliverDate ? new Date(order.deliverDate).toLocaleDateString() : 'N/A'} ${order.deliverTime || ''}`, 40, y)
+      y += 20
+      doc.text(`Payment: ${order.paymentMethod.toUpperCase()}`, 40, y)
+      
+      if (order.paymentMethod === 'gcash' && order.paymentDetails?.gcashReferenceNumber) {
+        y += 16
+        doc.text(`GCash Ref: ${order.paymentDetails.gcashReferenceNumber}`, 40, y)
+      }
+      
+      if (order.paymentReceiver) {
+        y += 16
+        doc.text(`Received By: ${order.paymentReceiver.firstName} ${order.paymentReceiver.lastName}`, 40, y)
+      }
+
+      y += 24
+      doc.text('Services', 40, y)
+      y += 12
+      doc.setFontSize(10)
+      ;(order.services || []).forEach((s) => {
+        doc.text(`${s.service?.name || 'Service'} - ${s.quantity} ${s.service?.unit || ''}`, 40, y)
+        doc.text(`₱${s.subtotal.toFixed(2)}`, 480, y, { align: 'right' })
+        y += 14
+      })
+
+      y += 8
+      doc.setFontSize(12)
+      doc.text(`Total: ₱${order.totalAmount.toFixed(2)}`, 480, y, { align: 'right' })
+
+      doc.save(`Receipt_${order.orderNumber}.pdf`)
+      toast.success('Receipt downloaded successfully')
+    } catch (err) {
+      console.error('Receipt generation failed:', err)
+      toast.error('Failed to generate receipt')
     }
   }
 
@@ -488,6 +543,56 @@ const AdminOrders = () => {
                   </div>
                 </div>
 
+                {/* GCash Payment Details */}
+                {selectedOrder.paymentMethod === 'gcash' && selectedOrder.paymentDetails && (
+                  <div className="card bg-success/10 border border-success/20 lg:col-span-2">
+                    <div className="card-body">
+                      <h4 className="font-bold flex items-center gap-2">
+                        <CreditCard size={20} className="text-success" />
+                        GCash Payment Details
+                      </h4>
+                      <div className="grid md:grid-cols-2 gap-3 text-sm">
+                        {selectedOrder.paymentDetails.gcashReferenceNumber && (
+                          <div>
+                            <div className="text-xs text-base-content/60">Reference Number</div>
+                            <div className="font-mono font-semibold">{selectedOrder.paymentDetails.gcashReferenceNumber}</div>
+                          </div>
+                        )}
+                        {selectedOrder.paymentDetails.paymongoSourceId && (
+                          <div>
+                            <div className="text-xs text-base-content/60">PayMongo Source ID</div>
+                            <div className="font-mono text-xs">{selectedOrder.paymentDetails.paymongoSourceId}</div>
+                          </div>
+                        )}
+                        {selectedOrder.paymentDetails.paymongoPaymentId && (
+                          <div>
+                            <div className="text-xs text-base-content/60">PayMongo Payment ID</div>
+                            <div className="font-mono text-xs">{selectedOrder.paymentDetails.paymongoPaymentId}</div>
+                          </div>
+                        )}
+                        {selectedOrder.paymentDetails.paidAt && (
+                          <div>
+                            <div className="text-xs text-base-content/60">Paid At</div>
+                            <div className="font-semibold">{new Date(selectedOrder.paymentDetails.paidAt).toLocaleString()}</div>
+                          </div>
+                        )}
+                        {selectedOrder.paymentDetails.failedAt && (
+                          <div>
+                            <div className="text-xs text-base-content/60">Failed At</div>
+                            <div className="font-semibold text-error">{new Date(selectedOrder.paymentDetails.failedAt).toLocaleString()}</div>
+                          </div>
+                        )}
+                        {selectedOrder.paymentDetails.failureReason && (
+                          <div className="md:col-span-2">
+                            <div className="text-xs text-base-content/60">Failure Reason</div>
+                            <div className="font-semibold text-error">{selectedOrder.paymentDetails.failureReason}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 <div className="card bg-base-200 lg:col-span-2">
                   <div className="card-body">
                     <h4 className="font-bold flex items-center gap-2">
@@ -604,6 +709,30 @@ const AdminOrders = () => {
                   </div>
                 )}
 
+                {selectedOrder.status === 'cancelled' && selectedOrder.notes && selectedOrder.notes.length > 0 && (() => {
+                  const cancellationNote = selectedOrder.notes.find(n => n.note?.startsWith('Cancellation reason:'))
+                  if (cancellationNote) {
+                    const reason = cancellationNote.note.replace('Cancellation reason: ', '')
+                    return (
+                      <div className="card bg-error/10 border border-error/30 lg:col-span-2">
+                        <div className="card-body">
+                          <h4 className="font-bold flex items-center gap-2 text-error">
+                            <XCircle size={20} />
+                            Cancellation Reason
+                          </h4>
+                          <p className="text-sm mt-2">{reason || 'No reason provided'}</p>
+                          {cancellationNote.timestamp && (
+                            <p className="text-xs text-base-content/60 mt-1">
+                              Cancelled on {new Date(cancellationNote.timestamp).toLocaleString()}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  }
+                  return null
+                })()}
+
                 {selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
                   <div className="card bg-base-200 lg:col-span-2">
                     <div className="card-body">
@@ -672,8 +801,13 @@ const AdminOrders = () => {
             </div>
 
             <div className="border-t border-base-300 p-6 flex gap-2 bg-base-100 rounded-b-lg">
-              <button
-                onClick={() => navigate(`/dashboard/admin/support?orderId=${selectedOrder._id}`)}
+              <button                onClick={() => handleDownloadReceipt(selectedOrder)}
+                className="btn btn-primary gap-2"
+              >
+                <Download size={18} />
+                Download Receipt
+              </button>
+              <button                onClick={() => navigate(`/dashboard/admin/support?orderId=${selectedOrder._id}`)}
                 className="btn btn-info gap-2"
               >
                 <MessageSquare size={18} />
