@@ -5,7 +5,6 @@ import {
   Home,
   BadgeDollarSign,
   Info,
-  QrCode,
   Phone,
   LogIn,
   UserPlus,
@@ -68,11 +67,6 @@ const LandingNavbar = () => {
     scrollToSection('services')
   }
 
-  const handleTrackClick = (e) => {
-    e.preventDefault()
-    scrollToSection('track')
-  }
-
   const handleContactClick = (e) => {
     e.preventDefault()
     scrollToSection('contact')
@@ -94,7 +88,6 @@ const LandingNavbar = () => {
           <li><a href="#home" onClick={handleHomeClick} className="flex items-center gap-2"><Home className="h-4 w-4" /><span>Home</span></a></li>
           <li><a href="#services" onClick={handleServicesClick} className="flex items-center gap-2"><BadgeDollarSign className="h-4 w-4" /><span>Services & Pricing</span></a></li>
           <li><Link to="/how-it-works" className="flex items-center gap-2"><Info className="h-4 w-4" /><span>How It Works</span></Link></li>
-          <li><a href="#track" onClick={handleTrackClick} className="flex items-center gap-2"><QrCode className="h-4 w-4" /><span>Track Order</span></a></li>
           <li><a href="#contact" onClick={handleContactClick} className="flex items-center gap-2"><Phone className="h-4 w-4" /><span>Contact Us</span></a></li>
         </ul>
       </div>
@@ -117,7 +110,6 @@ const LandingNavbar = () => {
               <li><a href="#home" onClick={handleHomeClick}><Home className="h-4 w-4" /> Home</a></li>
               <li><a href="#services" onClick={handleServicesClick}><BadgeDollarSign className="h-4 w-4" /> Services & Pricing</a></li>
               <li><Link to="/how-it-works" onClick={() => setOpen(false)}><Info className="h-4 w-4" /> How It Works</Link></li>
-              <li><a href="#track" onClick={handleTrackClick}><QrCode className="h-4 w-4" /> Track Order</a></li>
               <li><a href="#contact" onClick={handleContactClick}><Phone className="h-4 w-4" /> Contact Us</a></li>
               <li className="mt-2"><Link to="/login" className="btn btn-ghost" onClick={() => setOpen(false)}><LogIn className="h-4 w-4" /> Login</Link></li>
               <li><Link to="/register" className="btn btn-primary" onClick={() => setOpen(false)}><UserPlus className="h-4 w-4" /> Register</Link></li>
