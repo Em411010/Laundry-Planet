@@ -9,10 +9,14 @@ const redis = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_RE
     })
   : null;
 
+// Log warning once if Redis is not configured
+if (!redis) {
+  console.warn('⚠️ Upstash Redis not configured - rate limiting disabled');
+}
+
 // Create rate limiters with different configurations
 const createRateLimiter = (requests, window, prefix = 'ratelimit') => {
   if (!redis) {
-    console.warn('⚠️ Upstash Redis not configured - rate limiting disabled');
     return null;
   }
   

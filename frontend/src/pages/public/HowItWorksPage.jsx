@@ -182,8 +182,8 @@ const HowItWorksPage = () => {
                 Create Account
                 <ArrowRight size={20} />
               </Link>
-              <Link to="/track" className="btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-primary">
-                Track Order
+              <Link to="/order" className="btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-primary">
+                Place an Order
               </Link>
             </div>
           </div>

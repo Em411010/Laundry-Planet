@@ -8,7 +8,7 @@ import {
   HandPlatter, Package, Truck,
   SatelliteDish, Bell, CreditCard, Star, Shield, Leaf,
   Recycle, MapPin, Phone, Mail, Clock,
-  QrCode, Facebook, Instagram, Twitter
+  Facebook, Instagram, Twitter
 } from 'lucide-react'
 
 // Hero Section
@@ -24,8 +24,8 @@ const Hero = () => {
           pickup & delivery, and cashless payments.
         </p>
         <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
-          <Link to="/order" className="btn btn-primary btn-wide sm:btn-normal">Place an Order</Link>
-          <Link to="/track" className="btn btn-secondary btn-wide sm:btn-normal">Track My Laundry</Link>
+          <a href="#services" className="btn btn-primary btn-wide sm:btn-normal">View Our Services</a>
+          <Link to="/register" className="btn btn-secondary btn-wide sm:btn-normal">Get Started</Link>
         </div>
       </div>
 
@@ -215,77 +215,6 @@ const Testimonials = () => (
   </section>
 )
 
-// Pricing Preview Section
-const PricingPreview = () => {
-  const items = [
-    { title: 'Wash, Dry, & Fold', detail: 'per kg', price: 'start at ₱29' },
-    { title: 'Dry & Fold', detail: 'per load', price: '₱90' },
-    { title: 'Dry Only', detail: 'per load', price: '₱75' },
-  ]
-
-  return (
-    <section className="mb-8 sm:mb-12 lg:mb-16">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">Simple, Transparent Pricing</h2>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {items.map(({ title, detail, price }) => (
-          <div key={title} className="card bg-base-100 shadow">
-            <div className="card-body p-4 sm:p-6">
-              <h3 className="card-title">{title}</h3>
-              <div className="opacity-70 text-xs sm:text-sm">{detail}</div>
-              <div className="text-2xl font-bold mt-2">{price}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="mt-4 sm:mt-6">
-        <Link to="/pricing" className="btn btn-primary btn-wide sm:btn-normal">View Full Pricing</Link>
-      </div>
-    </section>
-  )
-}
-
-// Track Order Section
-const TrackOrder = () => {
-  const [orderNo, setOrderNo] = useState('')
-
-  const track = () => {
-    // Replace with actual navigation or API
-    if (orderNo.trim()) {
-      window.location.href = `/track?order=${encodeURIComponent(orderNo.trim())}`
-    }
-  }
-
-  return (
-    <section className="mb-8 sm:mb-12 lg:mb-16">
-      <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-4 sm:mb-6">Track Your Laundry</h2>
-      <div className="card bg-base-100 shadow">
-        <div className="card-body p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3">
-            <div className="join w-full sm:w-auto">
-              <input
-                className="input input-bordered join-item w-full sm:w-72 rounded-l-box"
-                placeholder="Order Number"
-                value={orderNo}
-                onChange={(e) => setOrderNo(e.target.value)}
-              />
-              <button
-                className="btn btn-primary join-item w-auto rounded-r-box shadow"
-                onClick={track}
-              >
-                Track Now
-              </button>
-            </div>
-            <button className="btn btn-outline w-full sm:w-auto">
-              <QrCode className="h-5 w-5" />
-              <span className="ml-2">Scan QR</span>
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
 // Contact Us Section
 const ContactUs = () => (
   <section className="mb-8 sm:mb-12 lg:mb-16">
@@ -313,21 +242,6 @@ const ContactUs = () => (
         </figure>
         <div className="card-body p-4 sm:p-6">
           <p className="text-sm sm:text-base text-base-content/70">Find us easily on the map.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-)
-
-// Final CTA Section
-const FinalCTA = () => (
-  <section className="text-center mb-8 sm:mb-12 lg:mb-16">
-    <div className="card bg-base-100 shadow">
-      <div className="card-body items-center p-4 sm:p-6">
-        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">Ready to Experience a Cleaner World?</h2>
-        <div className="mt-4 flex flex-wrap justify-center gap-3">
-          <Link to="/register" className="btn btn-primary btn-wide sm:btn-normal">Create an Account</Link>
-          <Link to="/order" className="btn btn-secondary btn-wide sm:btn-normal">Schedule a Pickup</Link>
         </div>
       </div>
     </div>
@@ -376,14 +290,9 @@ const LandingPage = () => {
         </div>
         <Features />
         <Testimonials />
-        <PricingPreview />
-        <div id="track">
-          <TrackOrder />
-        </div>
         <div id="contact">
           <ContactUs />
         </div>
-        <FinalCTA />
       </main>
 
       <Footer />
