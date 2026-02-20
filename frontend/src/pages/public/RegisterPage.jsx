@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -7,6 +7,22 @@ import { authAPI } from '../../services/api'
 
 const RegisterPage = () => {
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        const user = JSON.parse(userData)
+        if (user.role === 'admin') navigate('/dashboard/admin')
+        else if (user.role === 'staff') navigate('/dashboard/staff')
+        else navigate('/dashboard/client')
+      } catch (err) {
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+      }
+    }
+  }, [navigate])
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',

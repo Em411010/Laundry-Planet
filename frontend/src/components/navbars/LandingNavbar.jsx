@@ -8,6 +8,7 @@ import {
   Phone,
   LogIn,
   UserPlus,
+  LayoutDashboard,
   Sun,
   Moon
 } from 'lucide-react'
@@ -15,6 +16,7 @@ import {
 const LandingNavbar = () => {
   const [theme, setTheme] = useState('corporate')
   const [open, setOpen] = useState(false)
+  const [user, setUser] = useState(null)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -24,7 +26,25 @@ const LandingNavbar = () => {
     setTheme(initial)
     document.documentElement.setAttribute('data-theme', initial)
     document.body && document.body.setAttribute('data-theme', initial)
+
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        setUser(JSON.parse(userData))
+      } catch (err) {
+        console.error('Error parsing user data', err)
+      }
+    }
   }, [])
+
+  const getDashboardPath = () => {
+    if (!user) return '/login'
+    switch (user.role) {
+      case 'admin': return '/dashboard/admin'
+      case 'staff': return '/dashboard/staff'
+      default: return '/dashboard/client'
+    }
+  }
 
   const toggleTheme = () => {
     const next = theme === 'aqua' ? 'corporate' : 'aqua'
@@ -111,8 +131,14 @@ const LandingNavbar = () => {
               <li><a href="#services" onClick={handleServicesClick}><BadgeDollarSign className="h-4 w-4" /> Services & Pricing</a></li>
               <li><Link to="/how-it-works" onClick={() => setOpen(false)}><Info className="h-4 w-4" /> How It Works</Link></li>
               <li><a href="#contact" onClick={handleContactClick}><Phone className="h-4 w-4" /> Contact Us</a></li>
-              <li className="mt-2"><Link to="/login" className="btn btn-ghost" onClick={() => setOpen(false)}><LogIn className="h-4 w-4" /> Login</Link></li>
-              <li><Link to="/register" className="btn btn-primary" onClick={() => setOpen(false)}><UserPlus className="h-4 w-4" /> Register</Link></li>
+              {user ? (
+                <li className="mt-2"><Link to={getDashboardPath()} className="btn btn-primary" onClick={() => setOpen(false)}><LayoutDashboard className="h-4 w-4" /> Dashboard</Link></li>
+              ) : (
+                <>
+                  <li className="mt-2"><Link to="/login" className="btn btn-ghost" onClick={() => setOpen(false)}><LogIn className="h-4 w-4" /> Login</Link></li>
+                  <li><Link to="/register" className="btn btn-primary" onClick={() => setOpen(false)}><UserPlus className="h-4 w-4" /> Register</Link></li>
+                </>
+              )}
               <li>
                 <button className="btn btn-ghost" onClick={() => { toggleTheme(); setOpen(false); }}>
                   {theme === 'aqua' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -126,14 +152,23 @@ const LandingNavbar = () => {
         <button aria-label="Toggle theme" className="btn btn-ghost hidden md:inline-flex" onClick={toggleTheme}>
           {theme === 'aqua' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
-        <Link to="/login" className="btn btn-ghost hidden md:inline-flex">
-          <LogIn className="h-4 w-4" />
-          <span className="ml-1">Login</span>
-        </Link>
-        <Link to="/register" className="btn btn-primary hidden md:inline-flex">
-          <UserPlus className="h-4 w-4" />
-          <span className="ml-1">Register</span>
-        </Link>
+        {user ? (
+          <Link to={getDashboardPath()} className="btn btn-primary hidden md:inline-flex">
+            <LayoutDashboard className="h-4 w-4" />
+            <span className="ml-1">Dashboard</span>
+          </Link>
+        ) : (
+          <>
+            <Link to="/login" className="btn btn-ghost hidden md:inline-flex">
+              <LogIn className="h-4 w-4" />
+              <span className="ml-1">Login</span>
+            </Link>
+            <Link to="/register" className="btn btn-primary hidden md:inline-flex">
+              <UserPlus className="h-4 w-4" />
+              <span className="ml-1">Register</span>
+            </Link>
+          </>
+        )}
       </div>
     </div>
   )

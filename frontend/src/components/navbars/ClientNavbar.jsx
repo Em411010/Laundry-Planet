@@ -3,9 +3,10 @@ import { Link, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, PlusCircle, Package, MapPin, Clock, 
   History, CreditCard, FileText, MessageSquare, User,
-  LogOut, Menu, X, Bell, Sun, Moon, Truck
+  LogOut, Menu, X, Sun, Moon, Truck, HelpCircle
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
+import NotificationBell from '../NotificationBell'
 
 const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
   const navigate = useNavigate()
@@ -23,6 +24,7 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
     { icon: History, label: 'Order History', path: '/dashboard/client?tab=completed', desc: 'Past orders' },
     { icon: FileText, label: 'Receipts', path: '/dashboard/client/receipts', desc: 'Download receipts' },
     { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/client/support', desc: 'Message staff' },
+    { icon: HelpCircle, label: 'How It Works', path: '/how-it-works', desc: 'Step-by-step guide' },
     { icon: User, label: 'My Profile', path: '/dashboard/client/profile', desc: 'Profile settings' }
   ]
 
@@ -124,12 +126,7 @@ const ClientNavbar = ({ toggleSidebar }) => {
           >
             {theme === 'aqua' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
-          <button className="btn btn-ghost btn-circle">
-            <div className="indicator">
-              <Bell size={20} />
-              <span className="badge badge-xs badge-primary indicator-item"></span>
-            </div>
-          </button>
+          <NotificationBell />
         </div>
       </div>
     </div>

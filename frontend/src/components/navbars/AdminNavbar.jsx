@@ -7,6 +7,7 @@ import {
   MessageSquare, ShoppingCart
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
+import NotificationBell from '../NotificationBell'
 
 const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
   const navigate = useNavigate()
@@ -176,6 +177,7 @@ const AdminNavbar = ({ toggleSidebar }) => {
           >
             {theme === 'aqua' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+          <NotificationBell />
           <div className="badge badge-accent">ADMIN</div>
         </div>
       </div>

@@ -22,7 +22,7 @@ const HowItWorksPage = () => {
       icon: MapPin,
       title: 'Free Pickup',
       description: 'Our friendly staff will come to your doorstep to collect your laundry at your scheduled time.',
-      tips: ['Within 1km radius', 'Minimum 6kgs', 'Safe & secure handling']
+      tips: ['Within 1km radius', 'Minimum 4kgs', 'Safe & secure handling']
     },
     {
       number: '03',
@@ -181,9 +181,6 @@ const HowItWorksPage = () => {
               <Link to="/register" className="btn btn-neutral btn-lg">
                 Create Account
                 <ArrowRight size={20} />
-              </Link>
-              <Link to="/order" className="btn btn-outline btn-lg text-white border-white hover:bg-white hover:text-primary">
-                Place an Order
               </Link>
             </div>
           </div>

@@ -54,7 +54,6 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
-      console.log('Socket disconnected manually');
     }
   }
 
