@@ -6,6 +6,7 @@ import {
   LogOut, Menu, X, Sun, Moon
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
+import NotificationBell from '../NotificationBell'
 
 const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
   const navigate = useNavigate()
@@ -114,6 +115,7 @@ const StaffNavbar = ({ toggleSidebar }) => {
           >
             {theme === 'aqua' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
+          <NotificationBell />
           <div className="badge badge-secondary">STAFF</div>
         </div>
       </div>

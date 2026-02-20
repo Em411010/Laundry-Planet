@@ -19,6 +19,7 @@ import customerRoutes from './src/routes/customerRoutes.js';
 import serviceReportRoutes from './src/routes/serviceReportRoutes.js';
 import paymentRoutes from './src/routes/paymentRoutes.js';
 import settingsRoutes from './src/routes/settingsRoutes.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
 import { seedServices } from './src/models/Service.js';
 import { seedShippingSettings } from './src/models/Settings.js';
 import { setupSocketIO } from './src/socket/socketHandler.js';
@@ -104,6 +105,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/service-reports', serviceReportRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {

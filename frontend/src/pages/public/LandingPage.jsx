@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import LandingNavbar from '../../components/navbars/LandingNavbar.jsx'
 import { serviceAPI } from '../../services/api'
 import { 
@@ -104,7 +104,7 @@ const Services = () => {
         { name: 'Comforter', category: 'Full Package', description: 'Full service • Minimum 3kgs', price: 70, unit: 'per kg' },
         { name: 'Dry Only', category: 'Dry Service', description: 'Dryer only service', price: 75, unit: 'per load' },
         { name: 'Dry + Fold', category: 'Dry Service', description: 'Dryer with folding service', price: 90, unit: 'per load' },
-        { name: 'Free Pickup & Delivery', category: 'Delivery', description: 'Within 1km radius • Minimum 6kgs', price: 0, unit: 'FREE' },
+        { name: 'Free Pickup & Delivery', category: 'Delivery', description: 'Within 1km radius • Minimum 4kgs', price: 0, unit: 'FREE' },
       ])
     } finally {
       setLoading(false)
@@ -276,6 +276,23 @@ const Footer = () => (
 
 // Main Landing Page Component
 const LandingPage = () => {
+  const navigate = useNavigate()
+  
+  useEffect(() => {
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        const user = JSON.parse(userData)
+        if (user.role === 'admin') navigate('/dashboard/admin')
+        else if (user.role === 'staff') navigate('/dashboard/staff')
+        else navigate('/dashboard/client')
+      } catch (err) {
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+      }
+    }
+  }, [navigate])
+
   return (
     <div className="min-h-screen bg-base-200">
       <LandingNavbar />

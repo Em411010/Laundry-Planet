@@ -2,8 +2,32 @@ import Order from '../models/Order.js';
 import User from '../models/User.js';
 import Service from '../models/Service.js';
 import AuditLog from '../models/AuditLog.js';
+import Notification from '../models/Notification.js';
 import { calculateShippingFee } from './settingsController.js';
 import { emitToUser, emitToRole, emitToOrder, emitToDashboard } from '../socket/socketHandler.js';
+
+// Save a notification for a specific user
+const saveNotification = async (recipientId, type, title, message, orderId = null, orderNumber = null) => {
+  try {
+    await Notification.create({ recipient: recipientId, type, title, message, orderId, orderNumber });
+  } catch (err) {
+    console.error('Failed to save notification:', err.message);
+  }
+};
+
+// Save notifications for all active users with a given role
+const saveRoleNotifications = async (role, type, title, message, orderId = null, orderNumber = null) => {
+  try {
+    const users = await User.find({ role, isActive: true }).select('_id');
+    if (users.length > 0) {
+      await Notification.insertMany(
+        users.map(u => ({ recipient: u._id, type, title, message, orderId, orderNumber }))
+      );
+    }
+  } catch (err) {
+    console.error('Failed to save role notifications:', err.message);
+  }
+};
 
 // Helper function to log audit
 const logAudit = async (action, performedBy, details, req) => {
@@ -164,6 +188,11 @@ export const createOrder = async (req, res) => {
       message: `New order ${populatedOrder.orderNumber} received`
     });
 
+    // Persist notification for all admins and staff
+    const newOrderMsg = `New order ${populatedOrder.orderNumber} from ${user.firstName} ${user.lastName}`;
+    await saveRoleNotifications('admin', 'new_order', 'New Order Received', newOrderMsg, populatedOrder._id, populatedOrder.orderNumber);
+    await saveRoleNotifications('staff', 'new_order', 'New Order Received', newOrderMsg, populatedOrder._id, populatedOrder.orderNumber);
+
     // Update dashboard
     emitToDashboard(io, 'dashboard:newOrder', {
       orderId: populatedOrder._id,
@@ -192,6 +221,14 @@ export const createOrder = async (req, res) => {
 export const getAllOrders = async (req, res) => {
   try {
     const user = await User.findById(req.userId);
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
     const { status, page = 1, limit = 10, search } = req.query;
 
     let query = {};
@@ -389,6 +426,14 @@ export const updateOrderStatus = async (req, res) => {
         oldStatus,
         message: `Your order status has been updated to: ${status}`
       });
+      await saveNotification(
+        updatedOrder.customer._id,
+        'order_status',
+        'Order Status Update',
+        `Your order ${updatedOrder.orderNumber} status changed to: ${status}`,
+        updatedOrder._id,
+        updatedOrder.orderNumber
+      );
     }
 
     // Emit to order-specific room
@@ -471,6 +516,14 @@ export const assignStaff = async (req, res) => {
       message: `You have been assigned to order ${updatedOrder.orderNumber}`,
       order: updatedOrder
     });
+    await saveNotification(
+      staffId,
+      'new_task',
+      'New Task Assigned',
+      `You have been assigned to order ${updatedOrder.orderNumber}`,
+      updatedOrder._id,
+      updatedOrder.orderNumber
+    );
 
     // Notify customer
     if (updatedOrder.customer) {
@@ -480,6 +533,14 @@ export const assignStaff = async (req, res) => {
         staffName: `${staff.firstName} ${staff.lastName}`,
         message: `A staff member has been assigned to your order`
       });
+      await saveNotification(
+        updatedOrder.customer._id,
+        'staff_assigned',
+        'Staff Assigned',
+        `A staff member has been assigned to your order ${updatedOrder.orderNumber}`,
+        updatedOrder._id,
+        updatedOrder.orderNumber
+      );
     }
 
     // Emit to order room
@@ -746,10 +807,52 @@ export const acceptOrder = async (req, res) => {
       req
     );
 
+    // Fetch populated order for socket payload
+    const populatedOrder = await Order.findById(id)
+      .populate('customer', 'firstName lastName email')
+      .populate('assignedStaff.pickup', 'firstName lastName')
+      .populate('assignedStaff.processing', 'firstName lastName')
+      .populate('assignedStaff.delivery', 'firstName lastName');
+
+    const io = req.app.get('io');
+
+    // Notify the customer about the status change
+    if (populatedOrder.customer) {
+      const statusMessages = {
+        accepted: `Your order ${populatedOrder.orderNumber} has been accepted and pickup is on the way!`,
+        'in-progress': `Your laundry from order ${populatedOrder.orderNumber} is now being processed.`,
+        'for-delivery': `Your order ${populatedOrder.orderNumber} is out for delivery!`
+      };
+      const msg = statusMessages[newStatus] || `Your order ${populatedOrder.orderNumber} status updated to: ${newStatus}`;
+
+      emitToUser(io, populatedOrder.customer._id.toString(), 'order:statusUpdate', {
+        orderId: populatedOrder._id,
+        orderNumber: populatedOrder.orderNumber,
+        status: newStatus,
+        message: msg
+      });
+
+      await saveNotification(
+        populatedOrder.customer._id,
+        'order_status',
+        'Order Status Update',
+        msg,
+        populatedOrder._id,
+        populatedOrder.orderNumber
+      );
+    }
+
+    // Notify dashboard
+    emitToDashboard(io, 'dashboard:orderUpdate', {
+      orderId: populatedOrder._id,
+      orderNumber: populatedOrder.orderNumber,
+      status: newStatus
+    });
+
     res.json({
       success: true,
       message: `Order accepted for ${stage} successfully`,
-      data: order
+      data: populatedOrder
     });
   } catch (error) {
     res.status(500).json({

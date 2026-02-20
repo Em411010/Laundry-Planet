@@ -222,7 +222,7 @@ export const orderAPI = {
 
   // Get my orders (Client)
   getMyOrders: async () => {
-    const response = await api.get('/orders')
+    const response = await api.get('/orders', { params: { limit: 1000 } })
     return response.data
   },
 
@@ -462,6 +462,26 @@ export const settingsAPI = {
   // Update setting (admin)
   updateSetting: async (key, value) => {
     const response = await api.put(`/settings/${key}`, { value })
+    return response.data
+  }
+}
+
+// Notification API
+export const notificationAPI = {
+  getNotifications: async () => {
+    const response = await api.get('/notifications')
+    return response.data
+  },
+  getUnreadCount: async () => {
+    const response = await api.get('/notifications/unread-count')
+    return response.data
+  },
+  markAsRead: async (id) => {
+    const response = await api.patch(`/notifications/${id}/read`)
+    return response.data
+  },
+  markAllAsRead: async () => {
+    const response = await api.patch('/notifications/read-all')
     return response.data
   }
 }

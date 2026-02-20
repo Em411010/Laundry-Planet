@@ -8,6 +8,21 @@ const SplashScreen = () => {
   const [fadeOut, setFadeOut] = useState(false)
 
   useEffect(() => {
+    // If already logged in, redirect to dashboard
+    const userData = localStorage.getItem('user')
+    if (userData) {
+      try {
+        const user = JSON.parse(userData)
+        if (user.role === 'admin') navigate('/dashboard/admin')
+        else if (user.role === 'staff') navigate('/dashboard/staff')
+        else navigate('/dashboard/client')
+        return
+      } catch (err) {
+        localStorage.removeItem('user')
+        localStorage.removeItem('token')
+      }
+    }
+
     // Check if splash has been shown in this session
     const splashShown = sessionStorage.getItem('splashShown')
     if (splashShown) {

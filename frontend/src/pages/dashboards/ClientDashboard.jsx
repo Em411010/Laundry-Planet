@@ -46,13 +46,18 @@ const ClientDashboard = () => {
     const tab = searchParams.get('tab')
     if (tab === 'active' || tab === 'completed') {
       setActiveTab(tab)
+      // Close sidebar on mobile after tab navigation
+      setSidebarOpen(false)
+      // Scroll to orders section when navigating via sidebar link
+      setTimeout(() => {
+        document.getElementById('orders-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
     }
   }, [searchParams])
 
   useEffect(() => {
     if (user) {
-      loadActiveOrders()
-      loadCompletedOrders()
+      loadOrders()
       loadServices()
       loadShippingSettings()
     }
@@ -64,29 +69,26 @@ const ClientDashboard = () => {
     }
   }, [selectedOrder])
 
-  const loadActiveOrders = async () => {
+  const loadOrders = async () => {
     try {
       setLoadingOrders(true)
-      const res = await orderAPI.getMyOrders()
-      // active = not delivered and not cancelled
-      const active = (res.data || []).filter(o => o.status && !['delivered','cancelled','completed'].includes(o.status))
-      setOrders(active)
-    } catch {
-      setOrders([])
-    } finally {
-      setLoadingOrders(false)
-    }
-  }
-
-  const loadCompletedOrders = async () => {
-    try {
       setLoadingCompleted(true)
       const res = await orderAPI.getMyOrders()
-      const completed = (res.data || []).filter(o => ['delivered', 'completed', 'cancelled'].includes(o.status))
+      const allOrders = res.data || []
+      
+      // Split into active and completed
+      const active = allOrders.filter(o => o.status && !['delivered','cancelled','completed'].includes(o.status))
+      const completed = allOrders.filter(o => ['delivered', 'completed', 'cancelled'].includes(o.status))
+      
+      setOrders(active)
       setCompletedOrders(completed.reverse())
-    } catch {
+    } catch (error) {
+      console.error('Error loading orders:', error)
+      toast.error(error.response?.data?.message || 'Failed to load orders')
+      setOrders([])
       setCompletedOrders([])
     } finally {
+      setLoadingOrders(false)
       setLoadingCompleted(false)
     }
   }
@@ -247,8 +249,7 @@ const ClientDashboard = () => {
       await orderAPI.cancelOrder(orderId, reason || '')
       toast.success('Order cancelled successfully', { id: loadingToast })
       // Reload orders
-      await loadActiveOrders()
-      await loadCompletedOrders()
+      await loadOrders()
     } catch (error) {
       console.error('Cancel order error:', error)
       toast.error(error.response?.data?.message || 'Failed to cancel order', { id: loadingToast })
@@ -346,7 +347,7 @@ const ClientDashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="orders-section">
             <div className="lg:col-span-2">
               <div className="flex gap-2 mb-4">
                 <button 
@@ -411,7 +412,7 @@ const ClientDashboard = () => {
                         return (
                           <div key={o._id} className="card bg-gradient-to-br from-base-100 to-base-200 hover:shadow-lg transition-all duration-200 border border-base-300">
                             <div className="card-body p-4">
-                              <div className="flex items-start justify-between gap-4">
+                              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-2">
                                     <span className={`badge badge-${config.color} gap-1`}>
@@ -446,10 +447,10 @@ const ClientDashboard = () => {
                                   </div>
                                 </div>
 
-                                <div className="text-right flex flex-col items-end gap-2">
-                                  <div className="text-right">
+                                <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-3 sm:gap-2 mt-3 sm:mt-0">
+                                  <div className="text-left sm:text-right">
                                     <div className="text-xs text-base-content/60 mb-1">Total Amount</div>
-                                    <div className="text-2xl font-bold text-primary">₱{(o.totalAmount || 0).toFixed(2)}</div>
+                                    <div className="text-xl sm:text-2xl font-bold text-primary">₱{(o.totalAmount || 0).toFixed(2)}</div>
                                     {o.shippingFee !== undefined && (
                                       <div className="text-xs text-base-content/60 mt-1">
                                         Shipping: {o.shippingFee === 0 ? <span className="text-success">FREE</span> : `₱${o.shippingFee}`}
@@ -459,10 +460,10 @@ const ClientDashboard = () => {
                                       <div className="badge badge-warning badge-sm mt-1">Payment Pending</div>
                                     )}
                                   </div>
-                                  <div className="flex flex-col gap-1">
+                                  <div className="flex flex-col gap-1 w-full sm:w-auto">
                                     <button 
                                       onClick={() => handleViewOrder(o)} 
-                                      className="btn btn-primary btn-sm gap-1"
+                                      className="btn btn-primary btn-sm gap-1 w-full sm:w-auto"
                                     >
                                       View Details
                                       <ArrowRight size={14} />
@@ -471,7 +472,7 @@ const ClientDashboard = () => {
                                       <button 
                                         onClick={() => handleGCashPayment(o._id)}
                                         disabled={payingOrders.has(o._id)}
-                                        className="btn btn-success btn-sm gap-1"
+                                        className="btn btn-success btn-sm gap-1 w-full sm:w-auto"
                                       >
                                         {payingOrders.has(o._id) ? (
                                           <span className="loading loading-spinner loading-xs"></span>
@@ -485,7 +486,7 @@ const ClientDashboard = () => {
                                       <button 
                                         onClick={() => handleCancelOrder(o._id)}
                                         disabled={cancellingOrders.has(o._id)}
-                                        className="btn btn-error btn-sm gap-1"
+                                        className="btn btn-error btn-sm gap-1 w-full sm:w-auto"
                                       >
                                         {cancellingOrders.has(o._id) ? (
                                           <span className="loading loading-spinner loading-xs"></span>
@@ -541,7 +542,7 @@ const ClientDashboard = () => {
                           {completedOrders.map((o) => (
                             <div key={o._id} className={`card bg-gradient-to-br from-base-100 to-base-200 hover:shadow-lg transition-all duration-200 border ${o.status === 'cancelled' ? 'border-error/30' : 'border-success/30'}`}>
                               <div className="card-body p-4">
-                                <div className="flex items-start justify-between gap-4">
+                                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-2">
                                       {o.status === 'cancelled' ? (
@@ -590,17 +591,17 @@ const ClientDashboard = () => {
                                       return null
                                     })()}
                                   </div>
-                                  <div className="flex flex-col items-end gap-2">
+                                  <div className="flex flex-row sm:flex-col items-stretch sm:items-end gap-2 w-full sm:w-auto">
                                     <button 
                                       onClick={() => handleReorder(o)}
-                                      className="btn btn-primary btn-sm gap-1"
+                                      className="btn btn-primary btn-sm gap-1 flex-1 sm:flex-none sm:w-auto"
                                     >
                                       <ShoppingBag size={14} />
                                       Reorder
                                     </button>
                                     <button 
                                       onClick={() => navigate('/dashboard/client/receipts')}
-                                      className="btn btn-outline btn-sm gap-1"
+                                      className="btn btn-outline btn-sm gap-1 flex-1 sm:flex-none sm:w-auto"
                                     >
                                       <FileText size={14} />
                                       Receipt
