@@ -603,7 +603,35 @@ export const cancelOrder = async (req, res) => {
     }
     await order.save();
 
-    console.log(`Order ${order.orderNumber} cancelled by user ${req.userId}. Reason: ${reason || 'No reason provided'}`);
+    // Socket + notifications
+    const io = req.app.get('io');
+    const cancelMsg = `Order ${order.orderNumber} was cancelled by the client${reason ? `: ${reason}` : ''}`;
+    const clientCancelMsg = `Your order ${order.orderNumber} has been cancelled successfully.`;
+
+    // Notify all admins & staff
+    emitToRole(io, 'admin', 'order:statusUpdate', {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      status: 'cancelled',
+      message: cancelMsg
+    });
+    emitToRole(io, 'staff', 'order:statusUpdate', {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      status: 'cancelled',
+      message: cancelMsg
+    });
+    await saveRoleNotifications('admin', 'order_cancelled', 'Order Cancelled', cancelMsg, order._id, order.orderNumber);
+    await saveRoleNotifications('staff', 'order_cancelled', 'Order Cancelled', cancelMsg, order._id, order.orderNumber);
+
+    // Confirm to the client who cancelled
+    emitToUser(io, req.userId.toString(), 'order:statusUpdate', {
+      orderId: order._id,
+      orderNumber: order.orderNumber,
+      status: 'cancelled',
+      message: clientCancelMsg
+    });
+    await saveNotification(req.userId, 'order_cancelled', 'Order Cancelled', clientCancelMsg, order._id, order.orderNumber);
 
     res.json({
       success: true,

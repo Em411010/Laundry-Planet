@@ -7,7 +7,9 @@ const typeIcon = {
   order_status: '📦',
   new_order: '🛒',
   new_task: '📋',
-  staff_assigned: '👤'
+  staff_assigned: '👤',
+  order_cancelled: '❌',
+  chat_message: '💬'
 }
 
 const formatTime = (dateStr) => {
