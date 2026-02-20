@@ -1,5 +1,8 @@
 import Message from '../models/Message.js';
 import Order from '../models/Order.js';
+import User from '../models/User.js';
+import Notification from '../models/Notification.js';
+import { emitToUser, emitToRole } from '../socket/socketHandler.js';
 
 // Send a message
 export const sendMessage = async (req, res) => {
@@ -39,6 +42,62 @@ export const sendMessage = async (req, res) => {
 
     // Populate sender info
     await message.populate('sender', 'firstName lastName');
+
+    // Emit real-time + save notification for the other party
+    const io = req.app.get('io');
+    const senderName = `${message.sender.firstName} ${message.sender.lastName}`;
+    const populatedOrder = await Order.findById(orderId)
+      .populate('customer', '_id firstName lastName')
+      .populate('assignedStaff.pickup', '_id firstName lastName')
+      .populate('assignedStaff.processing', '_id firstName lastName')
+      .populate('assignedStaff.delivery', '_id firstName lastName');
+
+    const chatPayload = {
+      orderId,
+      orderNumber: populatedOrder.orderNumber,
+      sender: senderName,
+      senderRole,
+      message: content
+    };
+
+    if (senderRole === 'client') {
+      // Notify all assigned staff
+      const staffIds = [
+        populatedOrder.assignedStaff?.pickup?._id,
+        populatedOrder.assignedStaff?.processing?._id,
+        populatedOrder.assignedStaff?.delivery?._id
+      ].filter(Boolean);
+      for (const sid of staffIds) {
+        const sidStr = sid.toString();
+        if (sidStr !== userId.toString()) {
+          emitToUser(io, sidStr, 'chat:newMessage', chatPayload);
+          await Notification.create({
+            recipient: sid,
+            type: 'chat_message',
+            title: 'New Message',
+            message: `${senderName}: ${content.substring(0, 80)}`,
+            orderId,
+            orderNumber: populatedOrder.orderNumber
+          });
+        }
+      }
+      // Also notify all admins
+      emitToRole(io, 'admin', 'chat:newMessage', chatPayload);
+    } else {
+      // Staff sent → notify the client
+      if (populatedOrder.customer) {
+        const custId = populatedOrder.customer._id;
+        emitToUser(io, custId.toString(), 'chat:newMessage', chatPayload);
+        await Notification.create({
+          recipient: custId,
+          type: 'chat_message',
+          title: 'New Message from Staff',
+          message: `${senderName}: ${content.substring(0, 80)}`,
+          orderId,
+          orderNumber: populatedOrder.orderNumber
+        });
+      }
+    }
 
     res.status(201).json(message);
   } catch (error) {
@@ -149,6 +208,27 @@ export const sendSupportMessage = async (req, res) => {
 
     // Populate sender info
     await message.populate('sender', 'firstName lastName');
+
+    // Emit real-time + save notification
+    const io = req.app.get('io');
+    const senderName = `${message.sender.firstName} ${message.sender.lastName}`;
+    const notifMsg = `${senderName}: ${content.substring(0, 80)}`;
+
+    if (userRole === 'client') {
+      // Client → notify all admins
+      emitToRole(io, 'admin', 'chat:newMessage', { sender: senderName, senderRole: 'client', message: content });
+      const admins = await User.find({ role: 'admin', isActive: true }).select('_id');
+      await Notification.insertMany(admins.map(a => ({
+        recipient: a._id,
+        type: 'chat_message',
+        title: 'New Support Message',
+        message: notifMsg
+      })));
+    } else {
+      // Admin → notify the client who sent the last support message (or all clients with open support)
+      // Emit to the 'client' room so any online client gets the update
+      emitToRole(io, 'client', 'chat:newMessage', { sender: senderName, senderRole: 'admin', message: content });
+    }
 
     res.status(201).json(message);
   } catch (error) {

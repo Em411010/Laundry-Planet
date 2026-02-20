@@ -120,6 +120,21 @@ export const SocketProvider = ({ children }) => {
         icon: '👤'
       });
     });
+
+    // Chat message notifications
+    socketService.onNewChatMessage((data) => {
+      addNotification({
+        type: 'chat',
+        title: data.senderRole === 'admin' ? 'New Message from Support' : `New Message from ${data.senderRole === 'client' ? 'Client' : 'Staff'}`,
+        message: `${data.sender}: ${data.message}`,
+        data
+      });
+
+      toast(`${data.sender}: ${data.message?.substring(0, 60)}`, {
+        duration: 5000,
+        icon: '💬'
+      });
+    });
   };
 
   const addNotification = (notification) => {
