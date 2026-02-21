@@ -150,7 +150,7 @@ const Receipts = () => {
     <div className="min-h-screen bg-base-200 overflow-x-hidden">
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
-      <div className="lg:ml-64 pt-20 md:pt-32 p-4 md:p-8 mt-4 md:mt-12">
+      <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Receipts</h1>
@@ -203,7 +203,7 @@ const Receipts = () => {
       </div>
 
       {selectedOrder && (
-        <div className="lg:ml-64 pt-6 p-4 md:p-8">
+        <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
           <div className="max-w-4xl mx-auto">
             <div className="bg-base-100 shadow-lg rounded-lg p-6 print:bg-base-100 print:shadow-none">
               <div className="flex items-center justify-between mb-4">
@@ -311,3 +311,5 @@ const Receipts = () => {
 }
 
 export default Receipts
+
+

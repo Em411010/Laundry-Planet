@@ -246,9 +246,10 @@ const MyTasks = () => {
       <div className="min-h-screen bg-base-200 overflow-x-hidden">
         <StaffSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
         <StaffNavbar toggleSidebar={toggleSidebar} />
-      
-      <div className="lg:ml-64 pt-20 md:pt-32 mt-4 md:mt-12 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto"><div className="mb-6 mt-2">
+
+      <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold text-base-content flex items-center gap-2">
               <Clock className="w-8 h-8 text-primary" />
               My Tasks
@@ -687,3 +688,5 @@ const MyTasks = () => {
 };
 
 export default MyTasks;
+
+

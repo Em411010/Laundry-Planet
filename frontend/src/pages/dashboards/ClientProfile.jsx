@@ -206,8 +206,9 @@ const ClientProfile = () => {
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 md:pt-32 mt-4 md:mt-12 p-4 md:p-8">
-        <div className="max-w-4xl mx-auto"><div className="flex items-center gap-3 mb-6 mt-10">
+      <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center gap-3 mb-6">
             <User className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">My Profile</h1>
           </div><div className="alert alert-info mb-6">
@@ -477,3 +478,5 @@ const ClientProfile = () => {
 }
 
 export default ClientProfile
+
+

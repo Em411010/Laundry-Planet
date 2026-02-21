@@ -80,7 +80,7 @@ const ClientSupportChat = () => {
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
       
-      <div className="lg:ml-64 p-4 md:p-6 mt-10">
+      <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-2">
@@ -183,3 +183,5 @@ const ClientSupportChat = () => {
 }
 
 export default ClientSupportChat
+
+

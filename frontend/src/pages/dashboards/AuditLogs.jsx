@@ -168,7 +168,7 @@ const AuditLogs = () => {
       <AdminSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <AdminNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 md:pt-32 mt-4 md:mt-12 p-4 md:p-8">
+      <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 mt-2">
@@ -414,3 +414,5 @@ const AuditLogs = () => {
 }
 
 export default AuditLogs
+
+
