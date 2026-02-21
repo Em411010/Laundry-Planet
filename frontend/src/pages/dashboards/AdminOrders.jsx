@@ -239,7 +239,7 @@ const AdminOrders = () => {
       <AdminSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <AdminNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
+      <div className="lg:ml-64 pt-20 md:pt-32 mt-4 md:mt-12 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-4">

@@ -101,11 +101,11 @@ const StaffNavbar = ({ toggleSidebar }) => {
   return (
     <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 lg:w-[calc(100%-16rem)]">
       <div className="navbar bg-base-100 border-b border-base-300 px-4">
-        <div className="flex-1 min-w-0">
-          <button onClick={toggleSidebar} className="btn btn-ghost btn-square lg:hidden">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <button onClick={toggleSidebar} className="btn btn-ghost btn-square lg:hidden flex-shrink-0">
             <Menu size={24} />
           </button>
-          <h1 className="text-lg md:text-xl font-bold ml-2 truncate">Staff Dashboard</h1>
+          <h1 className="text-lg md:text-xl font-bold ml-2 truncate min-w-0">Staff Dashboard</h1>
         </div>
         <div className="flex items-center gap-2">
           <button 
@@ -116,7 +116,6 @@ const StaffNavbar = ({ toggleSidebar }) => {
             {theme === 'aqua' ? <Sun size={20} /> : <Moon size={20} />}
           </button>
           <NotificationBell />
-          <div className="badge badge-secondary">STAFF</div>
         </div>
       </div>
     </div>

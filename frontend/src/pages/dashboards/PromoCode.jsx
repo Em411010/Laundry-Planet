@@ -31,9 +31,9 @@ const PromoCode = () => {
       <AdminSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <AdminNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-32 mt-12 p-4 md:p-8">
+      <div className="lg:ml-64 pt-20 md:pt-32 mt-4 md:mt-12 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          <div className="card bg-base-100 shadow-xl mt-12">
+          <div className="card bg-base-100 shadow-xl mt-2">
             <div className="card-body items-center text-center">
               <div className="mb-6">
                 <Tag className="h-24 w-24 text-primary mx-auto mb-4" />
