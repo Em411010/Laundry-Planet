@@ -298,7 +298,7 @@ const MyTasks = () => {
                         <div className="flex items-center gap-2 text-sm">
                           <Package className="w-4 h-4 text-base-content/60" />
                           <span className="text-base-content/80">
-                            {order.customer.firstName} {order.customer.lastName}
+                            {order.customer?.firstName ? `${order.customer.firstName} ${order.customer.lastName || ''}` : 'Unknown'}
                           </span>
                         </div>
                         
@@ -374,9 +374,9 @@ const MyTasks = () => {
                   <span className="label-text font-semibold">Customer</span>
                 </label>
                 <p className="text-base-content">
-                  {selectedOrder.customer.firstName} {selectedOrder.customer.lastName}
+                  {selectedOrder.customer?.firstName ? `${selectedOrder.customer.firstName} ${selectedOrder.customer.lastName || ''}` : 'Unknown'}
                 </p>
-                <p className="text-sm text-base-content/60">{selectedOrder.customer.email}</p>
+                <p className="text-sm text-base-content/60">{selectedOrder.customer?.email || '—'}</p>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4 mb-6">
