@@ -289,8 +289,8 @@ const AdminDashboard = () => {
               {/* Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 {/* Revenue Trend Chart */}
-                <div className="lg:col-span-2 card bg-base-100 shadow-lg border border-base-200">
-                  <div className="card-body">
+                <div className="lg:col-span-2 min-w-0 card bg-base-100 shadow-lg border border-base-200">
+                  <div className="card-body overflow-hidden">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="card-title flex items-center gap-2">
                         <div className="p-2 rounded-lg bg-emerald-100">
@@ -302,7 +302,7 @@ const AdminDashboard = () => {
                     </div>
                     
                     {salesData?.revenueTrend && salesData.revenueTrend.length > 0 ? (
-                      <div style={{ width: '100%' }}>
+                      <div className="w-full">
                         <ResponsiveContainer width="100%" height={280}>
                           <AreaChart
                             data={salesData.revenueTrend.slice(-14)}
@@ -354,8 +354,8 @@ const AdminDashboard = () => {
                 </div>
 
                 {/* Order Status Pie Chart */}
-                <div className="card bg-base-100 shadow-lg border border-base-200">
-                  <div className="card-body">
+                <div className="min-w-0 card bg-base-100 shadow-lg border border-base-200">
+                  <div className="card-body overflow-hidden">
                     <h3 className="card-title flex items-center gap-2 mb-4">
                       <div className="p-2 rounded-lg bg-blue-100">
                         <Package size={20} className="text-blue-600" />
@@ -365,7 +365,7 @@ const AdminDashboard = () => {
                     
                     {orderStatusData.length > 0 ? (
                       <>
-                        <div style={{ width: '100%' }}>
+                        <div className="w-full">
                           <ResponsiveContainer width="100%" height={180}>
                             <PieChart>
                               <Pie

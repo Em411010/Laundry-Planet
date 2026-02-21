@@ -339,9 +339,9 @@ const CustomerReport = () => {
                 </div>
               )}
 
-              <div className="grid lg:grid-cols-2 gap-6 mb-6">
-                <div className="card bg-base-100 shadow-md">
-                  <div className="card-body">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <div className="card bg-base-100 shadow-md min-w-0">
+                  <div className="card-body overflow-hidden">
                     <h3 className="card-title flex items-center gap-2">
                       <TrendingUp size={20} />
                       Top Customers by Lifetime Value
@@ -352,7 +352,8 @@ const CustomerReport = () => {
                           <tr>
                             <th>Rank</th>
                             <th>Customer</th>
-                            <th>Total Spent</th>
+                            <th className="hidden sm:table-cell">Email</th>
+                            <th>Spent</th>
                             <th>Orders</th>
                           </tr>
                         </thead>
@@ -369,8 +370,10 @@ const CustomerReport = () => {
                                 </div>
                               </td>
                               <td>
-                                <div className="font-semibold">{customer.name}</div>
-                                <div className="text-xs opacity-70">{customer.email}</div>
+                                <div className="font-semibold truncate max-w-[120px]">{customer.name}</div>
+                              </td>
+                              <td className="hidden sm:table-cell">
+                                <div className="text-xs opacity-70 truncate max-w-[150px]">{customer.email}</div>
                               </td>
                               <td className="font-bold text-success">{formatCurrency(customer.totalSpent)}</td>
                               <td>{customer.orderCount}</td>
@@ -382,22 +385,22 @@ const CustomerReport = () => {
                   </div>
                 </div>
 
-                <div className="card bg-base-100 shadow-md">
-                  <div className="card-body">
+                <div className="card bg-base-100 shadow-md min-w-0">
+                  <div className="card-body overflow-hidden">
                     <h3 className="card-title flex items-center gap-2">
                       <MapPin size={20} />
                       Geographic Distribution
                     </h3>
                     <div className="space-y-3 mt-4">
                       {customerData.geographicDistribution.slice(0, 8).map((location, index) => (
-                        <div key={index} className="flex items-center justify-between p-3 bg-base-200 rounded">
-                          <div className="flex items-center gap-2">
-                            <MapPin size={16} className="text-primary" />
-                            <span className="font-medium">{location.city}</span>
+                        <div key={index} className="flex items-center justify-between gap-2 p-3 bg-base-200 rounded">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <MapPin size={16} className="text-primary flex-shrink-0" />
+                            <span className="font-medium truncate">{location.city}</span>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-shrink-0">
                             <span className="badge badge-lg">{location.count}</span>
-                            <span className="text-sm text-base-content/60">customers</span>
+                            <span className="text-sm text-base-content/60 hidden sm:inline">customers</span>
                           </div>
                         </div>
                       ))}
