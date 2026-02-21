@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
-import { profileAPI } from '../../services/api'
+import { ClientSidebar, ClientNavbar } from '../components/navbars/ClientNavbar'
+import { profileAPI } from '../services/api'
 import { User, MapPin, Phone, Save, AlertCircle, CheckCircle, Map } from 'lucide-react'
 
 const ClientProfile = () => {

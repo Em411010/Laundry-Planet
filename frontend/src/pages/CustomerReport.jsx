@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { customerAPI } from '../../services/api'
+import { AdminSidebar, AdminNavbar } from '../components/navbars/AdminNavbar'
+import { customerAPI } from '../services/api'
 import { 
   Users, 
   TrendingUp, 

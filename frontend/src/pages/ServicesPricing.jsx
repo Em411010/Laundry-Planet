@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { serviceAPI, settingsAPI } from '../../services/api'
+import { AdminSidebar, AdminNavbar } from '../components/navbars/AdminNavbar'
+import { serviceAPI, settingsAPI } from '../services/api'
 import { Package, DollarSign, Edit, Power, PowerOff, AlertCircle, Save, X, Plus, Trash2, Truck } from 'lucide-react'
 
 const ServicesPricing = () => {

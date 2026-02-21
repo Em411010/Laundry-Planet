@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Send, MessageSquare, Loader } from 'lucide-react'
-import { messageAPI } from '../../services/api'
-import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
+import { messageAPI } from '../services/api'
+import { ClientSidebar, ClientNavbar } from '../components/navbars/ClientNavbar'
 
 const ClientSupportChat = () => {
   const navigate = useNavigate()

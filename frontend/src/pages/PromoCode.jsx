@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
+import { AdminSidebar, AdminNavbar } from '../components/navbars/AdminNavbar'
 import { Tag, Clock, Sparkles } from 'lucide-react'
 
 const PromoCode = () => {

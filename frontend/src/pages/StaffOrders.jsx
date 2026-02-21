@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar'
-import { orderAPI, serviceAPI } from '../../services/api'
-import OrderChat from '../../components/OrderChat'
+import { StaffSidebar, StaffNavbar } from '../components/navbars/StaffNavbar'
+import { orderAPI, serviceAPI } from '../services/api'
+import OrderChat from '../components/OrderChat'
 import { 
   Package, 
   Clock, 
@@ -498,15 +498,11 @@ const StaffOrders = () => {
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <h3 className="text-xl font-bold">{order.orderNumber}</h3>
-                          <span className={`badge ${getStatusBadge(order.status)}`}>
+                          <h4 className="text-xl font-bold">{order.orderNumber}</h4>
+                          <span className={`badge ${getStatusBadge(order.status)} `}>
                             {getStatusDisplay(order.status)}
                           </span>
-                          {order.assignedStaff && (
-                            <span className="badge badge-outline">
-                              Assigned: {order.assignedStaff.firstName} {order.assignedStaff.lastName}
-                            </span>
-                          )}
+                        
                         </div>
                         
                         <div className="grid md:grid-cols-2 gap-2 text-sm">

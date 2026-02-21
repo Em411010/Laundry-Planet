@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Package, Clock, CheckCircle, AlertCircle, Weight, Camera, MessageSquare, ChevronRight } from 'lucide-react';
-import { StaffSidebar, StaffNavbar } from '../../components/navbars/StaffNavbar';
-import { orderAPI } from '../../services/api';
-import OrderChat from '../../components/OrderChat';
+import { StaffSidebar, StaffNavbar } from '../components/navbars/StaffNavbar';
+import { orderAPI } from '../services/api';
+import OrderChat from '../components/OrderChat';
 
 const MyTasks = () => {
   const navigate = useNavigate();

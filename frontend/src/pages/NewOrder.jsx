@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
-import { orderAPI, serviceAPI, profileAPI } from '../../services/api'
+import { ClientSidebar, ClientNavbar } from '../components/navbars/ClientNavbar'
+import { orderAPI, serviceAPI, profileAPI } from '../services/api'
 import { ShoppingCart, Calendar, Clock, CreditCard, AlertCircle, CheckCircle, MapPin, Phone, Map, Edit } from 'lucide-react'
 
 const NewOrder = () => {

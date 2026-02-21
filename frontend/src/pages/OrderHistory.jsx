@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import jsPDF from 'jspdf';
 import { useNavigate } from 'react-router-dom';
-import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar';
-import { orderAPI } from '../../services/api';
+import { ClientSidebar, ClientNavbar } from '../components/navbars/ClientNavbar';
+import { orderAPI } from '../services/api';
 import { Package, CheckCircle, Eye, Calendar, Clock } from 'lucide-react';
 
 const OrderHistory = () => {

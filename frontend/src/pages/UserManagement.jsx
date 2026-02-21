@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import jsPDF from 'jspdf'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { userAPI, auditAPI, orderAPI } from '../../services/api'
+import { AdminSidebar, AdminNavbar } from '../components/navbars/AdminNavbar'
+import { userAPI, auditAPI, orderAPI } from '../services/api'
 import { Users, UserPlus, Search, Filter, Trash2, Power, PowerOff, Eye, Edit, AlertCircle, FileText, ShoppingBag, History, X, Calendar, MapPin, Phone, Mail as MailIcon, User as UserIcon, Download, CreditCard, XCircle } from 'lucide-react'
 
 const UserManagement = () => {

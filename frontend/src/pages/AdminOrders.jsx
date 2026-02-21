@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import jsPDF from 'jspdf'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { orderAPI } from '../../services/api'
+import { AdminSidebar, AdminNavbar } from '../components/navbars/AdminNavbar'
+import { orderAPI } from '../services/api'
 import { 
   Package, 
   Clock, 
