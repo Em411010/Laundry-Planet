@@ -733,7 +733,7 @@ const ClientDashboard = () => {
                     )}
                   </div>
                 </div>
-                <ul className="steps steps-vertical w-full text-sm">
+                <ul className="steps steps-vertical w-full text-sm max-h-64 overflow-y-auto">
                   {getStatusSequence().map((step, i) => {
                     const isCompleted = isStatusCompleted(step.status)
                     const isCurrent = selectedOrder.status === step.status
@@ -769,8 +769,8 @@ const ClientDashboard = () => {
                   <MessageCircle size={18} className="text-primary" />
                   Chat with Staff
                 </h3>
-                <div className="flex flex-col flex-1" style={{minHeight: '320px'}}>
-                  <div className="flex-1 overflow-y-auto space-y-3 mb-3 pr-1" style={{maxHeight: '280px'}}>
+                <div className="flex flex-col flex-1">
+                  <div className="overflow-y-auto space-y-3 mb-3 pr-1 h-36 md:h-56">
                     {chatLoading ? (
                       <div className="flex items-center justify-center h-full py-8">
                         <span className="loading loading-spinner text-primary"></span>

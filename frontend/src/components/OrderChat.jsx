@@ -71,7 +71,7 @@ const OrderChat = ({ orderId, currentUser, isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[500px] bg-base-100 shadow-2xl rounded-lg flex flex-col z-50 border border-base-300">
+    <div className="fixed bottom-4 left-2 right-2 sm:left-auto sm:right-4 sm:w-80 h-[55vh] sm:h-[420px] bg-base-100 shadow-2xl rounded-lg flex flex-col z-50 border border-base-300">
       <div className="bg-primary text-primary-content p-4 rounded-t-lg flex items-center justify-between">
         <div className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5" />
