@@ -150,7 +150,7 @@ const Receipts = () => {
     <div className="min-h-screen bg-base-200 overflow-x-hidden">
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
-      <div className="lg:ml-64 pt-24 p-4 md:p-8 mt-12">
+      <div className="lg:ml-64 pt-20 md:pt-32 p-4 md:p-8 mt-4 md:mt-12">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-3xl font-bold">Receipts</h1>
