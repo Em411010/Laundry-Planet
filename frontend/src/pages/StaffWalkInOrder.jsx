@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { orderAPI, userAPI, serviceAPI, settingsAPI } from '../../services/api'
+import { StaffSidebar, StaffNavbar } from '../components/navbars/StaffNavbar'
+import { orderAPI, userAPI, serviceAPI, settingsAPI } from '../services/api'
 import { 
   ShoppingCart, 
   User, 
@@ -22,7 +22,7 @@ import {
   Truck
 } from 'lucide-react'
 
-const AdminWalkInOrder = () => {
+const StaffWalkInOrder = () => {
   const navigate = useNavigate()
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -70,7 +70,7 @@ const AdminWalkInOrder = () => {
     const userData = localStorage.getItem('user')
     if (userData) {
       const parsedUser = JSON.parse(userData)
-      if (parsedUser.role !== 'admin') {
+      if (!['staff', 'admin'].includes(parsedUser.role)) {
         navigate('/login')
         return
       }
@@ -100,7 +100,9 @@ const AdminWalkInOrder = () => {
   const fetchServices = async () => {
     try {
       const response = await serviceAPI.getAllServices()
-      setAvailableServices(response.data.filter(s => s.isActive))
+      setAvailableServices(response.data.filter(s => 
+        s.isActive && s.category !== 'FREE'
+      ))
     } catch (err) {
       toast.error('Failed to load services')
     }
@@ -115,6 +117,7 @@ const AdminWalkInOrder = () => {
     try {
       setSearching(true)
       const response = await userAPI.searchUsers(query)
+      // Backend already filters by role='client', so we just need response.data.data
       setSearchResults(response.data || [])
     } catch (error) {
       console.error('Search error:', error)
@@ -281,8 +284,8 @@ const AdminWalkInOrder = () => {
 
   return (
     <div className="min-h-screen bg-base-200 overflow-x-hidden">
-      <AdminSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-      <AdminNavbar toggleSidebar={toggleSidebar} />
+      <StaffSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+      <StaffNavbar toggleSidebar={toggleSidebar} />
 
       <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
@@ -640,6 +643,6 @@ const AdminWalkInOrder = () => {
   )
 }
 
-export default AdminWalkInOrder
+export default StaffWalkInOrder
 
 

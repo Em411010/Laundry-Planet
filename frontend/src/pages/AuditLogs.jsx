@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
-import { auditAPI } from '../../services/api'
+import { AdminSidebar, AdminNavbar } from '../components/navbars/AdminNavbar'
+import { auditAPI } from '../services/api'
 import { FileSearch, Filter, Calendar, User, Activity, AlertCircle } from 'lucide-react'
 
 const AuditLogs = () => {

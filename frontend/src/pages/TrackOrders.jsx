@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar';
-import { orderAPI, messageAPI, paymentAPI } from '../../services/api';
-import { useSocket } from '../../contexts/SocketContext';
-import OrderChat from '../../components/OrderChat';
+import { ClientSidebar, ClientNavbar } from '../components/navbars/ClientNavbar';
+import { orderAPI, messageAPI, paymentAPI } from '../services/api';
+import { useSocket } from '../contexts/SocketContext';
+import OrderChat from '../components/OrderChat';
 import { 
   Package, 
   Clock, 

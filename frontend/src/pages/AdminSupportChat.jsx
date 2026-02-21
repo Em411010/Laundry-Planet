@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { Send, MessageSquare, Loader, Users, ArrowLeft, Clock, Mail, Phone, MapPin, Calendar, Package, TrendingUp } from 'lucide-react'
-import { messageAPI, userAPI, orderAPI } from '../../services/api'
-import { AdminSidebar, AdminNavbar } from '../../components/navbars/AdminNavbar'
+import { messageAPI, userAPI, orderAPI } from '../services/api'
+import { AdminSidebar, AdminNavbar } from '../components/navbars/AdminNavbar'
 
 const AdminSupportChat = () => {
   const navigate = useNavigate()
