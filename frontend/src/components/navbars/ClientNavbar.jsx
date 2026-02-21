@@ -110,8 +110,8 @@ const ClientNavbar = ({ toggleSidebar }) => {
   }
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 lg:w-[calc(100%-16rem)]">
-      <div className="navbar bg-base-100 border-b border-base-300 px-4">
+    <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 lg:w-[calc(100%-16rem)] h-16">
+      <div className="navbar bg-base-100 border-b border-base-300 px-4 h-full">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <button onClick={toggleSidebar} className="btn btn-ghost btn-square lg:hidden flex-shrink-0">
             <Menu size={24} />

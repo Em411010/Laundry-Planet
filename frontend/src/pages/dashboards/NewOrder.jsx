@@ -276,8 +276,9 @@ const NewOrder = () => {
       <ClientSidebar user={user} isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
       <ClientNavbar toggleSidebar={toggleSidebar} />
 
-      <div className="lg:ml-64 pt-20 md:pt-32 mt-4 md:mt-12 p-4 md:p-8">
-        <div className="max-w-7xl mx-auto"><div className="flex items-center gap-3 mb-6 mt-2">
+      <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center gap-3 mb-6">
             <ShoppingCart className="h-8 w-8 text-primary" />
             <h1 className="text-3xl font-bold">New Order</h1>
           </div>{!profile?.profileComplete && (
@@ -764,4 +765,6 @@ const NewOrder = () => {
 }
 
 export default NewOrder
+
+
 
