@@ -307,7 +307,7 @@ const SalesReport = () => {
               {/* Main Charts Section */}
               {salesData.monthlyTrend && salesData.monthlyTrend.length > 0 && (
                 <div className="card bg-base-100 shadow-lg mb-8 border border-base-200">
-                  <div className="card-body">
+                  <div className="card-body overflow-hidden">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="card-title flex items-center gap-2 text-xl">
                         <div className="p-2 rounded-lg bg-emerald-100">
@@ -320,7 +320,7 @@ const SalesReport = () => {
                         Monthly Trend
                       </div>
                     </div>
-                    <div className="mt-4" style={{ width: '100%', height: 400 }}>
+                    <div className="w-full mt-4">
                       <ResponsiveContainer width="100%" height={400}>
                         <ComposedChart
                           data={salesData.monthlyTrend}
@@ -577,14 +577,14 @@ const SalesReport = () => {
               {/* Daily Revenue Trend */}
               {salesData.revenueTrend && salesData.revenueTrend.length > 0 && (
                 <div className="card bg-base-100 shadow-lg mb-8 border border-base-200">
-                  <div className="card-body">
+                  <div className="card-body overflow-hidden">
                     <h3 className="card-title flex items-center gap-2 mb-4">
                       <div className="p-2 rounded-lg bg-cyan-100">
                         <Calendar size={20} className="text-cyan-600" />
                       </div>
                       Daily Revenue Trend
                     </h3>
-                    <div className="mt-4" style={{ width: '100%', height: 300 }}>
+                    <div className="w-full mt-4">
                       <ResponsiveContainer width="100%" height={300}>
                         <AreaChart
                           data={salesData.revenueTrend.slice(-14)}

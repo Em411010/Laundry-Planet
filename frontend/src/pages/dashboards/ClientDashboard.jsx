@@ -7,7 +7,7 @@ import {
   Package, Clock, CheckCircle2, TruckIcon, 
   Calendar, DollarSign, FileText, Sparkles,
   ShoppingBag, ArrowRight, Truck, MapPin, Send,
-  MessageCircle, History, AlertCircle, CreditCard, XCircle
+  MessageCircle, History, AlertCircle, CreditCard, XCircle, X
 } from 'lucide-react'
 
 const ClientDashboard = () => {
@@ -30,6 +30,7 @@ const ClientDashboard = () => {
   const [chatSending, setChatSending] = useState(false)
   const [payingOrders, setPayingOrders] = useState(new Set())
   const [cancellingOrders, setCancellingOrders] = useState(new Set())
+  const [showOrderDetail, setShowOrderDetail] = useState(false)
 
   useEffect(() => {
     const userData = localStorage.getItem('user')
@@ -191,6 +192,12 @@ const ClientDashboard = () => {
 
   const handleViewOrder = async (order) => {
     setSelectedOrder(order)
+    setShowOrderDetail(true)
+  }
+
+  const handleCloseOrderDetail = () => {
+    setShowOrderDetail(false)
+    setSelectedOrder(null)
   }
 
   const canPayNow = (order) => {
@@ -623,137 +630,6 @@ const ClientDashboard = () => {
               <div className="card bg-base-100 shadow-xl">
                 <div className="card-body">
                   <h3 className="card-title text-lg flex items-center gap-2">
-                    <Truck size={20} className="text-primary" />
-                    Detailed Tracking
-                  </h3>
-                  <div className="divider my-2"></div>
-                  {selectedOrder ? (
-                    <div>
-                      <div className="alert alert-info mb-4">
-                        <AlertCircle size={20} />
-                        <div>
-                          <div className="font-semibold">{selectedOrder.orderNumber}</div>
-                          <div className="text-sm capitalize">{selectedOrder.status.replace(/_/g, ' ')}</div>
-                          {getEstimatedCompletion() && (
-                            <div className="text-xs mt-1">Est. Completion: {getEstimatedCompletion()}</div>
-                          )}
-                        </div>
-                      </div>
-                      <ul className="steps steps-vertical w-full text-sm">
-                        {getStatusSequence().map((step, i) => {
-                          const isCompleted = isStatusCompleted(step.status)
-                          const isCurrent = selectedOrder.status === step.status
-                          const StepIcon = step.icon
-                          const statusRecord = selectedOrder.statusHistory?.find(h => h.status === step.status)
-                          let timestampDisplay = null
-                          
-                          if (statusRecord && statusRecord.createdAt) {
-                            try {
-                              const date = new Date(statusRecord.createdAt)
-                              if (!isNaN(date.getTime())) {
-                                timestampDisplay = date.toLocaleString()
-                              }
-                            } catch {
-                              timestampDisplay = null
-                            }
-                          }
-                          
-                          return (
-                            <li key={i} className={`step ${isCompleted || isCurrent ? 'step-primary' : 'step-neutral'}`}>
-                              <div className={`text-left w-full p-2 rounded-lg transition-all ${isCurrent ? 'bg-primary/20 border-l-4 border-primary pl-3' : ''}`}>
-                                <div className="flex items-center gap-2">
-                                  <StepIcon size={14} className={isCurrent ? 'text-primary font-bold' : ''} />
-                                  <div>
-                                    <div className={`font-medium ${isCurrent ? 'text-primary font-bold text-base' : ''}`}>
-                                      {step.label}
-                                    </div>
-                                    {timestampDisplay && (
-                                      <div className="text-xs text-base-content/60">
-                                        {timestampDisplay}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            </li>
-                          )
-                        })}
-                      </ul>
-                    </div>
-                  ) : (
-                    <div className="py-8 text-center">
-                      <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-base-200 mb-3">
-                        <Clock size={24} className="text-base-content/40" />
-                      </div>
-                      <p className="text-sm text-base-content/60">Select an order to track progress</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="card bg-base-100 shadow-xl">
-                <div className="card-body">
-                  <h3 className="card-title text-lg flex items-center gap-2">
-                    <MessageCircle size={20} className="text-primary" />
-                    Chat with Staff
-                  </h3>
-                  <div className="divider my-2"></div>
-                  <div className="flex flex-col h-96">
-                    <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2">
-                      {chatLoading ? (
-                        <div className="flex items-center justify-center h-full">
-                          <span className="loading loading-spinner text-primary"></span>
-                        </div>
-                      ) : !selectedOrder ? (
-                        <div className="flex items-center justify-center h-full">
-                          <p className="text-sm text-base-content/60">Select an order to chat with assigned staff</p>
-                        </div>
-                      ) : chatMessages.length === 0 ? (
-                        <div className="flex items-center justify-center h-full">
-                          <p className="text-sm text-base-content/60">No messages yet. Start a conversation!</p>
-                        </div>
-                      ) : (
-                        chatMessages.map((msg) => {
-                          const isYou = msg.senderRole === 'customer'
-                          const senderName = msg.sender?.firstName ? `${msg.sender.firstName} ${msg.sender.lastName || ''}` : 'Unknown'
-                          return (
-                            <div key={msg._id} className={`flex ${isYou ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-xs p-3 rounded-lg ${isYou ? 'bg-primary text-primary-content' : 'bg-base-200'}`}>
-                                <p className="text-xs font-semibold mb-1">{isYou ? 'You' : senderName}</p>
-                                <p className="text-sm">{msg.content}</p>
-                                <p className="text-xs opacity-75 mt-1">{new Date(msg.createdAt).toLocaleTimeString()}</p>
-                              </div>
-                            </div>
-                          )
-                        })
-                      )}
-                    </div>
-
-                    <div className="flex gap-2">
-                      <input 
-                        type="text"
-                        value={newMessage}
-                        onChange={(e) => setNewMessage(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && !chatSending && handleSendMessage()}
-                        placeholder={selectedOrder ? "Type your message..." : "Select an order first..."}
-                        disabled={!selectedOrder || chatSending}
-                        className="input input-bordered flex-1 input-sm disabled:opacity-50"
-                      />
-                      <button 
-                        onClick={handleSendMessage}
-                        disabled={!selectedOrder || !newMessage.trim() || chatSending}
-                        className="btn btn-primary btn-sm gap-1 disabled:opacity-50"
-                      >
-                        {chatSending ? <span className="loading loading-spinner loading-sm"></span> : <Send size={16} />}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="card bg-base-100 shadow-xl">
-                <div className="card-body">
-                  <h3 className="card-title text-lg flex items-center gap-2">
                     <DollarSign size={20} className="text-primary" />
                     Current Pricing
                   </h3>
@@ -824,6 +700,125 @@ const ClientDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Order Detail Modal */}
+      {showOrderDetail && selectedOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-base-100 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-4 border-b border-base-300 sticky top-0 bg-base-100 z-10">
+              <div className="flex items-center gap-2">
+                <Package size={20} className="text-primary" />
+                <span className="font-bold text-lg">Order {selectedOrder.orderNumber}</span>
+                <span className="badge badge-primary capitalize">{selectedOrder.status.replace(/_/g, ' ')}</span>
+              </div>
+              <button onClick={handleCloseOrderDetail} className="btn btn-ghost btn-square btn-sm">
+                <X size={20} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 divide-y md:divide-y-0 md:divide-x divide-base-300">
+              {/* Detailed Tracking */}
+              <div className="p-5">
+                <h3 className="font-bold text-base flex items-center gap-2 mb-3">
+                  <Truck size={18} className="text-primary" />
+                  Detailed Tracking
+                </h3>
+                <div className="alert alert-info mb-4 py-2">
+                  <AlertCircle size={18} />
+                  <div>
+                    <div className="font-semibold text-sm">{selectedOrder.orderNumber}</div>
+                    <div className="text-xs capitalize">{selectedOrder.status.replace(/_/g, ' ')}</div>
+                    {getEstimatedCompletion() && (
+                      <div className="text-xs mt-1">Est. Completion: {getEstimatedCompletion()}</div>
+                    )}
+                  </div>
+                </div>
+                <ul className="steps steps-vertical w-full text-sm">
+                  {getStatusSequence().map((step, i) => {
+                    const isCompleted = isStatusCompleted(step.status)
+                    const isCurrent = selectedOrder.status === step.status
+                    const StepIcon = step.icon
+                    const statusRecord = selectedOrder.statusHistory?.find(h => h.status === step.status)
+                    let timestampDisplay = null
+                    if (statusRecord && statusRecord.createdAt) {
+                      try {
+                        const date = new Date(statusRecord.createdAt)
+                        if (!isNaN(date.getTime())) timestampDisplay = date.toLocaleString()
+                      } catch { timestampDisplay = null }
+                    }
+                    return (
+                      <li key={i} className={`step ${isCompleted || isCurrent ? 'step-primary' : 'step-neutral'}`}>
+                        <div className={`text-left w-full p-2 rounded-lg transition-all ${isCurrent ? 'bg-primary/20 border-l-4 border-primary pl-3' : ''}`}>
+                          <div className="flex items-center gap-2">
+                            <StepIcon size={14} className={isCurrent ? 'text-primary font-bold' : ''} />
+                            <div>
+                              <div className={`font-medium ${isCurrent ? 'text-primary font-bold text-base' : ''}`}>{step.label}</div>
+                              {timestampDisplay && <div className="text-xs text-base-content/60">{timestampDisplay}</div>}
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </div>
+
+              {/* Chat with Staff */}
+              <div className="p-5 flex flex-col">
+                <h3 className="font-bold text-base flex items-center gap-2 mb-3">
+                  <MessageCircle size={18} className="text-primary" />
+                  Chat with Staff
+                </h3>
+                <div className="flex flex-col flex-1" style={{minHeight: '320px'}}>
+                  <div className="flex-1 overflow-y-auto space-y-3 mb-3 pr-1" style={{maxHeight: '280px'}}>
+                    {chatLoading ? (
+                      <div className="flex items-center justify-center h-full py-8">
+                        <span className="loading loading-spinner text-primary"></span>
+                      </div>
+                    ) : chatMessages.length === 0 ? (
+                      <div className="flex items-center justify-center h-full py-8">
+                        <p className="text-sm text-base-content/60">No messages yet. Start a conversation!</p>
+                      </div>
+                    ) : (
+                      chatMessages.map((msg) => {
+                        const isYou = msg.senderRole === 'customer'
+                        const senderName = msg.sender?.firstName ? `${msg.sender.firstName} ${msg.sender.lastName || ''}` : 'Unknown'
+                        return (
+                          <div key={msg._id} className={`flex ${isYou ? 'justify-end' : 'justify-start'}`}>
+                            <div className={`max-w-xs p-3 rounded-lg ${isYou ? 'bg-primary text-primary-content' : 'bg-base-200'}`}>
+                              <p className="text-xs font-semibold mb-1">{isYou ? 'You' : senderName}</p>
+                              <p className="text-sm">{msg.content}</p>
+                              <p className="text-xs opacity-75 mt-1">{new Date(msg.createdAt).toLocaleTimeString()}</p>
+                            </div>
+                          </div>
+                        )
+                      })
+                    )}
+                  </div>
+                  <div className="flex gap-2 mt-auto">
+                    <input
+                      type="text"
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && !chatSending && handleSendMessage()}
+                      placeholder="Type your message..."
+                      disabled={chatSending}
+                      className="input input-bordered flex-1 input-sm"
+                    />
+                    <button
+                      onClick={handleSendMessage}
+                      disabled={!newMessage.trim() || chatSending}
+                      className="btn btn-primary btn-sm gap-1 disabled:opacity-50"
+                    >
+                      {chatSending ? <span className="loading loading-spinner loading-sm"></span> : <Send size={16} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
