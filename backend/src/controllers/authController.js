@@ -356,7 +356,7 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     // Send OTP via email
-    await sendOTPEmail(user.email, otp, user.firstName);
+    await sendOTPEmail(user.email, user.firstName, otp);
 
     console.log(`Password reset OTP sent to ${email}: ${otp}`);
 
