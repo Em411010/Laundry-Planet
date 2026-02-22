@@ -58,7 +58,7 @@ const MyTasks = () => {
   const getStatusDisplay = (status) => {
     const statusMap = {
       'pending': 'Pending',
-      'accepted': 'To Be Pickup',
+      'accepted': 'Ready for Pickup',
       'picked-up': 'Picked Up - On the Store',
       'in-progress': 'On Going Services',
       'processed': 'Services Done',

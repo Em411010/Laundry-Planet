@@ -152,7 +152,7 @@ const TrackOrders = () => {
   const getStatusDisplay = (status) => {
     const displays = {
       pending: 'Pending',
-      accepted: 'Accepted',
+      accepted: 'Ready for Pickup',
       'picked-up': 'Picked Up',
       'in-progress': 'In Progress',
       processed: 'Processed',

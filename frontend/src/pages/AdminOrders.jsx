@@ -922,7 +922,7 @@ const AdminOrders = () => {
                   onChange={(e) => setReviveStatus(e.target.value)}
                 >
                   <option value="pending">Pending</option>
-                  <option value="accepted">Accepted</option>
+                  <option value="accepted">Ready for Pickup</option>
                   <option value="picked-up">Picked Up</option>
                   <option value="in-progress">In Progress</option>
                   <option value="ready-for-delivery">Ready for Delivery</option>

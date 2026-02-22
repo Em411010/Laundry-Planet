@@ -152,7 +152,7 @@ const ClientDashboard = () => {
   const getStatusSequence = () => {
     return [
      { status: 'pending', label: 'Order Submitted', icon: Package },
-      { status: 'accepted', label: 'Awaiting Pickup', icon: Clock },
+      { status: 'accepted', label: 'Ready for Pickup', icon: Clock },
       { status: 'picked-up', label: 'On the Shop', icon: TruckIcon },
       { status: 'in-progress', label: 'Processing', icon: MapPin },
       { status: 'processed', label: 'Services Done', icon: Package },
@@ -323,7 +323,7 @@ const ClientDashboard = () => {
                 <div className="stat-value text-secondary">
                   {orders.filter(o => ['pending', 'processing'].includes(o.status)).length}
                 </div>
-                <div className="stat-desc">Awaiting pickup</div>
+                <div className="stat-desc">Ready for Pickup</div>
               </div>
             </div>
 

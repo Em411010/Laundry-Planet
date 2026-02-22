@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bell, CheckCheck } from 'lucide-react'
 import { useSocket } from '../contexts/SocketContext'
 import { notificationAPI } from '../services/api'
@@ -10,6 +11,29 @@ const typeIcon = {
   staff_assigned: '👤',
   order_cancelled: '❌',
   chat_message: '💬'
+}
+
+const getNotificationRoute = (notif, role) => {
+  const { type, orderId } = notif
+  if (role === 'customer') {
+    if (type === 'order_status' || type === 'order_cancelled' || type === 'staff_assigned') {
+      return '/dashboard/client/track-orders'
+    }
+    if (type === 'chat_message') return '/dashboard/client/support'
+    return '/dashboard/client'
+  }
+  if (role === 'staff') {
+    if (type === 'new_task' || type === 'staff_assigned') return '/dashboard/staff/my-tasks'
+    if (type === 'new_order' || type === 'order_status' || type === 'order_cancelled') return '/dashboard/staff/orders'
+    if (type === 'chat_message') return '/dashboard/staff/orders'
+    return '/dashboard/staff'
+  }
+  if (role === 'admin') {
+    if (type === 'new_order' || type === 'order_status' || type === 'order_cancelled') return '/dashboard/admin/orders'
+    if (type === 'chat_message') return '/dashboard/admin/support'
+    return '/dashboard/admin'
+  }
+  return null
 }
 
 const formatTime = (dateStr) => {
@@ -27,12 +51,17 @@ const formatTime = (dateStr) => {
 
 const NotificationBell = () => {
   const { notifications: socketNotifications } = useSocket()
+  const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(false)
   const dropdownRef = useRef(null)
   const prevSocketLengthRef = useRef(0)
+
+  const userRole = (() => {
+    try { return JSON.parse(localStorage.getItem('user'))?.role || null } catch { return null }
+  })()
 
   // Fetch on mount
   useEffect(() => {
@@ -95,6 +124,13 @@ const NotificationBell = () => {
     }
   }
 
+  const handleNotificationClick = async (notif) => {
+    if (!notif.isRead) await handleMarkAsRead(notif._id)
+    setIsOpen(false)
+    const route = getNotificationRoute(notif, userRole)
+    if (route) navigate(route)
+  }
+
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Bell Button */}
@@ -145,7 +181,7 @@ const NotificationBell = () => {
               notifications.map((notif) => (
                 <div
                   key={notif._id}
-                  onClick={() => !notif.isRead && handleMarkAsRead(notif._id)}
+                  onClick={() => handleNotificationClick(notif)}
                   className={`px-4 py-3 cursor-pointer hover:bg-base-200 transition-colors ${
                     !notif.isRead ? 'bg-primary/5' : ''
                   }`}
