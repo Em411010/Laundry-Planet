@@ -17,7 +17,7 @@ const getNotificationRoute = (notif, role) => {
   const { type, orderId } = notif
   if (role === 'customer') {
     if (type === 'order_status' || type === 'order_cancelled' || type === 'staff_assigned') {
-      return '/dashboard/client/track-orders'
+      return '/dashboard/client'
     }
     if (type === 'chat_message') return '/dashboard/client/support'
     return '/dashboard/client'
@@ -128,7 +128,7 @@ const NotificationBell = () => {
     if (!notif.isRead) await handleMarkAsRead(notif._id)
     setIsOpen(false)
     const route = getNotificationRoute(notif, userRole)
-    if (route) navigate(route)
+    if (route) navigate(route, { state: { openOrderId: notif.orderId || null, _ts: Date.now() } })
   }
 
   return (

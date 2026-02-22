@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { ClientSidebar, ClientNavbar } from '../components/navbars/ClientNavbar';
 import { orderAPI, messageAPI, paymentAPI } from '../services/api';
@@ -22,6 +22,7 @@ import {
 
 const TrackOrders = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { socket, isConnected } = useSocket();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -52,6 +53,13 @@ const TrackOrders = () => {
       loadOrders();
     }
   }, [user]);
+
+  // Auto-open order detail from notification click
+  useEffect(() => {
+    if (location.state?.openOrderId) {
+      openOrderDetail(location.state.openOrderId);
+    }
+  }, [location.key]);
 
   // Setup real-time order updates
   useEffect(() => {

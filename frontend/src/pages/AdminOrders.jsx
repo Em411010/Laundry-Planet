@@ -72,6 +72,13 @@ const AdminOrders = () => {
     }
   }, [user])
 
+  // Auto-open order detail from notification click
+  useEffect(() => {
+    if (location.state?.openOrderId) {
+      openOrderById(location.state.openOrderId)
+    }
+  }, [location.key])
+
   const fetchOrders = async () => {
     try {
       setLoading(true)
@@ -150,6 +157,15 @@ const AdminOrders = () => {
   const handleViewDetails = (order) => {
     setSelectedOrder(order)
     setShowDetailModal(true)
+  }
+
+  const openOrderById = async (orderId) => {
+    try {
+      const response = await orderAPI.getOrderById(orderId)
+      handleViewDetails(response.data)
+    } catch (err) {
+      toast.error('Failed to load order details')
+    }
   }
 
   const handleCancelOrder = async () => {
