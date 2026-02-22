@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import { ClientSidebar, ClientNavbar } from '../../components/navbars/ClientNavbar'
 import { orderAPI, serviceAPI, messageAPI, settingsAPI, paymentAPI } from '../../services/api'
 import toast from 'react-hot-toast'
@@ -13,6 +13,7 @@ import {
 const ClientDashboard = () => {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+  const location = useLocation()
   const [user, setUser] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [orders, setOrders] = useState([])
@@ -151,14 +152,13 @@ const ClientDashboard = () => {
 
   const getStatusSequence = () => {
     return [
-     { status: 'pending', label: 'Order Submitted', icon: Package },
+      { status: 'pending', label: 'Order Submitted', icon: Package },
       { status: 'accepted', label: 'Ready for Pickup', icon: Clock },
       { status: 'picked-up', label: 'On the Shop', icon: TruckIcon },
       { status: 'in-progress', label: 'Processing', icon: MapPin },
       { status: 'processed', label: 'Services Done', icon: Package },
       { status: 'for-delivery', label: 'Ready for Delivery', icon: CheckCircle2 },
-      { status: 'delivered', label: 'Delivered', icon: TruckIcon },
-      { status: 'cancelled', label: 'Cancelled', icon: CheckCircle2 }
+      { status: 'delivered', label: 'Delivered', icon: TruckIcon }
     ]
   }
 
@@ -194,6 +194,22 @@ const ClientDashboard = () => {
     setSelectedOrder(order)
     setShowOrderDetail(true)
   }
+
+  const openOrderById = async (orderId) => {
+    try {
+      const res = await orderAPI.getOrderById(orderId)
+      if (res.data) handleViewOrder(res.data)
+    } catch (error) {
+      console.error('Failed to open order from notification:', error)
+    }
+  }
+
+  // Auto-open order detail from notification click
+  useEffect(() => {
+    if (location.state?.openOrderId) {
+      openOrderById(location.state.openOrderId)
+    }
+  }, [location.key])
 
   const handleCloseOrderDetail = () => {
     setShowOrderDetail(false)
@@ -733,6 +749,13 @@ const ClientDashboard = () => {
                     )}
                   </div>
                 </div>
+                {selectedOrder.status === 'cancelled' ? (
+                  <div className="flex flex-col items-center justify-center py-6 gap-3 text-center">
+                    <XCircle size={48} className="text-error" />
+                    <p className="font-bold text-error text-lg">Order Cancelled</p>
+                    <p className="text-sm text-base-content/60">This order has been cancelled and is no longer being processed.</p>
+                  </div>
+                ) : (
                 <ul className="steps steps-vertical w-full text-sm max-h-64 overflow-y-auto">
                   {getStatusSequence().map((step, i) => {
                     const isCompleted = isStatusCompleted(step.status)
@@ -761,6 +784,7 @@ const ClientDashboard = () => {
                     )
                   })}
                 </ul>
+                )}
               </div>
 
               {/* Chat with Staff */}

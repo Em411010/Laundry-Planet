@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Package, Clock, CheckCircle, AlertCircle, Weight, Camera, MessageSquare, ChevronRight } from 'lucide-react';
 import { StaffSidebar, StaffNavbar } from '../components/navbars/StaffNavbar';
 import { orderAPI } from '../services/api';
@@ -7,6 +7,7 @@ import OrderChat from '../components/OrderChat';
 
 const MyTasks = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('pending');
@@ -38,6 +39,13 @@ const MyTasks = () => {
       fetchMyTasks();
     }
   }, [user]);
+
+  // Auto-open order detail from notification click
+  useEffect(() => {
+    if (location.state?.openOrderId) {
+      openOrderDetail(location.state.openOrderId);
+    }
+  }, [location.key]);
 
   const fetchMyTasks = async () => {
     try {

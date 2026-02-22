@@ -75,6 +75,13 @@ const StaffOrders = () => {
     }
   }, [user])
 
+  // Auto-open order detail from notification click
+  useEffect(() => {
+    if (location.state?.openOrderId) {
+      openOrderById(location.state.openOrderId)
+    }
+  }, [location.key])
+
   const fetchOrders = async () => {
     try {
       setLoading(true)
@@ -304,6 +311,10 @@ const StaffOrders = () => {
     }
     
     handleModifyServices(services)
+  }
+
+  const openOrderById = async (orderId) => {
+    await openOrderDetail({ _id: orderId })
   }
 
   const openOrderDetail = async (order) => {
