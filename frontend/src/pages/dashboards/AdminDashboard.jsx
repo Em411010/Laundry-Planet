@@ -652,14 +652,14 @@ const AdminDashboard = () => {
                         </button>
                         <button 
                           className="btn btn-outline btn-sm h-auto py-3 flex-col gap-1"
-                          onClick={() => navigate('/dashboard/admin/sales-report')}
+                          onClick={() => navigate('/dashboard/admin/reports/sales')}
                         >
                           <BarChart3 size={18} />
                           <span className="text-xs">Sales</span>
                         </button>
                         <button 
                           className="btn btn-outline btn-sm h-auto py-3 flex-col gap-1"
-                          onClick={() => navigate('/dashboard/admin/walk-in')}
+                          onClick={() => navigate('/dashboard/admin/walk-in-order')}
                         >
                           <Truck size={18} />
                           <span className="text-xs">Walk-in</span>
