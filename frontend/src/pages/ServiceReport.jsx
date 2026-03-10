@@ -12,7 +12,7 @@ import {
   Users,
   Loader,
   AlertCircle,
-  Download,
+  Printer,
   Filter,
   Star,
   BarChart3,
@@ -91,33 +91,160 @@ const ServiceReport = () => {
     }
   }
 
-  const exportToCSV = () => {
+  const handlePrint = () => {
     if (!serviceData) return
 
-    let csvContent = "data:text/csv;charset=utf-8,"
-    csvContent += "Service Report\n\n"
-    csvContent += `Period: ${filterPeriod}\n`
-    csvContent += `Generated: ${new Date().toLocaleString()}\n\n`
-    
-    csvContent += "Summary\n"
-    csvContent += `Total Service Orders,${serviceData.summary.totalServiceOrders}\n`
-    csvContent += `Total Service Revenue,${serviceData.summary.totalServiceRevenue}\n`
-    csvContent += `Active Services,${serviceData.summary.activeServices}\n`
-    csvContent += `Avg Orders Per Service,${serviceData.summary.avgOrdersPerService}\n\n`
+    const periodLabel = filterPeriod === 'custom' 
+      ? `${customDateRange.startDate} to ${customDateRange.endDate}` 
+      : filterPeriod === 'all' ? 'All Time' : filterPeriod.charAt(0).toUpperCase() + filterPeriod.slice(1)
 
-    csvContent += "Top Services\n"
-    csvContent += "Service Name,Total Orders,Revenue,Success Rate\n"
-    serviceData.servicePopularity.topServices.forEach(service => {
-      csvContent += `${service.name},${service.totalOrders},${service.totalRevenue},${service.successRate}%\n`
-    })
+    const printWindow = window.open('', '_blank')
+    printWindow.document.write(`
+      <html>
+      <head>
+        <title>Service Report - Laundry Planet</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 40px; max-width: 800px; margin: 0 auto; font-size: 11px; line-height: 1.4; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0ea5e9; padding-bottom: 12px; margin-bottom: 20px; }
+          .header-left { display: flex; align-items: center; gap: 12px; }
+          .logo-circle { width: 40px; height: 40px; background: #0ea5e9; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; }
+          .company-name { font-size: 20px; font-weight: 700; color: #0ea5e9; }
+          .report-title { font-size: 11px; color: #666; }
+          .header-right { text-align: right; font-size: 10px; color: #666; }
+          .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+          .summary-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; text-align: center; }
+          .summary-card .label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+          .summary-card .value { font-size: 16px; font-weight: 700; color: #0ea5e9; }
+          .summary-card .sub { font-size: 9px; color: #999; margin-top: 2px; }
+          .section { margin-bottom: 18px; }
+          .section-title { font-size: 12px; font-weight: 600; color: #333; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 8px; }
+          table { width: 100%; border-collapse: collapse; font-size: 10px; }
+          th { background: #f3f4f6; padding: 6px 8px; text-align: left; font-weight: 600; color: #374151; border-bottom: 1px solid #d1d5db; }
+          td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
+          tr:nth-child(even) { background: #fafafa; }
+          .text-right { text-align: right; }
+          .text-center { text-align: center; }
+          .text-green { color: #16a34a; font-weight: 600; }
+          .text-blue { color: #0ea5e9; font-weight: 600; }
+          .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+          .progress-bar { background: #e5e7eb; border-radius: 4px; height: 6px; overflow: hidden; display: inline-block; width: 60px; vertical-align: middle; margin-right: 6px; }
+          .progress-fill { height: 100%; background: #16a34a; border-radius: 4px; }
+          .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 9px; color: #999; }
+          @media print { body { padding: 20px; } @page { size: A4; margin: 15mm; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="header-left">
+            <div class="logo-circle">LP</div>
+            <div>
+              <div class="company-name">Laundry Planet</div>
+              <div class="report-title">Service Report</div>
+            </div>
+          </div>
+          <div class="header-right">
+            <div>Period: ${periodLabel}</div>
+            <div>Generated: ${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          </div>
+        </div>
 
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `service_report_${new Date().toISOString().split('T')[0]}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="label">Total Service Orders</div>
+            <div class="value">${serviceData.summary.totalServiceOrders}</div>
+            <div class="sub">${serviceData.summary.activeServices} active services</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Total Revenue</div>
+            <div class="value">${formatCurrency(serviceData.summary.totalServiceRevenue)}</div>
+            <div class="sub">From all services</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Avg Orders/Service</div>
+            <div class="value">${serviceData.summary.avgOrdersPerService}</div>
+            <div class="sub">Service utilization</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Avg Success Rate</div>
+            <div class="value">${serviceData.performanceMetrics.averageSuccessRate}%</div>
+            <div class="sub">Completion rate</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Top Services by Popularity</div>
+          <table>
+            <tr><th>#</th><th>Service</th><th class="text-right">Orders</th><th class="text-right">Revenue</th><th class="text-right">Success Rate</th></tr>
+            ${serviceData.servicePopularity.topServices.map((s, i) => 
+              `<tr><td>${i + 1}</td><td>${s.name}</td><td class="text-right">${s.totalOrders}</td><td class="text-right text-green">${formatCurrency(s.totalRevenue)}</td><td class="text-right">${s.successRate}%</td></tr>`
+            ).join('')}
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Performance Metrics - Success Rates</div>
+          <table>
+            <tr><th>Service</th><th class="text-right">Total</th><th class="text-right">Completed</th><th class="text-right">Pending</th><th class="text-right">Success Rate</th></tr>
+            ${serviceData.performanceMetrics.topSuccessRateServices.map(s => 
+              `<tr><td>${s.name}</td><td class="text-right">${s.totalOrders}</td><td class="text-right text-green">${s.completedOrders}</td><td class="text-right">${s.pendingOrders}</td><td class="text-right text-green">${s.successRate}%</td></tr>`
+            ).join('')}
+          </table>
+        </div>
+
+        <div class="two-col">
+          <div class="section">
+            <div class="section-title">Revenue Contribution</div>
+            <table>
+              <tr><th>Service</th><th class="text-right">Revenue</th><th class="text-right">Share</th></tr>
+              ${serviceData.revenueContribution.revenueByService.slice(0, 10).map(s => 
+                `<tr><td>${s.name}</td><td class="text-right text-green">${formatCurrency(s.revenue)}</td><td class="text-right">${s.percentage}%</td></tr>`
+              ).join('')}
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Peak Demand Times</div>
+            <table>
+              <tr><th>Service</th><th class="text-right">Peak Hour</th><th class="text-right">Peak Day</th></tr>
+              ${serviceData.demandPatterns.peakHours.map(s => 
+                `<tr><td>${s.name}</td><td class="text-right text-blue">${s.peakHour}</td><td class="text-right">${s.peakDay}</td></tr>`
+              ).join('')}
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Staff Workload Distribution</div>
+          <table>
+            <tr><th>Staff Member</th><th class="text-right">Total Orders</th><th class="text-right">Pickup</th><th class="text-right">Processing</th><th class="text-right">Delivery</th></tr>
+            ${serviceData.staffEfficiency.workloadDistribution.map(s => 
+              `<tr><td>${s.name}</td><td class="text-right">${s.totalOrders}</td><td class="text-right">${s.roleDistribution.pickup}</td><td class="text-right">${s.roleDistribution.processing}</td><td class="text-right">${s.roleDistribution.delivery}</td></tr>`
+            ).join('')}
+          </table>
+        </div>
+
+        ${serviceData.demandPatterns.monthlyTrend && serviceData.demandPatterns.monthlyTrend.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Monthly Service Trends</div>
+          <table>
+            <tr><th>Month</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+            ${serviceData.demandPatterns.monthlyTrend.slice(-12).map(t => 
+              `<tr><td>${t.month}</td><td class="text-right">${t.totalOrders}</td><td class="text-right text-green">${formatCurrency(t.totalRevenue)}</td></tr>`
+            ).join('')}
+          </table>
+        </div>` : ''}
+
+        <div class="footer">
+          Laundry Planet &mdash; Service Report &mdash; Confidential &mdash; Generated on ${new Date().toLocaleString('en-PH')}
+        </div>
+      </body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.onload = () => {
+      printWindow.print()
+    }
   }
 
   const formatCurrency = (amount) => {
@@ -148,12 +275,12 @@ const ServiceReport = () => {
                 </div>
               </div>
               <button
-                onClick={exportToCSV}
+                onClick={handlePrint}
                 className="btn btn-primary gap-2"
                 disabled={!serviceData || loading}
               >
-                <Download size={18} />
-                Export CSV
+                <Printer size={18} />
+                Export PDF / Print
               </button>
             </div>
 
