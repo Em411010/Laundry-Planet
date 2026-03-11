@@ -11,7 +11,7 @@ import {
   Calendar,
   Loader,
   AlertCircle,
-  Download,
+  Printer,
   Filter,
   CheckCircle,
   BarChart3,
@@ -113,34 +113,149 @@ const SalesReport = () => {
     }
   }
 
-  const exportToCSV = () => {
+  const handlePrint = () => {
     if (!salesData) return
 
-    let csvContent = "data:text/csv;charset=utf-8,"
-    csvContent += "Sales Report\n\n"
-    csvContent += `Period: ${filterPeriod}\n`
-    csvContent += `Generated: ${new Date().toLocaleString()}\n\n`
-    
-    csvContent += "Summary\n"
-    csvContent += `Total Revenue,${salesData.summary.totalRevenue}\n`
-    csvContent += `Completed Revenue,${salesData.summary.completedRevenue}\n`
-    csvContent += `Pending Revenue,${salesData.summary.pendingRevenue}\n`
-    csvContent += `Average Order Value,${salesData.summary.averageOrderValue}\n`
-    csvContent += `Total Orders,${salesData.summary.totalOrders}\n\n`
+    const periodLabel = filterPeriod === 'custom' 
+      ? `${customDateRange.startDate} to ${customDateRange.endDate}` 
+      : filterPeriod.charAt(0).toUpperCase() + filterPeriod.slice(1)
 
-    csvContent += "Top Services\n"
-    csvContent += "Service Name,Revenue,Quantity,Orders\n"
-    salesData.topServices.forEach(service => {
-      csvContent += `${service.name},${service.revenue},${service.quantity},${service.orders}\n`
-    })
+    const printWindow = window.open('', '_blank')
+    printWindow.document.write(`
+      <html>
+      <head>
+        <title>Sales Report - Laundry Planet</title>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; color: #1a1a1a; padding: 40px; max-width: 800px; margin: 0 auto; font-size: 11px; line-height: 1.4; }
+          .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 12px; margin-bottom: 20px; }
+          .header-left { display: flex; align-items: center; gap: 12px; }
+          .logo-circle { width: 40px; height: 40px; background: #16a34a; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px; }
+          .company-name { font-size: 20px; font-weight: 700; color: #16a34a; }
+          .report-title { font-size: 11px; color: #666; }
+          .header-right { text-align: right; font-size: 10px; color: #666; }
+          .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+          .summary-card { border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; text-align: center; }
+          .summary-card .label { font-size: 9px; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+          .summary-card .value { font-size: 16px; font-weight: 700; color: #16a34a; }
+          .summary-card .sub { font-size: 9px; color: #999; margin-top: 2px; }
+          .section { margin-bottom: 18px; }
+          .section-title { font-size: 12px; font-weight: 600; color: #333; border-bottom: 1px solid #e5e7eb; padding-bottom: 4px; margin-bottom: 8px; }
+          table { width: 100%; border-collapse: collapse; font-size: 10px; }
+          th { background: #f3f4f6; padding: 6px 8px; text-align: left; font-weight: 600; color: #374151; border-bottom: 1px solid #d1d5db; }
+          td { padding: 5px 8px; border-bottom: 1px solid #f3f4f6; }
+          tr:nth-child(even) { background: #fafafa; }
+          .text-right { text-align: right; }
+          .text-center { text-align: center; }
+          .text-green { color: #16a34a; font-weight: 600; }
+          .text-amber { color: #d97706; font-weight: 600; }
+          .text-red { color: #dc2626; font-weight: 600; }
+          .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+          .footer { margin-top: 30px; padding-top: 10px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 9px; color: #999; }
+          @media print { body { padding: 20px; } @page { size: A4; margin: 15mm; } }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="header-left">
+            <div class="logo-circle">LP</div>
+            <div>
+              <div class="company-name">Laundry Planet</div>
+              <div class="report-title">Sales Report</div>
+            </div>
+          </div>
+          <div class="header-right">
+            <div>Period: ${periodLabel}</div>
+            <div>Generated: ${new Date().toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+          </div>
+        </div>
 
-    const encodedUri = encodeURI(csvContent)
-    const link = document.createElement("a")
-    link.setAttribute("href", encodedUri)
-    link.setAttribute("download", `sales_report_${new Date().toISOString().split('T')[0]}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="label">Total Revenue</div>
+            <div class="value">${formatCurrency(salesData.summary.totalRevenue)}</div>
+            <div class="sub">${salesData.summary.totalOrders} orders</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Completed Revenue</div>
+            <div class="value">${formatCurrency(salesData.summary.completedRevenue)}</div>
+            <div class="sub">${salesData.orderStats.completed} completed</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Avg Order Value</div>
+            <div class="value">${formatCurrency(salesData.summary.averageOrderValue)}</div>
+            <div class="sub">Per transaction</div>
+          </div>
+          <div class="summary-card">
+            <div class="label">Completion Rate</div>
+            <div class="value">${salesData.orderStats.completionRate}%</div>
+            <div class="sub">${salesData.orderStats.pending} pending</div>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="section">
+            <div class="section-title">Order Status Breakdown</div>
+            <table>
+              <tr><td>Completed</td><td class="text-right text-green">${salesData.orderStats.completed}</td></tr>
+              <tr><td>Pending</td><td class="text-right text-amber">${salesData.orderStats.pending}</td></tr>
+              <tr><td>Cancelled</td><td class="text-right text-red">${salesData.orderStats.cancelled}</td></tr>
+              <tr style="font-weight:600"><td>Total</td><td class="text-right">${salesData.orderStats.total}</td></tr>
+            </table>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Payment Methods</div>
+            <table>
+              <tr><th>Method</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+              ${Object.entries(salesData.paymentMethods).map(([method, data]) => 
+                `<tr><td style="text-transform:capitalize">${method}</td><td class="text-right">${data.count}</td><td class="text-right text-green">${formatCurrency(data.revenue)}</td></tr>`
+              ).join('')}
+            </table>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Payment Status</div>
+          <table>
+            <tr><th>Status</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+            ${Object.entries(salesData.paymentStatus).map(([status, data]) => 
+              `<tr><td style="text-transform:capitalize">${status}</td><td class="text-right">${data.count}</td><td class="text-right text-green">${formatCurrency(data.revenue)}</td></tr>`
+            ).join('')}
+          </table>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Top Performing Services</div>
+          <table>
+            <tr><th>#</th><th>Service</th><th class="text-right">Units</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+            ${salesData.topServices.map((s, i) => 
+              `<tr><td>${i + 1}</td><td>${s.name}</td><td class="text-right">${s.quantity}</td><td class="text-right">${s.orders}</td><td class="text-right text-green">${formatCurrency(s.revenue)}</td></tr>`
+            ).join('')}
+          </table>
+        </div>
+
+        ${salesData.monthlyTrend && salesData.monthlyTrend.length > 0 ? `
+        <div class="section">
+          <div class="section-title">Monthly Performance</div>
+          <table>
+            <tr><th>Month</th><th class="text-right">Orders</th><th class="text-right">Revenue</th><th class="text-right">Avg Order Value</th></tr>
+            ${salesData.monthlyTrend.map(m => 
+              `<tr><td>${m.month}</td><td class="text-right">${m.orders}</td><td class="text-right text-green">${formatCurrency(m.revenue)}</td><td class="text-right">${formatCurrency(m.orders > 0 ? m.revenue / m.orders : 0)}</td></tr>`
+            ).join('')}
+          </table>
+        </div>` : ''}
+
+        <div class="footer">
+          Laundry Planet &mdash; Sales Report &mdash; Confidential &mdash; Generated on ${new Date().toLocaleString('en-PH')}
+        </div>
+      </body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.onload = () => {
+      printWindow.print()
+    }
   }
 
   const formatCurrency = (amount) => {
@@ -171,12 +286,12 @@ const SalesReport = () => {
                 </div>
               </div>
               <button
-                onClick={exportToCSV}
+                onClick={handlePrint}
                 className="btn btn-primary gap-2"
                 disabled={!salesData || loading}
               >
-                <Download size={18} />
-                Export CSV
+                <Printer size={18} />
+                Export PDF / Print
               </button>
             </div>
 
