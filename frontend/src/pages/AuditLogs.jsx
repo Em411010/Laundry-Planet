@@ -230,13 +230,13 @@ const AuditLogs = () => {
                       <option value="user_login">User Login</option>
                       <option value="email_verified">Email Verified</option>
                     </optgroup>
-                    <optgroup label="Orders">
-                      <option value="order_created">Order Created</option>
-                      <option value="walk_in_order_created">Walk-in Order Created</option>
-                      <option value="order_status_updated">Order Status Updated</option>
-                      <option value="order_accepted">Order Accepted</option>
-                      <option value="order_cancelled">Order Cancelled</option>
-                      <option value="order_revived">Order Revived</option>
+                    <optgroup label="Books">
+                      <option value="order_created">Book Created</option>
+                      <option value="walk_in_order_created">Walk-in Book Created</option>
+                      <option value="order_status_updated">Book Status Updated</option>
+                      <option value="order_accepted">Book Accepted</option>
+                      <option value="order_cancelled">Book Cancelled</option>
+                      <option value="order_revived">Book Revived</option>
                       <option value="order_weight_updated">Weight Updated</option>
                       <option value="order_image_added">Image Added</option>
                       <option value="staff_assigned">Staff Assigned</option>

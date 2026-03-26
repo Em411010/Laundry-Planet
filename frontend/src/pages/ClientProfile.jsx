@@ -215,7 +215,7 @@ const ClientProfile = () => {
             <AlertCircle className="h-5 w-5" />
             <div>
               <span className="font-semibold">Complete your profile</span>
-              <div className="text-sm">Please provide your contact information and address to place orders.</div>
+              <div className="text-sm">Please provide your contact information and address to place books.</div>
             </div>
           </div>
 

@@ -93,7 +93,7 @@ const StaffOrders = () => {
       setAllOrders(allOrdersRes.data)
       setMyTasks(myTasksRes.data)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to load orders')
+      toast.error(err.response?.data?.message || 'Failed to load books')
     } finally {
       setLoading(false)
     }
@@ -105,11 +105,11 @@ const StaffOrders = () => {
       setUpdatingOrder(true)
       const result = await orderAPI.acceptOrder(orderId)
       console.log('Accept order result:', result)
-      toast.success('Order accepted successfully!')
+      toast.success('Book accepted successfully!')
       fetchOrders()
     } catch (err) {
       console.error('Accept order error:', err)
-      toast.error(err.response?.data?.message || 'Failed to accept order')
+      toast.error(err.response?.data?.message || 'Failed to accept book')
     } finally {
       setUpdatingOrder(false)
     }
@@ -196,7 +196,7 @@ const StaffOrders = () => {
     const nextStatus = getNextStatus(selectedOrder.status)
     
     if (!nextStatus) {
-      toast.error('This order is already at the final stage')
+      toast.error('This book is already at the final stage')
       return
     }
 
@@ -212,12 +212,12 @@ const StaffOrders = () => {
     try {
       setUpdatingOrder(true)
       await orderAPI.updateOrderStatus(selectedOrder._id, nextStatus)
-      toast.success(`Order advanced to ${getStatusDisplay(nextStatus)}!`)
+      toast.success(`Book advanced to ${getStatusDisplay(nextStatus)}!`)
       fetchOrders()
       setShowDetailModal(false)
       setSelectedOrder(null)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to advance order status')
+      toast.error(err.response?.data?.message || 'Failed to advance book status')
     } finally {
       setUpdatingOrder(false)
     }
@@ -336,7 +336,7 @@ const StaffOrders = () => {
         }))
       })
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to load order details')
+      toast.error(err.response?.data?.message || 'Failed to load book details')
     }
   }
 
@@ -449,7 +449,7 @@ const StaffOrders = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <Package className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">Order Management</h1>
+            <h1 className="text-3xl font-bold">Book Management</h1>
           </div>
 
           <div className="tabs tabs-boxed mb-6 bg-base-100 p-2">
@@ -491,13 +491,13 @@ const StaffOrders = () => {
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body items-center text-center py-12">
                 <Package className="h-16 w-16 text-base-content/20 mb-4" />
-                <h3 className="text-xl font-semibold">No orders found</h3>
+                <h3 className="text-xl font-semibold">No books found</h3>
                 <p className="text-base-content/60">
                   {activeTab === 'myTasks' && 'No tasks assigned to you'}
-                  {activeTab === 'waitingToAccept' && 'No orders waiting to be accepted'}
-                  {activeTab === 'pending' && 'No orders in progress'}
-                  {activeTab === 'completed' && 'No completed orders yet'}
-                  {activeTab === 'all' && 'No orders available'}
+                  {activeTab === 'waitingToAccept' && 'No books waiting to be accepted'}
+                  {activeTab === 'pending' && 'No books in progress'}
+                  {activeTab === 'completed' && 'No completed books yet'}
+                  {activeTab === 'all' && 'No books available'}
                 </p>
               </div>
             </div>
@@ -636,7 +636,7 @@ const StaffOrders = () => {
               ✕
             </button>
 
-            <h3 className="font-bold text-2xl mb-4">Order Details - {selectedOrder.orderNumber}</h3>
+            <h3 className="font-bold text-2xl mb-4">Book Details - {selectedOrder.orderNumber}</h3>
 
             <div className="grid lg:grid-cols-2 gap-6"><div className="card bg-base-200">
                 <div className="card-body">

@@ -174,7 +174,7 @@ const SalesReport = () => {
           <div class="summary-card">
             <div class="label">Total Revenue</div>
             <div class="value">${formatCurrency(salesData.summary.totalRevenue)}</div>
-            <div class="sub">${salesData.summary.totalOrders} orders</div>
+            <div class="sub">${salesData.summary.totalOrders} books</div>
           </div>
           <div class="summary-card">
             <div class="label">Completed Revenue</div>
@@ -182,7 +182,7 @@ const SalesReport = () => {
             <div class="sub">${salesData.orderStats.completed} completed</div>
           </div>
           <div class="summary-card">
-            <div class="label">Avg Order Value</div>
+            <div class="label">Avg Book Value</div>
             <div class="value">${formatCurrency(salesData.summary.averageOrderValue)}</div>
             <div class="sub">Per transaction</div>
           </div>
@@ -195,7 +195,7 @@ const SalesReport = () => {
 
         <div class="two-col">
           <div class="section">
-            <div class="section-title">Order Status Breakdown</div>
+            <div class="section-title">Book Status Breakdown</div>
             <table>
               <tr><td>Completed</td><td class="text-right text-green">${salesData.orderStats.completed}</td></tr>
               <tr><td>Pending</td><td class="text-right text-amber">${salesData.orderStats.pending}</td></tr>
@@ -207,7 +207,7 @@ const SalesReport = () => {
           <div class="section">
             <div class="section-title">Payment Methods</div>
             <table>
-              <tr><th>Method</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+              <tr><th>Method</th><th class="text-right">Books</th><th class="text-right">Revenue</th></tr>
               ${Object.entries(salesData.paymentMethods).map(([method, data]) => 
                 `<tr><td style="text-transform:capitalize">${method}</td><td class="text-right">${data.count}</td><td class="text-right text-green">${formatCurrency(data.revenue)}</td></tr>`
               ).join('')}
@@ -218,7 +218,7 @@ const SalesReport = () => {
         <div class="section">
           <div class="section-title">Payment Status</div>
           <table>
-            <tr><th>Status</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+            <tr><th>Status</th><th class="text-right">Books</th><th class="text-right">Revenue</th></tr>
             ${Object.entries(salesData.paymentStatus).map(([status, data]) => 
               `<tr><td style="text-transform:capitalize">${status}</td><td class="text-right">${data.count}</td><td class="text-right text-green">${formatCurrency(data.revenue)}</td></tr>`
             ).join('')}
@@ -228,7 +228,7 @@ const SalesReport = () => {
         <div class="section">
           <div class="section-title">Top Performing Services</div>
           <table>
-            <tr><th>#</th><th>Service</th><th class="text-right">Units</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+            <tr><th>#</th><th>Service</th><th class="text-right">Units</th><th class="text-right">Books</th><th class="text-right">Revenue</th></tr>
             ${salesData.topServices.map((s, i) => 
               `<tr><td>${i + 1}</td><td>${s.name}</td><td class="text-right">${s.quantity}</td><td class="text-right">${s.orders}</td><td class="text-right text-green">${formatCurrency(s.revenue)}</td></tr>`
             ).join('')}
@@ -239,7 +239,7 @@ const SalesReport = () => {
         <div class="section">
           <div class="section-title">Monthly Performance</div>
           <table>
-            <tr><th>Month</th><th class="text-right">Orders</th><th class="text-right">Revenue</th><th class="text-right">Avg Order Value</th></tr>
+            <tr><th>Month</th><th class="text-right">Books</th><th class="text-right">Revenue</th><th class="text-right">Avg Book Value</th></tr>
             ${salesData.monthlyTrend.map(m => 
               `<tr><td>${m.month}</td><td class="text-right">${m.orders}</td><td class="text-right text-green">${formatCurrency(m.revenue)}</td><td class="text-right">${formatCurrency(m.orders > 0 ? m.revenue / m.orders : 0)}</td></tr>`
             ).join('')}
@@ -388,7 +388,7 @@ const SalesReport = () => {
                   </div>
                   <div className="stat-title text-emerald-100">Total Revenue</div>
                   <div className="stat-value text-2xl">{formatCurrency(salesData.summary.totalRevenue)}</div>
-                  <div className="stat-desc text-emerald-200">All orders in period</div>
+                  <div className="stat-desc text-emerald-200">All books in period</div>
                 </div>
 
                 <div className="stat bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
@@ -397,14 +397,14 @@ const SalesReport = () => {
                   </div>
                   <div className="stat-title text-blue-100">Completed Revenue</div>
                   <div className="stat-value text-2xl">{formatCurrency(salesData.summary.completedRevenue)}</div>
-                  <div className="stat-desc text-blue-200">{salesData.orderStats.completed} completed orders</div>
+                  <div className="stat-desc text-blue-200">{salesData.orderStats.completed} completed books</div>
                 </div>
 
                 <div className="stat bg-gradient-to-br from-amber-500 to-orange-500 text-white rounded-xl shadow-lg hover:shadow-xl transition-shadow">
                   <div className="stat-figure opacity-80">
                     <ShoppingCart size={40} />
                   </div>
-                  <div className="stat-title text-amber-100">Avg. Order Value</div>
+                  <div className="stat-title text-amber-100">Avg. Book Value</div>
                   <div className="stat-value text-2xl">{formatCurrency(salesData.summary.averageOrderValue)}</div>
                   <div className="stat-desc text-amber-200">Per transaction</div>
                 </div>
@@ -415,7 +415,7 @@ const SalesReport = () => {
                   </div>
                   <div className="stat-title text-violet-100">Completion Rate</div>
                   <div className="stat-value text-2xl">{salesData.orderStats.completionRate}%</div>
-                  <div className="stat-desc text-violet-200">{salesData.summary.totalOrders} total orders</div>
+                  <div className="stat-desc text-violet-200">{salesData.summary.totalOrders} total books</div>
                 </div>
               </div>
 
@@ -428,7 +428,7 @@ const SalesReport = () => {
                         <div className="p-2 rounded-lg bg-emerald-100">
                           <BarChart3 size={24} className="text-emerald-600" />
                         </div>
-                        Revenue & Orders Overview
+                        Revenue & Books Overview
                       </h3>
                       <div className="badge badge-lg badge-success gap-1">
                         <TrendingUp size={14} />
@@ -494,7 +494,7 @@ const SalesReport = () => {
                             yAxisId="right"
                             type="monotone" 
                             dataKey="orders" 
-                            name="Orders" 
+                            name="Books" 
                             stroke="#3b82f6"
                             strokeWidth={3}
                             dot={{ fill: '#3b82f6', strokeWidth: 2, r: 5 }}
@@ -516,7 +516,7 @@ const SalesReport = () => {
                       <div className="p-2 rounded-lg bg-blue-100">
                         <Package size={20} className="text-blue-600" />
                       </div>
-                      Order Status
+                      Book Status
                     </h3>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center p-3 bg-emerald-500/10 rounded-lg border-l-4 border-emerald-500">
@@ -542,7 +542,7 @@ const SalesReport = () => {
                       </div>
                       <div className="divider my-2"></div>
                       <div className="text-center p-4 bg-blue-500/10 border border-blue-500/20 rounded-xl">
-                        <div className="text-sm text-base-content/60 mb-1">Total Orders</div>
+                        <div className="text-sm text-base-content/60 mb-1">Total Books</div>
                         <div className="text-3xl font-bold text-blue-600">{salesData.orderStats.total}</div>
                       </div>
                     </div>
@@ -575,7 +575,7 @@ const SalesReport = () => {
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-bold">{data.count}</div>
-                              <div className="text-xs opacity-90">orders</div>
+                              <div className="text-xs opacity-90">books</div>
                             </div>
                           </div>
                         </div>
@@ -725,7 +725,7 @@ const SalesReport = () => {
                           <Tooltip 
                             formatter={(value, name) => [
                               name === 'revenue' ? formatCurrency(value) : value, 
-                              name === 'revenue' ? 'Revenue' : 'Orders'
+                              name === 'revenue' ? 'Revenue' : 'Books'
                             ]}
                             contentStyle={{ 
                               backgroundColor: '#fff', 
@@ -765,9 +765,9 @@ const SalesReport = () => {
                         <thead>
                           <tr className="bg-base-200">
                             <th className="rounded-l-lg">Month</th>
-                            <th>Orders</th>
+                            <th>Books</th>
                             <th>Revenue</th>
-                            <th className="rounded-r-lg">Avg. Order Value</th>
+                            <th className="rounded-r-lg">Avg. Book Value</th>
                           </tr>
                         </thead>
                         <tbody>

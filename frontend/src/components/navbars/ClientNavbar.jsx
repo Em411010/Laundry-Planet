@@ -18,9 +18,9 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
   }
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/client', desc: 'View all orders & tracking' },
-    { icon: Truck, label: 'Track Order', path: '/dashboard/client?tab=active', desc: 'Real-time tracking' },
-    { icon: History, label: 'Order History', path: '/dashboard/client?tab=completed', desc: 'Past orders' },
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/client', desc: 'View all books & tracking' },
+    { icon: Truck, label: 'Track Book', path: '/dashboard/client?tab=active', desc: 'Real-time tracking' },
+    { icon: History, label: 'Book History', path: '/dashboard/client?tab=completed', desc: 'Past books' },
     { icon: FileText, label: 'Receipts', path: '/dashboard/client/receipts', desc: 'Download receipts' },
     { icon: MessageSquare, label: 'Support Chat', path: '/dashboard/client/support', desc: 'Message staff' },
     { icon: HelpCircle, label: 'How It Works', path: '/how-it-works', desc: 'Step-by-step guide' },
@@ -65,7 +65,7 @@ const ClientSidebar = ({ user, isOpen, toggleSidebar }) => {
           <div className="p-4">
             <Link to="/dashboard/client/new-order" className="btn btn-primary btn-sm w-full gap-2">
               <PlusCircle size={16} />
-              New Order
+              New Book
             </Link>
           </div>
 

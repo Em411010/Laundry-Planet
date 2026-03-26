@@ -19,9 +19,9 @@ const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
 
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard/staff' },
-    { icon: ClipboardList, label: 'Orders', path: '/dashboard/staff/orders' },
+    { icon: ClipboardList, label: 'Books', path: '/dashboard/staff/orders' },
     { icon: Clock, label: 'My Tasks', path: '/dashboard/staff/my-tasks' },
-    { icon: CreditCard, label: 'Walk-in Order', path: '/dashboard/staff/payments' }
+    { icon: CreditCard, label: 'Walk-in Book', path: '/dashboard/staff/payments' }
   ]
 
   return (

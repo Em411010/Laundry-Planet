@@ -203,7 +203,7 @@ const AdminWalkInOrder = () => {
 
     // Validate cart
     if (cart.length === 0) {
-      return 'Please add at least one service to the order'
+      return 'Please add at least one service to the book'
     }
 
     // Validate payment
@@ -249,7 +249,7 @@ const AdminWalkInOrder = () => {
 
       const response = await orderAPI.createWalkInOrder(orderData)
       
-      toast.success(`Order created successfully! Order ${response.data.orderNumber}`)
+      toast.success(`Book created successfully! Book ${response.data.orderNumber}`)
       
       // Reset form after 2 seconds
       setTimeout(() => {
@@ -269,7 +269,7 @@ const AdminWalkInOrder = () => {
       }, 3000)
 
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to create order')
+      toast.error(err.response?.data?.message || 'Failed to create book')
     } finally {
       setLoading(false)
     }
@@ -292,8 +292,8 @@ const AdminWalkInOrder = () => {
                 <ShoppingCart className="text-primary" size={24} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Walk-in Order</h1>
-                <p className="text-base-content/60">Create orders for walk-in customers</p>
+                <h1 className="text-3xl font-bold">Walk-in Book</h1>
+                <p className="text-base-content/60">Create books for walk-in customers</p>
               </div>
             </div>
           </div>
@@ -486,7 +486,7 @@ const AdminWalkInOrder = () => {
                 <div className="card-body">
                   <h3 className="card-title flex items-center gap-2">
                     <ShoppingCart size={20} />
-                    Order Summary
+                    Book Summary
                   </h3>
 
                   {cart.length === 0 ? (
@@ -625,7 +625,7 @@ const AdminWalkInOrder = () => {
                       ) : (
                         <>
                           <CheckCircle size={18} />
-                          Create Order - ₱{totalAmount}
+                          Create Book - ₱{totalAmount}
                         </>
                       )}
                     </button>

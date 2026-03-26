@@ -126,9 +126,10 @@ const seedOrders = async (clients, services, staffMembers) => {
   console.log('\n📦 Creating 3 months of orders for each client...\n');
 
   const orders = [];
-  const now = new Date();
+  // Anchor to March 26 2026 so the last 7 days (Mar 19-25) have active orders
+  const now = new Date('2026-03-26T08:00:00.000Z');
   
-  // 3 months ago
+  // 3 months ago (Dec 26 2025)
   const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
   
   const orderStatuses = ['pending', 'accepted', 'picked-up', 'in-progress', 'processed', 'for-delivery', 'delivered', 'cancelled'];
@@ -418,30 +419,19 @@ const main = async () => {
   const staffMembers = await User.find({ role: { $in: ['staff', 'admin'] } });
   console.log(`✅ Found ${staffMembers.length} staff members`);
 
-  // Check for existing test clients
-  const existingTestClients = await User.countDocuments({ 
-    email: { $regex: /^(maria|jose|juan|ana|pedro|rosa|miguel|elena|carlos|sofia)\./i }
-  });
-  
-  if (existingTestClients > 0) {
-    console.log(`\n⚠️  Found ${existingTestClients} existing test clients.`);
-    console.log('   Deleting existing test data...');
-    
-    // Delete existing test orders and clients
-    const testClientIds = await User.find({ 
-      email: { $regex: /^(maria|jose|juan|ana|pedro|rosa|miguel|elena|carlos|sofia)\./i }
-    }).select('_id');
-    
-    await Order.deleteMany({ customer: { $in: testClientIds.map(c => c._id) } });
-    await User.deleteMany({ _id: { $in: testClientIds.map(c => c._id) } });
-    console.log('   ✅ Cleaned up existing test data');
-  }
+  // Delete ALL existing orders and test clients for a clean reset
+  console.log('\n🗑️  Clearing all existing orders...');
+  const deletedOrders = await Order.deleteMany({});
+  console.log(`   ✅ Deleted ${deletedOrders.deletedCount} existing orders`);
 
-  // Delete walk-in test orders
-  await Order.deleteMany({ 
-    isWalkIn: true, 
-    'guestCustomer.lastName': { $in: ['Tan', 'Lim', 'Chua', 'Ong', 'Sy'] }
-  });
+  // Remove existing test clients by known first-name pattern
+  const testClientIds = await User.find({ 
+    email: { $regex: /^(maria|jose|juan|ana|pedro|rosa|miguel|elena|carlos|sofia)\./i }
+  }).select('_id');
+  if (testClientIds.length > 0) {
+    await User.deleteMany({ _id: { $in: testClientIds.map(c => c._id) } });
+    console.log(`   ✅ Removed ${testClientIds.length} existing test client accounts`);
+  }
 
   // Create clients
   const clients = await seedClients();

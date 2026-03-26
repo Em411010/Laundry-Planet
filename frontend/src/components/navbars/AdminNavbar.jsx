@@ -36,7 +36,7 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
     },
     { 
       icon: ShoppingCart, 
-      label: 'Walk-in Order', 
+      label: 'Walk-in Book', 
       path: '/dashboard/admin/walk-in-order' 
     },
     { icon: Users, label: 'User Management', path: '/dashboard/admin/users' },
@@ -48,7 +48,7 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
     },
     { 
       icon: FileText, 
-      label: 'Orders', 
+      label: 'Books', 
       path: '/dashboard/admin/orders' 
     },
   

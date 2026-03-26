@@ -224,7 +224,7 @@ const AdminDashboard = () => {
                   <div className="card-body p-5">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-blue-100 text-sm font-medium">Total Orders</p>
+                        <p className="text-blue-100 text-sm font-medium">Total Books</p>
                         <h3 className="text-3xl font-bold mt-1">
                           {salesData?.summary?.totalOrders || stats?.keyMetrics?.totalOrders || 0}
                         </h3>
@@ -268,13 +268,13 @@ const AdminDashboard = () => {
                   <div className="card-body p-5">
                     <div className="flex justify-between items-start">
                       <div>
-                        <p className="text-amber-100 text-sm font-medium">Pending Tasks</p>
+                        <p className="text-amber-100 text-sm font-medium">Active Tasks</p>
                         <h3 className="text-3xl font-bold mt-1">
                           {stats?.keyMetrics?.pendingTasks || salesData?.orderStats?.pending || 0}
                         </h3>
                         <div className="mt-2 flex items-center gap-2">
                           <span className="badge badge-sm bg-white/20 border-0 text-white">
-                            Needs attention
+                            Pending · Accepted · For Delivery
                           </span>
                         </div>
                       </div>
@@ -360,7 +360,7 @@ const AdminDashboard = () => {
                       <div className="p-2 rounded-lg bg-blue-100">
                         <Package size={20} className="text-blue-600" />
                       </div>
-                      Order Status
+                      Book Status
                     </h3>
                     
                     {orderStatusData.length > 0 ? (
@@ -406,7 +406,7 @@ const AdminDashboard = () => {
                       </>
                     ) : (
                       <div className="flex items-center justify-center h-48 text-base-content/50">
-                        No order data available
+                        No book data available
                       </div>
                     )}
                   </div>
@@ -446,7 +446,7 @@ const AdminDashboard = () => {
                       <div className="flex justify-between items-center p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
                         <span className="text-base-content flex items-center gap-2">
                           <ShoppingCart size={16} className="text-amber-500" />
-                          Avg Order
+                          Avg Book
                         </span>
                         <span className="font-bold text-amber-500">
                           {formatCurrency(salesData?.summary?.averageOrderValue || stats?.quickStats?.avgOrderValue || 0)}
@@ -504,7 +504,7 @@ const AdminDashboard = () => {
                               </div>
                               <div>
                                 <h4 className="font-semibold">{service.name}</h4>
-                                <p className="text-sm text-base-content/60">{service.orders} orders • {service.quantity} units</p>
+                                <p className="text-sm text-base-content/60">{service.orders} books • {service.quantity} units</p>
                               </div>
                             </div>
                             <div className="text-right">
@@ -532,7 +532,7 @@ const AdminDashboard = () => {
                         <div className="p-2 rounded-lg bg-blue-100">
                           <Package size={20} className="text-blue-600" />
                         </div>
-                        Recent Orders
+                        Recent Books
                       </h3>
                       <button 
                         className="btn btn-sm btn-ghost"
@@ -545,7 +545,7 @@ const AdminDashboard = () => {
                       <table className="table">
                         <thead>
                           <tr className="bg-base-200/50">
-                            <th className="rounded-l-lg">Order ID</th>
+                            <th className="rounded-l-lg">Book ID</th>
                             <th>Customer</th>
                             <th>Status</th>
                             <th>Amount</th>
@@ -581,7 +581,7 @@ const AdminDashboard = () => {
                           {(!stats?.recentActivity || stats.recentActivity.length === 0) && (
                             <tr>
                               <td colSpan="5" className="text-center text-base-content/50 py-8">
-                                No recent orders
+                                No recent books
                               </td>
                             </tr>
                           )}
@@ -641,7 +641,7 @@ const AdminDashboard = () => {
                           onClick={() => navigate('/dashboard/admin/orders')}
                         >
                           <Package size={18} />
-                          <span className="text-xs">Orders</span>
+                          <span className="text-xs">Books</span>
                         </button>
                         <button 
                           className="btn btn-outline btn-sm h-auto py-3 flex-col gap-1"
@@ -690,7 +690,7 @@ const AdminDashboard = () => {
                           <div className="flex items-center justify-between mb-3">
                             <span className="font-bold text-lg capitalize">{method}</span>
                             <span className="badge badge-lg" style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length], color: 'white' }}>
-                              {data.count} orders
+                              {data.count} books
                             </span>
                           </div>
                           <div className="text-2xl font-bold mb-2" style={{ color: CHART_COLORS[index % CHART_COLORS.length] }}>

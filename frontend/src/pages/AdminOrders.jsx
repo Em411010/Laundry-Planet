@@ -30,7 +30,7 @@ const AdminOrders = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   
-  const [filterType, setFilterType] = useState('all') // all, pending, completed
+  const [filterType, setFilterType] = useState('all') // all, active, completed, cancelled
   const [allOrders, setAllOrders] = useState([])
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [showDetailModal, setShowDetailModal] = useState(false)
@@ -61,7 +61,7 @@ const AdminOrders = () => {
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search)
     const type = searchParams.get('type')
-    if (type && ['all', 'pending', 'completed'].includes(type)) {
+    if (type && ['all', 'active', 'completed', 'cancelled'].includes(type)) {
       setFilterType(type)
     }
   }, [location.search])
@@ -85,7 +85,7 @@ const AdminOrders = () => {
       const response = await orderAPI.getAllOrders({ limit: 1000 })
       setAllOrders(response.data || [])
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to load orders')
+      toast.error(err.response?.data?.message || 'Failed to load books')
     } finally {
       setLoading(false)
     }
@@ -144,8 +144,8 @@ const AdminOrders = () => {
   }
 
   const getFilteredOrders = () => {
-    if (filterType === 'pending') {
-      return allOrders.filter(o => o.status === 'pending')
+    if (filterType === 'active') {
+      return allOrders.filter(o => !['delivered', 'cancelled'].includes(o.status))
     } else if (filterType === 'completed') {
       return allOrders.filter(o => o.status === 'delivered')
     } else if (filterType === 'cancelled') {
@@ -164,7 +164,7 @@ const AdminOrders = () => {
       const response = await orderAPI.getOrderById(orderId)
       handleViewDetails(response.data)
     } catch (err) {
-      toast.error('Failed to load order details')
+      toast.error('Failed to load book details')
     }
   }
 
@@ -184,9 +184,9 @@ const AdminOrders = () => {
       setCancelReason('')
       setSelectedOrder(null)
       
-      toast.success('Order cancelled successfully')
+      toast.success('Book cancelled successfully')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to cancel order')
+      toast.error(err.response?.data?.message || 'Failed to cancel book')
     } finally {
       setActionLoading(false)
     }
@@ -208,9 +208,9 @@ const AdminOrders = () => {
       setReviveStatus('pending')
       setSelectedOrder(null)
       
-      toast.success('Order revived successfully')
+      toast.success('Book revived successfully')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to revive order')
+      toast.error(err.response?.data?.message || 'Failed to revive book')
     } finally {
       setActionLoading(false)
     }
@@ -263,8 +263,8 @@ const AdminOrders = () => {
                 <Package className="text-primary" size={24} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold">Orders Management</h1>
-                <p className="text-base-content/60">View and manage all customer orders</p>
+                <h1 className="text-3xl font-bold">Books Management</h1>
+                <p className="text-base-content/60">View and manage all customer books</p>
               </div>
             </div>
 
@@ -276,10 +276,10 @@ const AdminOrders = () => {
                 All Orders ({allOrders.length})
               </button>
               <button
-                onClick={() => setFilterType('pending')}
-                className={`btn ${filterType === 'pending' ? 'btn-warning' : 'btn-ghost'}`}
+                onClick={() => setFilterType('active')}
+                className={`btn ${filterType === 'active' ? 'btn-warning' : 'btn-ghost'}`}
               >
-                Pending ({allOrders.filter(o => o.status === 'pending').length})
+                Active ({allOrders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length})
               </button>
               <button
                 onClick={() => setFilterType('completed')}
@@ -300,13 +300,13 @@ const AdminOrders = () => {
             <div className="flex items-center justify-center py-12">
               <div className="text-center">
                 <Loader className="animate-spin mx-auto mb-2 text-primary" size={32} />
-                <p className="text-base-content/60">Loading orders...</p>
+                <p className="text-base-content/60">Loading books...</p>
               </div>
             </div>
           ) : filteredOrders.length === 0 ? (
             <div className="text-center py-12">
               <Package className="mx-auto mb-3 text-base-content/40" size={40} />
-              <p className="text-base-content/60">No {filterType !== 'all' ? filterType : ''} orders found.</p>
+              <p className="text-base-content/60">No {filterType !== 'all' ? filterType : ''} books found.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -317,7 +317,7 @@ const AdminOrders = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
                           {getStatusIcon(order.status)}
-                          <h3 className="font-semibold text-lg">Order {order.orderNumber}</h3>
+                          <h3 className="font-semibold text-lg">Book {order.orderNumber}</h3>
                           <span className={`badge ${getStatusBadgeClass(order.status)}`}>
                             {order.status}
                           </span>
@@ -367,7 +367,7 @@ const AdminOrders = () => {
 
                     <div className="grid md:grid-cols-2 gap-4 mb-4">
                       <div>
-                        <p className="text-sm text-base-content/60 mb-2">Order Summary</p>
+                        <p className="text-sm text-base-content/60 mb-2">Book Summary</p>
                         <div className="space-y-1 text-sm">
                           <div className="flex justify-between">
                             <span>Total Amount:</span>
@@ -500,7 +500,7 @@ const AdminOrders = () => {
           <div className="bg-base-100 rounded-lg shadow-2xl w-full max-w-5xl my-8">
             <div className="sticky top-0 bg-base-100 border-b border-base-300 p-6 flex items-center justify-between rounded-t-lg">
               <div>
-                <h3 className="font-bold text-2xl mb-1">Order Details - {selectedOrder.orderNumber}</h3>
+                <h3 className="font-bold text-2xl mb-1">Book Details - {selectedOrder.orderNumber}</h3>
                 <div className="flex items-center gap-2">
                   {getStatusIcon(selectedOrder.status)}
                   <span className={`badge ${getStatusBadgeClass(selectedOrder.status)}`}>
@@ -867,7 +867,7 @@ const AdminOrders = () => {
             <div className="p-6">
               <div className="alert alert-warning mb-4">
                 <AlertCircle className="h-5 w-5" />
-                <span>Are you sure you want to cancel this order?</span>
+                <span>Are you sure you want to cancel this book?</span>
               </div>
               <div className="form-control">
                 <label className="label">
@@ -926,7 +926,7 @@ const AdminOrders = () => {
             <div className="p-6">
               <div className="alert alert-info mb-4">
                 <AlertCircle className="h-5 w-5" />
-                <span>This will restore the cancelled order.</span>
+                <span>This will restore the cancelled book.</span>
               </div>
               <div className="form-control">
                 <label className="label">
@@ -944,7 +944,7 @@ const AdminOrders = () => {
                   <option value="ready-for-delivery">Ready for Delivery</option>
                 </select>
                 <label className="label">
-                  <span className="label-text-alt">Choose the status to restore the order to</span>
+                  <span className="label-text-alt">Choose the status to restore the book to</span>
                 </label>
               </div>
             </div>

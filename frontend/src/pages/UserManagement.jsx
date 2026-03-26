@@ -659,7 +659,7 @@ const UserManagement = () => {
                 onClick={() => setDetailsTab('orders')}
               >
                 <ShoppingBag size={16} className="mr-2" />
-                Orders ({userOrders.length})
+                Books ({userOrders.length})
               </a>
               <a 
                 className={`tab tab-lg ${detailsTab === 'audit' ? 'tab-active' : ''}`}
@@ -768,7 +768,7 @@ const UserManagement = () => {
                       {userOrders.length === 0 ? (
                         <div className="text-center py-12">
                           <ShoppingBag size={48} className="mx-auto text-base-content/30 mb-4" />
-                          <p className="text-base-content/60">No orders found</p>
+                          <p className="text-base-content/60">No books found</p>
                         </div>
                       ) : (
                         userOrders.map((order) => (

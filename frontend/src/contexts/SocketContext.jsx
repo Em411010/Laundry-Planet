@@ -59,7 +59,7 @@ export const SocketProvider = ({ children }) => {
     socketService.onOrderStatusUpdate((data) => {
       addNotification({
         type: 'order',
-        title: 'Order Update',
+        title: 'Book Update',
         message: data.message,
         data
       });
@@ -74,7 +74,7 @@ export const SocketProvider = ({ children }) => {
     socketService.onNewOrder((data) => {
       addNotification({
         type: 'order',
-        title: 'New Order',
+        title: 'New Book',
         message: data.message,
         data
       });
@@ -83,7 +83,7 @@ export const SocketProvider = ({ children }) => {
       if (userStr) {
         const user = JSON.parse(userStr);
         if (user.role === 'admin' || user.role === 'staff') {
-          toast('New order received!', {
+          toast('New book received!', {
             duration: 5000,
             icon: '🔔'
           });

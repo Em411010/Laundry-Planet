@@ -435,7 +435,7 @@ const ServicesPricing = () => {
                   <div className="flex flex-col gap-2 p-4 bg-base-200 rounded-lg">
                     <div className="text-sm text-base-content/60">Free Shipping Threshold</div>
                     <div className="text-2xl font-bold text-success">{shippingSettings.freeShippingThreshold} kg</div>
-                    <div className="text-xs text-base-content/60">Orders ≥ this weight get free shipping</div>
+                    <div className="text-xs text-base-content/60">Books ≥ this weight get free shipping</div>
                   </div>
                 </div>
               )}
