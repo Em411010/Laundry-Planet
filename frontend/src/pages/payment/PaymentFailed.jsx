@@ -153,7 +153,7 @@ const PaymentFailed = () => {
             <div className="bg-base-200 rounded-lg p-4 mb-6 text-left">
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-base-content/60">Order Number</span>
+                  <span className="text-base-content/60">Book Number</span>
                   <span className="font-semibold">{orderData.orderNumber}</span>
                 </div>
                 <div className="flex justify-between">

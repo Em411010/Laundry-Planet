@@ -11,9 +11,9 @@ const OrderHistory = () => {
       if (!selectedOrder) return;
       const doc = new jsPDF();
       doc.setFontSize(16);
-      doc.text('Laundry Planet - Order Receipt', 10, 15);
+      doc.text('Laundry Planet - Book Receipt', 10, 15);
       doc.setFontSize(12);
-      doc.text(`Order Number: ${selectedOrder.orderNumber}`, 10, 30);
+      doc.text(`Book Number: ${selectedOrder.orderNumber}`, 10, 30);
       doc.text(`Customer: ${selectedOrder.customer?.firstName || ''} ${selectedOrder.customer?.lastName || ''}`, 10, 38);
       doc.text(`Delivery Date: ${selectedOrder.deliverDate ? new Date(selectedOrder.deliverDate).toLocaleDateString() : 'N/A'}`, 10, 46);
       doc.text(`Delivery Time: ${selectedOrder.deliverTime || 'N/A'}`, 10, 54);
@@ -86,7 +86,7 @@ const OrderHistory = () => {
       <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Order History</h1>
+            <h1 className="text-3xl font-bold">Book History</h1>
           </div>
           {loading ? (
             <div className="flex justify-center items-center h-64">
@@ -96,15 +96,15 @@ const OrderHistory = () => {
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body items-center text-center py-12">
                 <Package className="w-16 h-16 text-base-content/30 mb-4" />
-                <h2 className="text-2xl font-bold mb-2">No Completed Orders</h2>
+                <h2 className="text-2xl font-bold mb-2">No Completed Books</h2>
                 <p className="text-base-content/60 mb-4">
-                  You have not completed any orders yet.
+                  You have not completed any books yet.
                 </p>
                 <button 
                   onClick={() => navigate('/client/new-order')}
                   className="btn btn-primary"
                 >
-                  Place an Order
+                  Place a Book
                 </button>
               </div>
             </div>
@@ -163,7 +163,7 @@ const OrderHistory = () => {
         <div className="modal modal-open">
           <div className="modal-box max-w-4xl">
             <h3 className="font-bold text-2xl mb-4">
-              Order Details - {selectedOrder.orderNumber}
+              Book Details - {selectedOrder.orderNumber}
             </h3>
             <div className="card bg-base-200 mb-4">
               <div className="card-body">

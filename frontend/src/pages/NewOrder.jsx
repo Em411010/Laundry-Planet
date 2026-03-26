@@ -88,7 +88,7 @@ const NewOrder = () => {
 
       // Check if profile is complete
       if (!profileRes.data.profileComplete) {
-        toast.error('Please complete your profile before placing an order')
+        toast.error('Please complete your profile before placing a book')
       }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to load data')
@@ -250,12 +250,12 @@ const NewOrder = () => {
         ? ' You will receive a payment link once your laundry is weighed and priced.'
         : ' Payment will be collected upon delivery.'
 
-      toast.success(`Order ${response.data.orderNumber} placed successfully!${paymentNote}`)
+      toast.success(`Book ${response.data.orderNumber} placed successfully!${paymentNote}`)
       setTimeout(() => {
         navigate('/dashboard/client')
       }, 2000)
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to place order')
+      toast.error(err.response?.data?.message || 'Failed to place book')
     } finally {
       setSubmitting(false)
     }
@@ -280,13 +280,13 @@ const NewOrder = () => {
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-6">
             <ShoppingCart className="h-8 w-8 text-primary" />
-            <h1 className="text-3xl font-bold">New Order</h1>
+            <h1 className="text-3xl font-bold">New Book</h1>
           </div>{!profile?.profileComplete && (
             <div className="alert alert-warning mb-6">
               <AlertCircle className="h-5 w-5" />
               <div>
                 <span className="font-semibold">Profile Incomplete</span>
-                <div className="text-sm">Please complete your profile before placing an order.</div>
+                <div className="text-sm">Please complete your profile before placing a book.</div>
               </div>
               <button
                 onClick={() => navigate('/dashboard/client/profile')}
@@ -745,12 +745,12 @@ const NewOrder = () => {
                     {submitting ? (
                       <>
                         <span className="loading loading-spinner loading-sm"></span>
-                        Placing Order...
+                        Placing Book...
                       </>
                     ) : (
                       <>
                         <ShoppingCart className="h-5 w-5" />
-                        Place Order
+                        Place Book
                       </>
                     )}
                   </button>

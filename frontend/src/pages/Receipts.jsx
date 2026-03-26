@@ -165,7 +165,7 @@ const Receipts = () => {
               <div className="card-body items-center text-center py-12">
                 <Package className="w-16 h-16 text-base-content/30 mb-4" />
                 <h2 className="text-2xl font-bold mb-2">No Receipts</h2>
-                <p className="text-base-content/60 mb-4">You have no completed orders yet.</p>
+                <p className="text-base-content/60 mb-4">You have no completed books yet.</p>
               </div>
             </div>
           ) : (

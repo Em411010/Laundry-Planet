@@ -180,7 +180,7 @@ const MyTasks = () => {
     const nextStatus = getNextStatus(selectedOrder.status);
     
     if (!nextStatus) {
-      alert('This order is already at the final stage');
+      alert('This book is already at the final stage');
       return;
     }
 
@@ -195,13 +195,13 @@ const MyTasks = () => {
 
     try {
       await orderAPI.updateOrderStatus(selectedOrder._id, nextStatus);
-      alert(`Order advanced to ${getStatusDisplay(nextStatus)}`);
+      alert(`Book advanced to ${getStatusDisplay(nextStatus)}`);
       await fetchMyTasks();
       setShowModal(false);
       setSelectedOrder(null);
     } catch (error) {
       console.error('Error advancing order status:', error);
-      alert(error.response?.data?.message || 'Failed to advance order status');
+      alert(error.response?.data?.message || 'Failed to advance book status');
     }
   };
 
@@ -367,7 +367,7 @@ const MyTasks = () => {
         <div className="modal modal-open">
           <div className="modal-box max-w-4xl">
             <h3 className="font-bold text-2xl mb-4">
-              Order Details - {selectedOrder.orderNumber}
+              Book Details - {selectedOrder.orderNumber}
             </h3><div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <label className="label">
@@ -422,7 +422,7 @@ const MyTasks = () => {
                 <AlertCircle className="w-5 h-5" />
                 <div>
                   <p className="font-bold">Action Required: Weight Input</p>
-                  <p className="text-sm">You must weigh each service before you can mark this order as picked up.</p>
+                  <p className="text-sm">You must weigh each service before you can mark this book as picked up.</p>
                 </div>
               </div>
             )}<div className="mb-6">

@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, Users, Shield, Package, DollarSign, Tag, 
   Settings, FileText, CreditCard, BarChart3, FileSearch, 
   Database, Lock, LogOut, Menu, X, ChevronDown, Sun, Moon,
-  MessageSquare, ShoppingCart
+  MessageSquare, ShoppingCart, Clock
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 import NotificationBell from '../NotificationBell'
@@ -36,7 +36,7 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
     },
     { 
       icon: ShoppingCart, 
-      label: 'Walk-in Order', 
+      label: 'Walk-in Book', 
       path: '/dashboard/admin/walk-in-order' 
     },
     { icon: Users, label: 'User Management', path: '/dashboard/admin/users' },
@@ -48,7 +48,7 @@ const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
     },
     { 
       icon: FileText, 
-      label: 'Orders', 
+      label: 'Books', 
       path: '/dashboard/admin/orders' 
     },
   
@@ -160,6 +160,12 @@ const AdminNavbar = ({ toggleSidebar }) => {
     localStorage.setItem('theme', next)
   }
 
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
+
   return (
     <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 lg:w-[calc(100%-16rem)] h-16">
       <div className="navbar bg-base-100 border-b border-base-300 px-4 h-full">
@@ -170,6 +176,10 @@ const AdminNavbar = ({ toggleSidebar }) => {
           <h1 className="text-lg md:text-xl font-bold ml-2 truncate min-w-0">Admin Dashboard</h1>
         </div>
         <div className="flex items-center gap-2">
+          <div className="hidden md:flex flex-col items-end leading-tight mr-1">
+            <span className="text-xs text-base-content/50">{now.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+            <span className="text-xs font-mono font-semibold tabular-nums">{now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+          </div>
           <button 
             onClick={toggleTheme} 
             className="btn btn-ghost btn-circle"

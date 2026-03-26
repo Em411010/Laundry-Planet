@@ -36,7 +36,7 @@ export const getAdminDashboardStats = async (req, res) => {
       createdAt: { $gte: startOfWeek }
     });
     const pendingTasks = await Order.countDocuments({
-      status: { $in: ['pending', 'accepted', 'for-delivery'] }
+      status: { $nin: ['delivered', 'cancelled'] }
     });
 
     // Revenue Statistics

@@ -174,14 +174,14 @@ const CustomerReport = () => {
           <div class="summary-card">
             <div class="label">Avg Lifetime Value</div>
             <div class="value">${formatCurrency(customerData.summary.avgLifetimeValue)}</div>
-            <div class="sub">${customerData.summary.avgOrdersPerCustomer.toFixed(1)} orders/customer</div>
+            <div class="sub">${customerData.summary.avgOrdersPerCustomer.toFixed(1)} books/customer</div>
           </div>
         </div>
 
         <div class="section">
           <div class="section-title">Top Customers by Lifetime Value</div>
           <table>
-            <tr><th>#</th><th>Customer</th><th>Email</th><th class="text-right">Total Spent</th><th class="text-right">Orders</th><th class="text-right">Avg Order</th></tr>
+            <tr><th>#</th><th>Customer</th><th>Email</th><th class="text-right">Total Spent</th><th class="text-right">Books</th><th class="text-right">Avg Book</th></tr>
             ${customerData.topCustomers.map((c, i) => 
               `<tr><td>${i + 1}</td><td>${c.name}</td><td>${c.email}</td><td class="text-right text-green">${formatCurrency(c.totalSpent)}</td><td class="text-right">${c.orderCount}</td><td class="text-right">${formatCurrency(c.averageOrderValue)}</td></tr>`
             ).join('')}
@@ -200,7 +200,7 @@ const CustomerReport = () => {
           </div>
 
           <div class="section">
-            <div class="section-title">Order Frequency</div>
+            <div class="section-title">Book Frequency</div>
             <table>
               <tr><th>Frequency</th><th class="text-right">Customers</th></tr>
               ${Object.entries(customerData.orderBehavior.frequencyBuckets).map(([bucket, count]) => 
@@ -213,7 +213,7 @@ const CustomerReport = () => {
         <div class="section">
           <div class="section-title">Preferred Services</div>
           <table>
-            <tr><th>Service</th><th class="text-right">Orders</th><th class="text-right">Quantity</th><th class="text-right">Unique Customers</th></tr>
+            <tr><th>Service</th><th class="text-right">Books</th><th class="text-right">Quantity</th><th class="text-right">Unique Customers</th></tr>
             ${customerData.preferredServices.map(s => 
               `<tr><td>${s.name}</td><td class="text-right">${s.orderCount}</td><td class="text-right">${s.totalQuantity}</td><td class="text-right">${s.uniqueCustomers}</td></tr>`
             ).join('')}
@@ -403,7 +403,7 @@ const CustomerReport = () => {
                   <div className="stat-title text-warning-content/80">Avg Lifetime Value</div>
                   <div className="stat-value text-2xl">{formatCurrency(customerData.summary.avgLifetimeValue)}</div>
                   <div className="stat-desc text-warning-content/70">
-                    {customerData.summary.avgOrdersPerCustomer.toFixed(1)} orders per customer
+                    {customerData.summary.avgOrdersPerCustomer.toFixed(1)} books per customer
                   </div>
                 </div>
               </div>
@@ -422,7 +422,7 @@ const CustomerReport = () => {
                         </div>
                         <div className="stat-title text-white/90">VIP</div>
                         <div className="stat-value text-2xl">{segmentationData.segments.vip.count}</div>
-                        <div className="stat-desc text-white/80">10+ orders or ₱50k+</div>
+                        <div className="stat-desc text-white/80">10+ books or ₱50k+</div>
                       </div>
 
                       <div className="stat bg-gradient-to-br from-blue-500 to-blue-400 text-white rounded-lg">
@@ -431,7 +431,7 @@ const CustomerReport = () => {
                         </div>
                         <div className="stat-title text-white/90">Loyal</div>
                         <div className="stat-value text-2xl">{segmentationData.segments.loyal.count}</div>
-                        <div className="stat-desc text-white/80">5-10 orders or ₱20k-50k</div>
+                        <div className="stat-desc text-white/80">5-10 books or ₱20k-50k</div>
                       </div>
 
                       <div className="stat bg-gradient-to-br from-green-500 to-green-400 text-white rounded-lg">
@@ -440,7 +440,7 @@ const CustomerReport = () => {
                         </div>
                         <div className="stat-title text-white/90">Regular</div>
                         <div className="stat-value text-2xl">{segmentationData.segments.regular.count}</div>
-                        <div className="stat-desc text-white/80">2-4 orders or ₱5k-20k</div>
+                        <div className="stat-desc text-white/80">2-4 books or ₱5k-20k</div>
                       </div>
 
                       <div className="stat bg-gradient-to-br from-orange-500 to-orange-400 text-white rounded-lg">
@@ -449,7 +449,7 @@ const CustomerReport = () => {
                         </div>
                         <div className="stat-title text-white/90">New</div>
                         <div className="stat-value text-2xl">{segmentationData.segments.new.count}</div>
-                        <div className="stat-desc text-white/80">1 order or less than ₱5k</div>
+                        <div className="stat-desc text-white/80">1 book or less than ₱5k</div>
                       </div>
                     </div>
                   </div>
@@ -471,7 +471,7 @@ const CustomerReport = () => {
                             <th>Customer</th>
                             <th className="hidden sm:table-cell">Email</th>
                             <th>Spent</th>
-                            <th>Orders</th>
+                            <th>Books</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -537,7 +537,7 @@ const CustomerReport = () => {
                       <thead>
                         <tr>
                           <th>Service</th>
-                          <th>Total Orders</th>
+                          <th>Total Books</th>
                           <th>Total Quantity</th>
                           <th>Unique Customers</th>
                         </tr>
@@ -576,7 +576,7 @@ const CustomerReport = () => {
                       </div>
 
                       <div>
-                        <h4 className="font-semibold mb-2 text-sm">Orders by Day of Week</h4>
+                        <h4 className="font-semibold mb-2 text-sm">Books by Day of Week</h4>
                         <div className="space-y-2">
                           {customerData.orderBehavior.dailyDistribution.map((day, index) => (
                             <div key={index} className="flex items-center gap-2">
@@ -599,7 +599,7 @@ const CustomerReport = () => {
                   <div className="card-body">
                     <h3 className="card-title flex items-center gap-2">
                       <ShoppingBag size={20} />
-                      Order Frequency Distribution
+                      Book Frequency Distribution
                     </h3>
                     <div className="space-y-3 mt-4">
                       {Object.entries(customerData.orderBehavior.frequencyBuckets).map(([bucket, count], index) => (

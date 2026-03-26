@@ -119,7 +119,7 @@ const StaffDashboard = () => {
                     <div className="card-body">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm opacity-80">Total Orders</p>
+                          <p className="text-sm opacity-80">Total Books</p>
                           <p className="text-3xl font-bold">{analytics.orderCounts.allTime}</p>
                           <p className="text-xs opacity-70 mt-1">All Time</p>
                         </div>
@@ -138,7 +138,7 @@ const StaffDashboard = () => {
                         <div>
                           <p className="text-sm opacity-80">This Month</p>
                           <p className="text-3xl font-bold">{analytics.orderCounts.thisMonth}</p>
-                          <p className="text-xs opacity-70 mt-1">Orders</p>
+                          <p className="text-xs opacity-70 mt-1">Books</p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -155,7 +155,7 @@ const StaffDashboard = () => {
                         <div>
                           <p className="text-sm opacity-80">Today's Tasks</p>
                           <p className="text-3xl font-bold">{analytics.orderCounts.today}</p>
-                          <p className="text-xs opacity-70 mt-1">Orders</p>
+                          <p className="text-xs opacity-70 mt-1">Books</p>
                         </div>
                         <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -215,7 +215,7 @@ const StaffDashboard = () => {
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
                     </svg>
-                    All Orders
+                    All Books
                   </button>
                 </div>
               </div>
@@ -261,7 +261,7 @@ const StaffDashboard = () => {
                       <table className="table table-zebra">
                         <thead>
                           <tr>
-                            <th>Order ID</th>
+                            <th>Book ID</th>
                             <th>Customer</th>
                             <th>Weight</th>
                             <th>Status</th>

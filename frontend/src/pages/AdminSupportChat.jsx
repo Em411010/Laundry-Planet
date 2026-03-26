@@ -208,14 +208,14 @@ const AdminSupportChat = () => {
                   {viewMode === 'conversation' 
                     ? `${selectedClient?.client?.firstName} ${selectedClient?.client?.lastName}` 
                     : viewMode === 'orderChat'
-                    ? 'Order Staff-Client Chat'
+                    ? 'Book Staff-Client Chat'
                     : 'Customer Support'}
                 </h1>
                 <p className="text-base-content/60">
                   {viewMode === 'conversation' 
                     ? 'Chat with this customer' 
                     : viewMode === 'orderChat'
-                    ? 'View all staff and client conversations for this order'
+                    ? 'View all staff and client conversations for this book'
                     : 'Chat with customers and handle support requests'}
                 </p>
               </div>
@@ -306,7 +306,7 @@ const AdminSupportChat = () => {
                 className="btn btn-ghost btn-sm gap-2"
               >
                 <ArrowLeft size={16} />
-                Back to Orders
+                Back to Books
               </button>
 
               {selectedOrder && (
@@ -314,7 +314,7 @@ const AdminSupportChat = () => {
                   <div className="card-body">
                     <h3 className="card-title text-lg flex items-center gap-2">
                       <Package size={20} />
-                      Order {selectedOrder.orderNumber}
+                      Book {selectedOrder.orderNumber}
                     </h3>
                     <div className="grid md:grid-cols-3 gap-4 mt-2">
                       <div>
@@ -357,7 +357,7 @@ const AdminSupportChat = () => {
                   ) : orderMessages.length === 0 ? (
                     <div className="text-center py-12">
                       <MessageSquare className="mx-auto mb-3 text-base-content/40" size={40} />
-                      <p className="text-base-content/60">No messages in this order yet.</p>
+                      <p className="text-base-content/60">No messages in this book yet.</p>
                       <p className="text-sm text-base-content/50 mt-2">Staff and client conversations will appear here</p>
                     </div>
                   ) : (
@@ -411,7 +411,7 @@ const AdminSupportChat = () => {
 
                   <div className="alert alert-info mt-4">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="stroke-current shrink-0 w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    <span className="text-sm">This is a read-only view of staff-client conversations for this order. Only assigned staff and the client can send messages.</span>
+                    <span className="text-sm">This is a read-only view of staff-client conversations for this book. Only assigned staff and the client can send messages.</span>
                   </div>
                 </div>
               </div>
@@ -570,7 +570,7 @@ const AdminSupportChat = () => {
                           {clientOrders[0] && (
                             <div className="space-y-2">
                               <div className="flex justify-between">
-                                <span className="text-sm text-base-content/60">Order ID</span>
+                                <span className="text-sm text-base-content/60">Book ID</span>
                                 <span className="font-semibold text-sm">{clientOrders[0].orderNumber}</span>
                               </div>
                               <div className="flex justify-between">
@@ -602,12 +602,11 @@ const AdminSupportChat = () => {
                         <div className="card-body">
                           <h3 className="card-title text-lg flex items-center gap-2 mb-4">
                             <TrendingUp size={20} />
-                            Order History
+                            Book History
                           </h3>
-                          
                           <div className="space-y-2">
                             <div className="flex justify-between">
-                              <span className="text-sm text-base-content/60">Total Orders</span>
+                              <span className="text-sm text-base-content/60">Total Books</span>
                               <span className="font-semibold badge badge-primary">{clientOrders.length}</span>
                             </div>
                             <div className="flex justify-between">
@@ -631,7 +630,7 @@ const AdminSupportChat = () => {
                           </div>
 
                           <div className="mt-4 pt-4 border-t border-base-300">
-                            <p className="text-sm font-semibold mb-2">Recent Orders</p>
+                            <p className="text-sm font-semibold mb-2">Recent Books</p>
                             <div className="space-y-2 max-h-48 overflow-y-auto">
                               {clientOrders.slice(0, 5).map((order) => (
                                 <div key={order._id} className="text-xs p-2 bg-base-200 rounded">

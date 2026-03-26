@@ -221,7 +221,7 @@ const TrackOrders = () => {
       <div className="lg:ml-64 pt-28 md:pt-32 p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold">Track Orders</h1>
+            <h1 className="text-3xl font-bold">Track Books</h1>
           </div>
 
           {paymentError && (
@@ -240,15 +240,15 @@ const TrackOrders = () => {
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body items-center text-center py-12">
                 <Package className="w-16 h-16 text-base-content/30 mb-4" />
-                <h2 className="text-2xl font-bold mb-2">No Orders Yet</h2>
+                <h2 className="text-2xl font-bold mb-2">No Books Yet</h2>
                 <p className="text-base-content/60 mb-4">
-                  You haven't placed any orders yet.
+                  You haven't placed any books yet.
                 </p>
                 <button 
                   onClick={() => navigate('/client/new-order')}
                   className="btn btn-primary"
                 >
-                  Place Your First Order
+                  Place Your First Book
                 </button>
               </div>
             </div>
@@ -378,7 +378,7 @@ const TrackOrders = () => {
 
               <div className="card bg-base-200">
                 <div className="card-body">
-                  <h4 className="font-bold mb-2">Order Date</h4>
+                  <h4 className="font-bold mb-2">Book Date</h4>
                   <p>{new Date(selectedOrder.createdAt).toLocaleDateString()}</p>
                   <p className="text-sm text-base-content/60">
                     {new Date(selectedOrder.createdAt).toLocaleTimeString()}

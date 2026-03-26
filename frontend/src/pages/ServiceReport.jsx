@@ -151,7 +151,7 @@ const ServiceReport = () => {
 
         <div class="summary-grid">
           <div class="summary-card">
-            <div class="label">Total Service Orders</div>
+            <div class="label">Total Service Books</div>
             <div class="value">${serviceData.summary.totalServiceOrders}</div>
             <div class="sub">${serviceData.summary.activeServices} active services</div>
           </div>
@@ -161,7 +161,7 @@ const ServiceReport = () => {
             <div class="sub">From all services</div>
           </div>
           <div class="summary-card">
-            <div class="label">Avg Orders/Service</div>
+            <div class="label">Avg Books/Service</div>
             <div class="value">${serviceData.summary.avgOrdersPerService}</div>
             <div class="sub">Service utilization</div>
           </div>
@@ -175,7 +175,7 @@ const ServiceReport = () => {
         <div class="section">
           <div class="section-title">Top Services by Popularity</div>
           <table>
-            <tr><th>#</th><th>Service</th><th class="text-right">Orders</th><th class="text-right">Revenue</th><th class="text-right">Success Rate</th></tr>
+            <tr><th>#</th><th>Service</th><th class="text-right">Books</th><th class="text-right">Revenue</th><th class="text-right">Success Rate</th></tr>
             ${serviceData.servicePopularity.topServices.map((s, i) => 
               `<tr><td>${i + 1}</td><td>${s.name}</td><td class="text-right">${s.totalOrders}</td><td class="text-right text-green">${formatCurrency(s.totalRevenue)}</td><td class="text-right">${s.successRate}%</td></tr>`
             ).join('')}
@@ -217,7 +217,7 @@ const ServiceReport = () => {
         <div class="section">
           <div class="section-title">Staff Workload Distribution</div>
           <table>
-            <tr><th>Staff Member</th><th class="text-right">Total Orders</th><th class="text-right">Pickup</th><th class="text-right">Processing</th><th class="text-right">Delivery</th></tr>
+            <tr><th>Staff Member</th><th class="text-right">Total Books</th><th class="text-right">Pickup</th><th class="text-right">Processing</th><th class="text-right">Delivery</th></tr>
             ${serviceData.staffEfficiency.workloadDistribution.map(s => 
               `<tr><td>${s.name}</td><td class="text-right">${s.totalOrders}</td><td class="text-right">${s.roleDistribution.pickup}</td><td class="text-right">${s.roleDistribution.processing}</td><td class="text-right">${s.roleDistribution.delivery}</td></tr>`
             ).join('')}
@@ -228,7 +228,7 @@ const ServiceReport = () => {
         <div class="section">
           <div class="section-title">Monthly Service Trends</div>
           <table>
-            <tr><th>Month</th><th class="text-right">Orders</th><th class="text-right">Revenue</th></tr>
+            <tr><th>Month</th><th class="text-right">Books</th><th class="text-right">Revenue</th></tr>
             ${serviceData.demandPatterns.monthlyTrend.slice(-12).map(t => 
               `<tr><td>${t.month}</td><td class="text-right">${t.totalOrders}</td><td class="text-right text-green">${formatCurrency(t.totalRevenue)}</td></tr>`
             ).join('')}
@@ -374,7 +374,7 @@ const ServiceReport = () => {
                   <div className="stat-figure">
                     <Package size={32} />
                   </div>
-                  <div className="stat-title text-info-content/80">Total Service Orders</div>
+                  <div className="stat-title text-info-content/80">Total Service Books</div>
                   <div className="stat-value text-2xl">{serviceData.summary.totalServiceOrders}</div>
                   <div className="stat-desc text-info-content/70">
                     {serviceData.summary.activeServices} active services
@@ -394,7 +394,7 @@ const ServiceReport = () => {
                   <div className="stat-figure">
                     <BarChart3 size={32} />
                   </div>
-                  <div className="stat-title text-warning-content/80">Avg Orders/Service</div>
+                  <div className="stat-title text-warning-content/80">Avg Books/Service</div>
                   <div className="stat-value text-2xl">{serviceData.summary.avgOrdersPerService}</div>
                   <div className="stat-desc text-warning-content/70">Service utilization</div>
                 </div>
@@ -422,7 +422,7 @@ const ServiceReport = () => {
                           <tr>
                             <th>Rank</th>
                             <th>Service</th>
-                            <th>Orders</th>
+                            <th>Books</th>
                             <th>Revenue</th>
                           </tr>
                         </thead>
@@ -485,7 +485,7 @@ const ServiceReport = () => {
                       <thead>
                         <tr>
                           <th>Service</th>
-                          <th>Total Orders</th>
+                          <th>Total Books</th>
                           <th>Completed</th>
                           <th>Pending</th>
                           <th>Success Rate</th>
@@ -575,7 +575,7 @@ const ServiceReport = () => {
                       <thead>
                         <tr>
                           <th>Staff Member</th>
-                          <th>Total Orders</th>
+                          <th>Total Books</th>
                           <th>Pickup</th>
                           <th>Processing</th>
                           <th>Delivery</th>
@@ -614,7 +614,7 @@ const ServiceReport = () => {
                         <thead>
                           <tr>
                             <th>Month</th>
-                            <th>Total Orders</th>
+                            <th>Total Books</th>
                             <th>Revenue</th>
                           </tr>
                         </thead>

@@ -86,7 +86,7 @@ const ClientDashboard = () => {
       setCompletedOrders(completed.reverse())
     } catch (error) {
       console.error('Error loading orders:', error)
-      toast.error(error.response?.data?.message || 'Failed to load orders')
+      toast.error(error.response?.data?.message || 'Failed to load books')
       setOrders([])
       setCompletedOrders([])
     } finally {
@@ -152,7 +152,7 @@ const ClientDashboard = () => {
 
   const getStatusSequence = () => {
     return [
-      { status: 'pending', label: 'Order Submitted', icon: Package },
+      { status: 'pending', label: 'Book Submitted', icon: Package },
       { status: 'accepted', label: 'Ready for Pickup', icon: Clock },
       { status: 'picked-up', label: 'On the Shop', icon: TruckIcon },
       { status: 'in-progress', label: 'Processing', icon: MapPin },
@@ -260,22 +260,22 @@ const ClientDashboard = () => {
   const handleCancelOrder = async (orderId) => {
     if (cancellingOrders.has(orderId)) return
 
-    const confirmed = window.confirm('Are you sure you want to cancel this order? This action cannot be undone.')
+    const confirmed = window.confirm('Are you sure you want to cancel this book? This action cannot be undone.')
     if (!confirmed) return
 
     const reason = prompt('Please provide a reason for cancellation (optional):')
 
     setCancellingOrders(prev => new Set(prev).add(orderId))
-    const loadingToast = toast.loading('Cancelling order...')
+    const loadingToast = toast.loading('Cancelling book...')
 
     try {
       await orderAPI.cancelOrder(orderId, reason || '')
-      toast.success('Order cancelled successfully', { id: loadingToast })
+      toast.success('Book cancelled successfully', { id: loadingToast })
       // Reload orders
       await loadOrders()
     } catch (error) {
       console.error('Cancel order error:', error)
-      toast.error(error.response?.data?.message || 'Failed to cancel order', { id: loadingToast })
+      toast.error(error.response?.data?.message || 'Failed to cancel book', { id: loadingToast })
     } finally {
       setCancellingOrders(prev => {
         const newSet = new Set(prev)
@@ -324,7 +324,7 @@ const ClientDashboard = () => {
                 <div className="stat-figure text-primary">
                   <Package size={32} />
                 </div>
-                <div className="stat-title">Active Orders</div>
+                <div className="stat-title">Active Books</div>
                 <div className="stat-value text-primary">{orders.length}</div>
                 <div className="stat-desc">Currently processing</div>
               </div>
@@ -365,7 +365,7 @@ const ClientDashboard = () => {
                 <div className="stat-value text-accent">
                   ₱{orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0).toFixed(0)}
                 </div>
-                <div className="stat-desc">Active orders</div>
+                <div className="stat-desc">Active books</div>
               </div>
             </div>
           </div>
@@ -378,14 +378,14 @@ const ClientDashboard = () => {
                   className={`btn ${activeTab === 'active' ? 'btn-primary' : 'btn-outline'}`}
                 >
                   <Package size={18} />
-                  Active Orders
+                  Active Books
                 </button>
                 <button 
                   onClick={() => setActiveTab('completed')}
                   className={`btn ${activeTab === 'completed' ? 'btn-primary' : 'btn-outline'}`}
                 >
                   <History size={18} />
-                  Order History
+                  Book History
                 </button>
               </div>
 
@@ -394,7 +394,7 @@ const ClientDashboard = () => {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold flex items-center gap-2">
                       <Package size={24} className="text-primary" />
-                      Active Orders
+                      Active Books
                     </h2>
                     {orders.length > 0 && (
                       <span className="badge badge-primary">{orders.length} active</span>
@@ -406,14 +406,14 @@ const ClientDashboard = () => {
                   {loadingOrders ? (
                     <div className="py-12 flex flex-col items-center justify-center">
                       <span className="loading loading-spinner loading-lg text-primary"></span>
-                      <p className="text-sm text-base-content/60 mt-4">Loading orders...</p>
+                      <p className="text-sm text-base-content/60 mt-4">Loading books...</p>
                     </div>
                   ) : orders.length === 0 ? (
                     <div className="py-12 text-center">
                       <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-200 mb-4">
                         <Package size={32} className="text-base-content/40" />
                       </div>
-                      <h3 className="font-semibold text-lg mb-2">No Active Orders</h3>
+                      <h3 className="font-semibold text-lg mb-2">No Active Books</h3>
                       <p className="text-base-content/60 mb-6">Ready to get your laundry done?</p>
                       <button onClick={handleBookPickup} className="btn btn-primary gap-2">
                         <ShoppingBag size={18} />
@@ -516,7 +516,7 @@ const ClientDashboard = () => {
                                         ) : (
                                           <XCircle size={14} />
                                         )}
-                                        Cancel Order
+                                        Cancel Book
                                       </button>
                                     )}
                                   </div>
@@ -538,7 +538,7 @@ const ClientDashboard = () => {
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-xl font-bold flex items-center gap-2">
                       <History size={24} className="text-primary" />
-                      Order History
+                      Book History
                     </h2>
                     {completedOrders.length > 0 && (
                       <span className="badge badge-accent">{completedOrders.length} completed</span>
@@ -550,15 +550,15 @@ const ClientDashboard = () => {
                       {loadingCompleted ? (
                         <div className="py-12 flex flex-col items-center justify-center">
                           <span className="loading loading-spinner loading-lg text-primary"></span>
-                          <p className="text-sm text-base-content/60 mt-4">Loading order history...</p>
+                          <p className="text-sm text-base-content/60 mt-4">Loading book history...</p>
                         </div>
                       ) : completedOrders.length === 0 ? (
                         <div className="py-12 text-center">
                           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-base-200 mb-4">
                             <History size={32} className="text-base-content/40" />
                           </div>
-                          <h3 className="font-semibold text-lg mb-2">No Completed Orders</h3>
-                          <p className="text-base-content/60 mb-6">Your finished orders will appear here</p>
+                          <h3 className="font-semibold text-lg mb-2">No Completed Books</h3>
+                          <p className="text-base-content/60 mb-6">Your finished books will appear here</p>
                         </div>
                       ) : (
                         <div className="space-y-3">
@@ -703,7 +703,7 @@ const ClientDashboard = () => {
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle2 size={16} className="text-success mt-0.5 flex-shrink-0" />
-                      <span>Track your order in real-time</span>
+                      <span>Track your book in real-time</span>
                     </div>
                     <div className="flex items-start gap-2">
                       <CheckCircle2 size={16} className="text-success mt-0.5 flex-shrink-0" />
@@ -752,8 +752,8 @@ const ClientDashboard = () => {
                 {selectedOrder.status === 'cancelled' ? (
                   <div className="flex flex-col items-center justify-center py-6 gap-3 text-center">
                     <XCircle size={48} className="text-error" />
-                    <p className="font-bold text-error text-lg">Order Cancelled</p>
-                    <p className="text-sm text-base-content/60">This order has been cancelled and is no longer being processed.</p>
+                    <p className="font-bold text-error text-lg">Book Cancelled</p>
+                    <p className="text-sm text-base-content/60">This book has been cancelled and is no longer being processed.</p>
                   </div>
                 ) : (
                 <ul className="steps steps-vertical w-full text-sm max-h-64 overflow-y-auto">
