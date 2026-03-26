@@ -335,6 +335,49 @@ export const deleteUser = async (req, res) => {
   }
 };
 
+// Bulk delete users
+export const bulkDeleteUsers = async (req, res) => {
+  try {
+    const { userIds } = req.body;
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an array of user IDs'
+      });
+    }
+
+    // Prevent admin from deleting themselves
+    if (userIds.includes(req.userId.toString())) {
+      return res.status(400).json({
+        success: false,
+        message: 'You cannot delete your own account'
+      });
+    }
+
+    // Log audit for each user before deletion
+    for (const userId of userIds) {
+      const u = await User.findById(userId);
+      if (u) {
+        await logAudit('USER_DELETED', req.userId, u._id, { email: u.email, role: u.role, bulk: true }, req);
+      }
+    }
+
+    await User.deleteMany({ _id: { $in: userIds } });
+
+    res.json({
+      success: true,
+      message: `${userIds.length} users deleted successfully`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error performing bulk delete',
+      error: error.message
+    });
+  }
+};
+
 // Bulk activate/deactivate users
 export const bulkToggleStatus = async (req, res) => {
   try {

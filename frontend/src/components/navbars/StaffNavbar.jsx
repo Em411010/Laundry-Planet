@@ -3,10 +3,11 @@ import { Link, useNavigate } from 'react-router-dom'
 import { 
   LayoutDashboard, ClipboardList, 
   Clock, CreditCard,
-  LogOut, Menu, X, Sun, Moon
+  LogOut, Menu, X, Sun, Moon, Search
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 import NotificationBell from '../NotificationBell'
+import FeatureSearch from '../FeatureSearch'
 
 const StaffSidebar = ({ user, isOpen, toggleSidebar }) => {
   const navigate = useNavigate()
@@ -103,6 +104,13 @@ const StaffNavbar = ({ toggleSidebar }) => {
     return () => clearInterval(id)
   }, [])
 
+  const searchItems = [
+    { icon: LayoutDashboard, label: 'Dashboard',    path: '/dashboard/staff',          desc: 'Overview & stats' },
+    { icon: ClipboardList,   label: 'Books',        path: '/dashboard/staff/orders',   desc: 'Manage all bookings' },
+    { icon: Clock,           label: 'My Tasks',     path: '/dashboard/staff/my-tasks', desc: 'Your assigned tasks' },
+    { icon: CreditCard,      label: 'Walk-in Book', path: '/dashboard/staff/payments', desc: 'Create walk-in booking' },
+  ]
+
   return (
     <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 lg:w-[calc(100%-16rem)] h-16">
       <div className="navbar bg-base-100 border-b border-base-300 px-4 h-full">
@@ -113,6 +121,7 @@ const StaffNavbar = ({ toggleSidebar }) => {
           <h1 className="text-lg md:text-xl font-bold ml-2 truncate min-w-0">Staff Dashboard</h1>
         </div>
         <div className="flex items-center gap-2">
+          <FeatureSearch items={searchItems} />
           <div className="hidden md:flex flex-col items-end leading-tight mr-1">
             <span className="text-xs text-base-content/50">{now.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
             <span className="text-xs font-mono font-semibold tabular-nums">{now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>

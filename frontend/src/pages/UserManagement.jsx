@@ -25,6 +25,7 @@ const UserManagement = () => {
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
   const [selectedUsers, setSelectedUsers] = useState([])
@@ -129,6 +130,18 @@ const UserManagement = () => {
       fetchUsers()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to toggle user status')
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    try {
+      await userAPI.bulkDeleteUsers(selectedUsers)
+      setSelectedUsers([])
+      setShowBulkDeleteModal(false)
+      fetchUsers()
+      toast.success(`${selectedUsers.length} users deleted successfully`)
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete users')
     }
   }
 
@@ -320,6 +333,9 @@ const UserManagement = () => {
                     </a></li>
                     <li><a onClick={() => handleBulkToggle(false)}>
                       <PowerOff className="h-4 w-4" /> Deactivate Selected
+                    </a></li>
+                    <li><a onClick={() => selectedUsers.length > 0 && setShowBulkDeleteModal(true)} className="text-error">
+                      <Trash2 className="h-4 w-4" /> Delete Selected
                     </a></li>
                   </ul>
                 </div>
@@ -591,6 +607,21 @@ const UserManagement = () => {
             </form>
           </div>
           <div className="modal-backdrop" onClick={() => setShowEditModal(false)}></div>
+        </div>
+      )}{showBulkDeleteModal && (
+        <div className="modal modal-open">
+          <div className="modal-box">
+            <h3 className="font-bold text-lg mb-4 text-error">Delete {selectedUsers.length} User{selectedUsers.length !== 1 ? 's' : ''}</h3>
+            <p className="mb-4">
+              Are you sure you want to permanently delete <strong>{selectedUsers.length} selected user{selectedUsers.length !== 1 ? 's' : ''}</strong>?
+              This action cannot be undone.
+            </p>
+            <div className="modal-action">
+              <button className="btn" onClick={() => setShowBulkDeleteModal(false)}>Cancel</button>
+              <button className="btn btn-error" onClick={handleBulkDelete}>Delete All</button>
+            </div>
+          </div>
+          <div className="modal-backdrop" onClick={() => setShowBulkDeleteModal(false)}></div>
         </div>
       )}{showDeleteModal && selectedUser && (
         <div className="modal modal-open">

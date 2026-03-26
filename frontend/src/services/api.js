@@ -100,6 +100,12 @@ export const userAPI = {
     return response.data
   },
 
+  // Bulk delete users
+  bulkDeleteUsers: async (userIds) => {
+    const response = await api.post('/users/bulk-delete', { userIds })
+    return response.data
+  },
+
   // Toggle user status
   toggleUserStatus: async (id) => {
     const response = await api.patch(`/users/${id}/toggle-status`)
