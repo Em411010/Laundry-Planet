@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { User, Mail, Lock, Eye, EyeOff } from 'lucide-react'
+import { User, Mail, Lock, Eye, EyeOff, Clock } from 'lucide-react'
 import toast from 'react-hot-toast'
 import Logo from '../../assets/LP_Logo.png'
 import { authAPI } from '../../services/api'
@@ -33,6 +33,11 @@ const RegisterPage = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
+  }, [])
 
   const handleChange = (e) => {
     setFormData({
@@ -90,6 +95,10 @@ const RegisterPage = () => {
             <img src={Logo} alt="Laundry Planet" className="w-24 h-24 mx-auto mb-4" />
             <h2 className="text-3xl font-bold">Create Account</h2>
             <p className="text-base-content/60 mt-2">Join Laundry Planet today</p>
+            <p className="text-xs text-base-content/50 mt-2 flex items-center justify-center gap-1">
+              <Clock size={12} />
+              {now.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })} · {now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -10,7 +10,8 @@ import {
   UserPlus,
   LayoutDashboard,
   Sun,
-  Moon
+  Moon,
+  Clock
 } from 'lucide-react'
 
 const LandingNavbar = () => {
@@ -35,6 +36,12 @@ const LandingNavbar = () => {
         console.error('Error parsing user data', err)
       }
     }
+  }, [])
+
+  const [now, setNow] = useState(new Date())
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(id)
   }, [])
 
   const getDashboardPath = () => {
@@ -149,6 +156,10 @@ const LandingNavbar = () => {
           )}
         </div>
 
+        <div className="hidden md:flex flex-col items-end leading-tight mr-2">
+          <span className="text-xs text-base-content/50">{now.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          <span className="text-xs font-mono font-semibold tabular-nums">{now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+        </div>
         <button aria-label="Toggle theme" className="btn btn-ghost hidden md:inline-flex" onClick={toggleTheme}>
           {theme === 'aqua' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
         </button>
