@@ -4,10 +4,11 @@ import {
   LayoutDashboard, Users, Shield, Package, DollarSign, Tag, 
   Settings, FileText, CreditCard, BarChart3, FileSearch, 
   Database, Lock, LogOut, Menu, X, ChevronDown, Sun, Moon,
-  MessageSquare, ShoppingCart, Clock
+  MessageSquare, ShoppingCart, Clock, Search
 } from 'lucide-react'
 import Logo from '../../assets/LP_Logo.png'
 import NotificationBell from '../NotificationBell'
+import FeatureSearch from '../FeatureSearch'
 
 const AdminSidebar = ({ user, isOpen, toggleSidebar }) => {
   const navigate = useNavigate()
@@ -166,6 +167,19 @@ const AdminNavbar = ({ toggleSidebar }) => {
     return () => clearInterval(id)
   }, [])
 
+  const searchItems = [
+    { icon: LayoutDashboard, label: 'Dashboard',         path: '/dashboard/admin',                    desc: 'Overview & key metrics' },
+    { icon: BarChart3,       label: 'Sales Report',      path: '/dashboard/admin/reports/sales',      desc: 'Revenue and sales analytics' },
+    { icon: BarChart3,       label: 'Customer Report',   path: '/dashboard/admin/reports/customers',  desc: 'Customer analytics' },
+    { icon: BarChart3,       label: 'Service Report',    path: '/dashboard/admin/reports/services',   desc: 'Service analytics' },
+    { icon: ShoppingCart,    label: 'Walk-in Book',      path: '/dashboard/admin/walk-in-order',      desc: 'Create walk-in booking' },
+    { icon: Users,           label: 'User Management',  path: '/dashboard/admin/users',              desc: 'Manage staff & clients' },
+    { icon: Package,         label: 'Services & Pricing',path: '/dashboard/admin/services',           desc: 'Manage service offerings' },
+    { icon: MessageSquare,   label: 'Customer Support', path: '/dashboard/admin/support',            desc: 'Chat with customers' },
+    { icon: FileText,        label: 'Books',            path: '/dashboard/admin/orders',             desc: 'All bookings' },
+    { icon: FileSearch,      label: 'Audit Logs',       path: '/dashboard/admin/audit-logs',         desc: 'System activity logs' },
+  ]
+
   return (
     <div className="fixed top-0 left-0 right-0 z-30 lg:left-64 lg:w-[calc(100%-16rem)] h-16">
       <div className="navbar bg-base-100 border-b border-base-300 px-4 h-full">
@@ -176,6 +190,7 @@ const AdminNavbar = ({ toggleSidebar }) => {
           <h1 className="text-lg md:text-xl font-bold ml-2 truncate min-w-0">Admin Dashboard</h1>
         </div>
         <div className="flex items-center gap-2">
+          <FeatureSearch items={searchItems} />
           <div className="hidden md:flex flex-col items-end leading-tight mr-1">
             <span className="text-xs text-base-content/50">{now.toLocaleDateString('en-PH', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
             <span className="text-xs font-mono font-semibold tabular-nums">{now.toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>

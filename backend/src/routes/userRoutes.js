@@ -7,6 +7,7 @@ import {
   toggleUserStatus,
   deleteUser,
   bulkToggleStatus,
+  bulkDeleteUsers,
   getUserAuditLogs,
   searchCustomers
 } from '../controllers/userController.js';
@@ -30,6 +31,7 @@ router.delete('/:id', deleteUser);
 // Status management
 router.patch('/:id/toggle-status', toggleUserStatus);
 router.post('/bulk-toggle-status', bulkToggleStatus);
+router.post('/bulk-delete', bulkDeleteUsers);
 
 // Audit logs
 router.get('/:id/audit-logs', getUserAuditLogs);
